@@ -10,6 +10,8 @@ import { WhatsAppSettingsModal } from './components/WhatsAppSettingsModal';
 import { EmployeesModal } from './components/EmployeesModal';
 import { ShopSettingsModal } from './components/ShopSettingsModal';
 import { OwnerPasscodeModal } from './components/OwnerPasscodeModal';
+import { PWAInstallBanner } from './components/PWAInstallBanner';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 export function App() {
   const [shop, setShop] = useState<Shop>(() => storage.getShop());
@@ -74,6 +76,9 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 font-sans antialiased flex flex-col selection:bg-indigo-500 selection:text-white">
+      {/* PWA Install Banner */}
+      <PWAInstallBanner />
+
       {/* Navigation Bar */}
       <Navbar
         currentRoleView={currentRoleView}
@@ -179,6 +184,8 @@ export function App() {
           </div>
         </div>
       </footer>
+      {/* Offline Connectivity Indicator */}
+      <OfflineIndicator />
     </div>
   );
 }

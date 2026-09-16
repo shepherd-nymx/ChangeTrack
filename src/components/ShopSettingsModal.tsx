@@ -17,10 +17,14 @@ import {
   MapPin, 
   DollarSign, 
   MessageSquare,
-  AlertTriangle
+  AlertTriangle,
+  Smartphone,
+  Download,
+  Wifi
 } from 'lucide-react';
 import { Shop } from '../types';
 import { storage } from '../services/storage';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface ShopSettingsModalProps {
   shop: Shop;
@@ -63,7 +67,7 @@ export const ShopSettingsModal: React.FC<ShopSettingsModalProps> = ({
   const [ownerPasscode, setOwnerPasscode] = useState(shop.ownerPasscode || '1234');
   const [showPasscode, setShowPasscode] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'IDENTITY' | 'LOGO' | 'SECURITY'>('IDENTITY');
+  const [activeTab, setActiveTab] = useState<'IDENTITY' | 'LOGO' | 'SECURITY' | 'INSTALL'>('IDENTITY');
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -200,6 +204,22 @@ export const ShopSettingsModal: React.FC<ShopSettingsModalProps> = ({
                 Active
               </span>
             )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('INSTALL')}
+            className={`py-3 px-4 border-b-2 transition-colors flex items-center gap-1.5 ${
+              activeTab === 'INSTALL'
+                ? 'border-indigo-600 text-indigo-700 bg-white'
+                : 'border-transparent hover:text-slate-900'
+            }`}
+          >
+            <Smartphone className="w-4 h-4 text-emerald-600" />
+            <span>Install App (PWA)</span>
+            <span className="text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.2 rounded font-bold">
+              Ready
+            </span>
           </button>
         </div>
 
@@ -480,6 +500,94 @@ export const ShopSettingsModal: React.FC<ShopSettingsModalProps> = ({
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* TAB 4: INSTALL (PWA) */}
+            {activeTab === 'INSTALL' && (
+              <div className="space-y-4">
+                <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-2xl p-5 text-white border border-slate-800">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white shadow-md shrink-0">
+                        <Smartphone className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-base font-extrabold text-white">ChangeTrack Native App</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            PWA Ready
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-300 mt-0.5">
+                          Install directly to your device desktop, tablet, or phone home screen.
+                        </p>
+                      </div>
+                    </div>
+
+                    <PWAInstallButton variant="hero" />
+                  </div>
+                </div>
+
+                {/* Technical PWA Capabilities Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs mb-1">
+                      <Wifi className="w-4 h-4 text-emerald-600" />
+                      <span>Offline Till Operation</span>
+                    </div>
+                    <p className="text-[11px] text-slate-600">
+                      Caches all assets & local sales history. Works even when the store network drops.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div className="flex items-center gap-2 text-indigo-700 font-bold text-xs mb-1">
+                      <Smartphone className="w-4 h-4 text-indigo-600" />
+                      <span>Standalone Window</span>
+                    </div>
+                    <p className="text-[11px] text-slate-600">
+                      No browser URL bar or unwanted tabs. Gives your cashier a clean, focused POS interface.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div className="flex items-center gap-2 text-amber-700 font-bold text-xs mb-1">
+                      <Download className="w-4 h-4 text-amber-600" />
+                      <span>Zero App Store Friction</span>
+                    </div>
+                    <p className="text-[11px] text-slate-600">
+                      Instant installation without 100MB downloads. Updates automatically when new features deploy.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Device-Specific Installation Instructions */}
+                <div className="space-y-3">
+                  <h5 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Device Guides</h5>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="p-3.5 bg-white border border-slate-200 rounded-xl">
+                      <p className="font-bold text-slate-900 mb-1 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        Chrome, Edge & Android
+                      </p>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Click the <strong>Install App</strong> button above, or click the install icon in your browser address bar. On Android, select <em>Add to Home screen</em> from the browser menu.
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 bg-white border border-slate-200 rounded-xl">
+                      <p className="font-bold text-slate-900 mb-1 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                        Apple iOS Safari (iPhone / iPad)
+                      </p>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Open in Safari, tap the <strong>Share</strong> button (box with upward arrow), scroll down and tap <strong>Add to Home Screen</strong>, then tap <strong>Add</strong>.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

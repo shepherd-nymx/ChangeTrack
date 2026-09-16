@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Employee, Shop, UserRole } from '../types';
 import { storage } from '../services/storage';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface NavbarProps {
   currentRoleView: 'CASHIER' | 'ADMIN' | 'DISPUTES' | 'CUSTOMER';
@@ -181,6 +182,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 pointer-events-none" />
             </div>
+
+            {/* PWA Install Button */}
+            <PWAInstallButton variant="nav" />
 
             {/* Shop Settings & Logo Shortcut */}
             <button

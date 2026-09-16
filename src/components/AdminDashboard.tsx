@@ -21,7 +21,8 @@ import {
   Eye,
   Trash2,
   Lock,
-  Store
+  Store,
+  MessageSquare
 } from 'lucide-react';
 import { Shop, Employee, ChangeRecord, Transaction, AuditLog, DashboardStats } from '../types';
 import { storage } from '../services/storage';
@@ -29,6 +30,7 @@ import { formatDateTime } from '../services/whatsapp';
 import { VerificationModal } from './VerificationModal';
 import { CustomerHistoryModal } from './CustomerHistoryModal';
 import { ReceiptModal } from './ReceiptModal';
+import { WhatsAppDashboardHub } from './WhatsAppDashboardHub';
 
 interface AdminDashboardProps {
   currentEmployee: Employee;
@@ -49,9 +51,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onOpenShopSettings,
   onLockDashboard
 }) => {
-  const [activeTab, setActiveTab] = useState<'RECORDS' | 'TRANSACTIONS' | 'AUDIT' | 'CHARTS'>('RECORDS');
+  const [activeTab, setActiveTab] = useState<'RECORDS' | 'TRANSACTIONS' | 'WHATSAPP' | 'CHARTS' | 'AUDIT'>('RECORDS');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'OUTSTANDING' | 'COLLECTED' | 'CANCELLED'>('ALL');
+  const [whatsappTargetRecordId, setWhatsappTargetRecordId] = useState<string | null>(null);
   
   // Modals
   const [verifyRecordId, setVerifyRecordId] = useState<string | null>(null);
@@ -365,6 +368,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               Till Transactions ({allTxs.length})
             </button>
             <button
+              onClick={() => setActiveTab('WHATSAPP')}
+              className={`py-3 px-4 rounded-t-xl transition-all flex items-center gap-1.5 ${
+                activeTab === 'WHATSAPP'
+                  ? 'bg-white border-t-2 border-emerald-600 border-x border-slate-200 text-emerald-900 font-extrabold -mb-[1px]'
+                  : 'text-emerald-700 hover:text-emerald-900'
+              }`}
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+              <span>WhatsApp Cloud API</span>
+              <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded-full">
+                Meta Direct
+              </span>
+            </button>
+            <button
               onClick={() => setActiveTab('CHARTS')}
               className={`py-3 px-4 rounded-t-xl transition-all ${
                 activeTab === 'CHARTS'
@@ -494,6 +511,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-right space-x-1 whitespace-nowrap">
+                      <button
+                        onClick={() => {
+                          setWhatsappTargetRecordId(rec.id);
+                          setActiveTab('WHATSAPP');
+                        }}
+                        title="Send WhatsApp Notification via Meta Cloud API"
+                        className="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                      </button>
+
                       <button
                         onClick={() => setSelectedReceiptRecord(rec)}
                         title="View & Print Slip"
@@ -718,6 +746,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* TAB 5: META WHATSAPP CLOUD API HUB */}
+        {activeTab === 'WHATSAPP' && (
+          <div className="p-6">
+            <WhatsAppDashboardHub
+              shop={shop}
+              onOpenSettings={onOpenWhatsAppSettings}
+              preselectedRecordId={whatsappTargetRecordId}
+            />
           </div>
         )}
       </div>

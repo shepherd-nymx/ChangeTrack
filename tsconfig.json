@@ -20,7 +20,10 @@
         "./*"
       ]
     },
+    "types": ["vite/client", "vite-plugin-pwa/client"],
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "include": ["src/**/*", "server.ts"],
+  "exclude": ["node_modules", "dist", "supabase/**/*"]
 }

@@ -22,25 +22,31 @@ export function generateRecordChangeMessage(
   const currency = shop.currencySymbol || '$';
 
   let balanceSection = '';
-  if (cumulativeTotalBalanceOwed !== undefined) {
-    balanceSection = `\n\n💰 *Total Balance Owed to You: ${currency}${cumulativeTotalBalanceOwed.toFixed(2)}*`;
+  if (cumulativeTotalBalanceOwed !== undefined && cumulativeTotalBalanceOwed > record.amountOwed) {
+    balanceSection = `\n\n💰 *Total Cumulative Balance Owed: ${currency}${cumulativeTotalBalanceOwed.toFixed(2)}*`;
     if (previousBalance && previousBalance > 0) {
-      balanceSection += `\n_(Previous balance ${currency}${previousBalance.toFixed(2)} + New change ${currency}${record.amountOwed.toFixed(2)})_`;
+      balanceSection += `\n_(Previous ${currency}${previousBalance.toFixed(2)} + New change ${currency}${record.amountOwed.toFixed(2)})_`;
     }
   }
 
-  return `*${shop.name}*
+  return `🏪 *${shop.name.toUpperCase()}*
+📍 Branch: ${shop.branchName || 'Main Register'}
+━━━━━━━━━━━━━━━━━━━━━
+📢 *OUTSTANDING CHANGE NOTIFICATION*
 
-Your change has been recorded.
+Dear Customer, your change from transaction *${record.transactionId}* has been securely recorded.
 
-Amount Added: *${currency}${record.amountOwed.toFixed(2)}*
-Change ID: *${record.id}*
-Date: *${formattedDate}*
-Status: *Outstanding*${balanceSection}
+💵 *Amount Owed:* *${currency}${record.amountOwed.toFixed(2)}*
+🔑 *Unique Change ID:* *${record.id}*
+📅 *Date & Time:* ${formattedDate}
+📌 *Status:* OUTSTANDING${balanceSection}
 
-Please present your Change ID, QR code, or this WhatsApp message when collecting your change.
+📋 *HOW TO COLLECT YOUR CHANGE:*
+• Present this WhatsApp message or your Change ID (*${record.id}*) at any checkout register.
+• Or show your digital customer pass / QR code to the cashier.
+• You can collect in cash or apply it toward your next purchase.
 
-Thank you for shopping with us.`;
+Thank you for shopping with ${shop.name}!`;
 }
 
 export function generateCollectedChangeMessage(
@@ -54,28 +60,105 @@ export function generateCollectedChangeMessage(
   let balanceSection = '';
   if (remainingBalanceOwed !== undefined) {
     if (remainingBalanceOwed > 0) {
-      balanceSection = `\n\n💰 *Remaining Balance Owed: ${currency}${remainingBalanceOwed.toFixed(2)}*`;
+      balanceSection = `\n\n💰 *Remaining Balance Still Owed to You: ${currency}${remainingBalanceOwed.toFixed(2)}*`;
     } else {
-      balanceSection = `\n\n✅ *All Your Change Has Been Settled!*\nRemaining Balance: *${currency}0.00*`;
+      balanceSection = `\n\n✅ *All Your Change Has Been Fully Settled!*\nRemaining Balance: *${currency}0.00*`;
     }
   }
 
-  return `*${shop.name}*
+  return `🏪 *${shop.name.toUpperCase()}*
+📍 Branch: ${shop.branchName || 'Main Register'}
+━━━━━━━━━━━━━━━━━━━━━
+✅ *CHANGE COLLECTION CONFIRMATION*
 
-Your change of *${currency}${record.amountOwed.toFixed(2)}* has been successfully collected.
+Dear Customer, your outstanding change has been successfully collected.
 
-Change ID: *${record.id}*
-Collected: *${formattedDate}*
-Cashier: *${record.collectedByEmployeeName || 'Cashier'}*
-Status: *COLLECTED*${balanceSection}
+💵 *Amount Collected:* *${currency}${record.amountOwed.toFixed(2)}*
+🔑 *Change ID:* *${record.id}*
+🕒 *Collected At:* ${formattedDate}
+👤 *Verified By Cashier:* ${record.collectedByEmployeeName || 'Cashier'}
+📌 *Status:* COLLECTED${balanceSection}
 
-Thank you for your business.`;
+Thank you for shopping with ${shop.name}! Have a wonderful day.`;
 }
 
 export function buildWhatsAppDirectLink(phone: string, text: string): string {
   // Strip non-digits
   const cleanPhone = phone.replace(/[^0-9]/g, '');
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+}
+
+export async function fetchWhatsAppServerStatus(): Promise<{
+  isConfigured: boolean;
+  hasToken: boolean;
+  phoneNumberId: string | null;
+  wabaId: string | null;
+  shopPhoneNumber: string;
+  supabaseConfigured: boolean;
+  supabaseUrl: string | null;
+  apiVersion: string;
+}> {
+  try {
+    const res = await fetch('/api/whatsapp/config-status');
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('Failed to fetch WhatsApp server status:', err);
+  }
+  return {
+    isConfigured: false,
+    hasToken: false,
+    phoneNumberId: null,
+    wabaId: null,
+    shopPhoneNumber: '+15550199283',
+    supabaseConfigured: false,
+    supabaseUrl: null,
+    apiVersion: 'Meta Graph API v21.0'
+  };
+}
+
+export async function sendDirectWhatsAppMessage(params: {
+  to: string;
+  text: string;
+  changeId?: string;
+  type?: 'CHANGE_RECORDED' | 'CHANGE_COLLECTED' | 'TEST';
+  shopName?: string;
+  amount?: number;
+}): Promise<{
+  success: boolean;
+  metaMessageId?: string;
+  status: 'DELIVERED' | 'SENT' | 'FAILED';
+  error?: string;
+}> {
+  try {
+    const res = await fetch('/api/whatsapp/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params)
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      return {
+        success: true,
+        metaMessageId: data.metaMessageId,
+        status: data.status === 'DELIVERED' ? 'DELIVERED' : 'SENT'
+      };
+    } else {
+      return {
+        success: false,
+        status: 'FAILED',
+        error: data.error || 'WhatsApp message failed to dispatch'
+      };
+    }
+  } catch (err: any) {
+    return {
+      success: false,
+      status: 'FAILED',
+      error: err.message || 'Network error reaching WhatsApp server route'
+    };
+  }
 }
 
 export async function sendWhatsAppNotification(
@@ -93,44 +176,41 @@ export async function sendWhatsAppNotification(
   const messageId = `wa-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
   const now = new Date().toISOString();
 
-  // If live Cloud API is configured with an access token
-  if (config.isEnabled && config.accessToken && config.phoneNumberId) {
-    try {
-      const cleanPhone = record.customerPhone.replace(/[^0-9]/g, '');
-      const response = await fetch(`https://graph.facebook.com/v21.0/${config.phoneNumberId}/messages`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${config.accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          recipient_type: 'individual',
-          to: cleanPhone,
-          type: 'text',
-          text: { preview_url: false, body: text }
-        })
-      });
+  // Secure server-side call: Access tokens and credentials are NEVER exposed to client
+  try {
+    const res = await fetch('/api/whatsapp/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: record.customerPhone,
+        text,
+        changeId: record.id,
+        type,
+        shopName: shop.name,
+        amount: record.amountOwed
+      })
+    });
 
-      if (response.ok) {
-        const data = await response.json();
-        return {
-          id: messageId,
-          changeId: record.id,
-          customerPhone: record.customerPhone,
-          type,
-          shopName: shop.name,
-          amount: record.amountOwed,
-          messageText: text,
-          status: 'DELIVERED',
-          sentAt: now,
-          deliveredAt: now,
-          metaMessageId: data?.messages?.[0]?.id || `wamid.${Date.now()}`
-        };
-      }
-    } catch (err) {
-      console.warn('Live WhatsApp Cloud API send failed, falling back to simulated dispatch:', err);
+    if (res.ok) {
+      const data = await res.json();
+      return {
+        id: messageId,
+        changeId: record.id,
+        customerPhone: record.customerPhone,
+        type,
+        shopName: shop.name,
+        amount: record.amountOwed,
+        previousBalance,
+        cumulativeTotalBalanceOwed,
+        messageText: text,
+        status: data.status === 'DELIVERED' ? 'DELIVERED' : 'SENT',
+        sentAt: now,
+        deliveredAt: data.status === 'DELIVERED' ? now : undefined,
+        metaMessageId: data.metaMessageId || `wamid.${Date.now()}`
+      };
     }
+  } catch (err) {
+    console.warn('Server-side WhatsApp call failed, using graceful simulation fallback:', err);
   }
 
   // Graceful simulation & fallback
@@ -141,6 +221,8 @@ export async function sendWhatsAppNotification(
     type,
     shopName: shop.name,
     amount: record.amountOwed,
+    previousBalance,
+    cumulativeTotalBalanceOwed,
     messageText: text,
     status: config.isEnabled ? 'DELIVERED' : 'SENT',
     sentAt: now,
@@ -148,3 +230,4 @@ export async function sendWhatsAppNotification(
     metaMessageId: `wamid.sim_${Math.random().toString(36).substring(2, 12)}`
   };
 }
+
