@@ -1,0 +1,6 @@
+{
+  "name": "ChangeTrack",
+  "description": "Digital, tamper-resistant retail transaction and outstanding change tracking platform with WhatsApp notifications, QR customer verification, cashier quick-till, and anti-dispute audit history.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
