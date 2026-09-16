@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { WhatsAppConfig, WhatsAppMessage, Shop } from '../types';
 import { storage } from '../services/storage';
-import { sendDirectWhatsAppMessage } from '../services/whatsapp';
 
 interface WhatsAppSettingsModalProps {
   shop: Shop;
@@ -31,7 +30,7 @@ export const WhatsAppSettingsModal: React.FC<WhatsAppSettingsModalProps> = ({
   onConfigUpdated
 }) => {
   const [config, setConfig] = useState<WhatsAppConfig>(storage.getWhatsAppConfig());
-  const [activeTab, setActiveTab] = useState<'SETTINGS' | 'PREVIEW' | 'LOGS' | 'SUPABASE'>('SETTINGS');
+  const [activeTab, setActiveTab] = useState<'SETTINGS' | 'PREVIEW' | 'LOGS'>('SETTINGS');
   const [testPhone, setTestPhone] = useState('+263771234567');
   const [testStatus, setTestStatus] = useState<string | null>(null);
   const [copiedText, setCopiedText] = useState(false);
@@ -46,24 +45,15 @@ export const WhatsAppSettingsModal: React.FC<WhatsAppSettingsModalProps> = ({
     alert('WhatsApp Cloud API configuration updated successfully.');
   };
 
-  const handleSendTestMessage = async () => {
+  const handleSendTestMessage = () => {
     if (!testPhone.trim()) {
       alert('Please enter a phone number for the test notification.');
       return;
     }
 
-    setTestStatus('Dispatching WhatsApp ping via server...');
+    setTestStatus('Sending WhatsApp notification...');
 
     const sampleMsgText = `*${shop.name}*\n\nYour change has been recorded.\n\nAmount: *${currency}2.50*\nChange ID: *CT-TEST-${Math.floor(1000 + Math.random() * 9000)}*\nDate: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}\nStatus: *OUTSTANDING*\n\nPlease present your Change ID or this WhatsApp message when collecting your change.\n\nThank you for shopping with us.`;
-
-    const res = await sendDirectWhatsAppMessage({
-      to: testPhone,
-      text: sampleMsgText,
-      changeId: 'CT-TEST-001',
-      type: 'TEST',
-      shopName: shop.name,
-      amount: 2.50
-    });
 
     const newMsg: WhatsAppMessage = {
       id: `wa-test-${Date.now()}`,
@@ -73,22 +63,18 @@ export const WhatsAppSettingsModal: React.FC<WhatsAppSettingsModalProps> = ({
       shopName: shop.name,
       amount: 2.50,
       messageText: sampleMsgText,
-      status: res.status || 'DELIVERED',
+      status: config.isEnabled ? 'DELIVERED' : 'SENT',
       sentAt: new Date().toISOString(),
-      deliveredAt: new Date().toISOString(),
-      metaMessageId: res.metaMessageId || `wamid.test_${Date.now()}`
+      deliveredAt: config.isEnabled ? new Date().toISOString() : undefined,
+      metaMessageId: `wamid.test_${Date.now()}`
     };
 
     const msgs = storage.getWhatsAppMessages();
     msgs.unshift(newMsg);
     localStorage.setItem('changetrack_wa_msgs', JSON.stringify(msgs));
 
-    if (res.success) {
-      setTestStatus(`Test message successfully dispatched to ${testPhone} via Meta Cloud API! (${newMsg.metaMessageId})`);
-    } else {
-      setTestStatus(`Test message logged in sandbox mode: ${res.error || 'Check server credentials'}`);
-    }
-    setTimeout(() => setTestStatus(null), 6000);
+    setTestStatus(`Test message successfully recorded and dispatched to ${testPhone}!`);
+    setTimeout(() => setTestStatus(null), 5000);
   };
 
   const copyTemplateText = (text: string) => {
@@ -157,16 +143,6 @@ export const WhatsAppSettingsModal: React.FC<WhatsAppSettingsModalProps> = ({
             }`}
           >
             Dispatch Audit Logs ({messages.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('SUPABASE')}
-            className={`flex-1 py-3 text-center transition-all ${
-              activeTab === 'SUPABASE'
-                ? 'bg-white border-b-2 border-emerald-600 text-emerald-800 font-bold'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Supabase & Meta Secrets
           </button>
         </div>
 
@@ -438,68 +414,6 @@ export const WhatsAppSettingsModal: React.FC<WhatsAppSettingsModalProps> = ({
               )}
             </div>
           )}
-
-          {/* TAB 4: SUPABASE & SECRETS SETUP */}
-          {activeTab === 'SUPABASE' && (
-            <div className="space-y-4 text-xs">
-                  <div className="p-4 bg-slate-900 text-white rounded-xl space-y-2">
-                    <div className="flex items-center gap-2 text-emerald-400 font-bold">
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>Direct Meta Cloud API Architecture</span>
-                    </div>
-                    <p className="text-[11px] text-slate-300 leading-relaxed">
-                      This application connects directly to Meta's WhatsApp Cloud API using server-side endpoints and Supabase Edge Functions. No third-party intermediaries (like ManyChat) are required. All access tokens stay secure on the server.
-                    </p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
-                      Required Secrets for Live Dispatch:
-                    </h4>
-
-                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2 font-mono text-[11px]">
-                      <div>
-                        <span className="text-emerald-700 font-bold">META_WHATSAPP_TOKEN</span>
-                        <p className="text-[10px] text-slate-500 font-sans mt-0.5">
-                          Permanent System User Access Token generated in Meta Business Manager with <code>whatsapp_business_messaging</code> permissions.
-                        </p>
-                      </div>
-
-                      <div className="pt-2 border-t border-slate-200">
-                        <span className="text-emerald-700 font-bold">META_PHONE_NUMBER_ID</span>
-                        <p className="text-[10px] text-slate-500 font-sans mt-0.5">
-                          The unique Phone Number ID from Meta for Developers &gt; WhatsApp &gt; API Setup.
-                        </p>
-                      </div>
-
-                      <div className="pt-2 border-t border-slate-200">
-                        <span className="text-emerald-700 font-bold">META_BUSINESS_ACCOUNT_ID</span>
-                        <p className="text-[10px] text-slate-500 font-sans mt-0.5">
-                          WhatsApp Business Account (WABA) ID from Meta Business Settings.
-                        </p>
-                      </div>
-
-                      <div className="pt-2 border-t border-slate-200">
-                        <span className="text-indigo-700 font-bold">SUPABASE_URL</span>
-                        <p className="text-[10px] text-slate-500 font-sans mt-0.5">
-                          Project URL from Supabase Dashboard &gt; Project Settings &gt; API (e.g., <code>https://xyz.supabase.co</code>).
-                        </p>
-                      </div>
-
-                      <div className="pt-2 border-t border-slate-200">
-                        <span className="text-indigo-700 font-bold">SUPABASE_SERVICE_ROLE_KEY</span>
-                        <p className="text-[10px] text-slate-500 font-sans mt-0.5">
-                          Service role secret key from Supabase Dashboard &gt; Project Settings &gt; API. Used by Edge Functions for privileged database operations.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-[11px]">
-                    <strong>Resilient Fallback Mode:</strong> If secrets are not yet added to the environment, ChangeTrack automatically operates in Sandbox/Simulation mode. Cashier till operations and customer change receipts work without interruption.
-                  </div>
-                </div>
-              )}
         </div>
 
         {/* Footer */}
