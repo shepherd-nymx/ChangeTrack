@@ -492,9 +492,9 @@ export const CashierTill: React.FC<CashierTillProps> = ({
         </div>
 
         {/* Right Column: Change Display & Dual Actions (5 Cols) */}
-        <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-5 flex flex-col justify-between space-y-4 min-w-0">
           {/* Automatic Calculated Change Display Card */}
-          <div className="bg-slate-900 text-white p-5 sm:p-6 rounded-2xl shadow-lg border border-slate-800 relative overflow-hidden flex flex-col justify-between min-h-[220px]">
+          <div className="bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-lg border border-slate-800 relative overflow-hidden flex flex-col justify-between min-h-[190px] sm:min-h-[220px]">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
                 Calculated Change
@@ -537,11 +537,11 @@ export const CashierTill: React.FC<CashierTillProps> = ({
             </div>
 
             <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-              <span>Shop: {shop.name}</span>
+              <span className="truncate max-w-[180px]">Shop: {shop.name}</span>
               <button
                 type="button"
                 onClick={handleClear}
-                className="text-slate-400 hover:text-white flex items-center gap-1 text-[11px] p-1"
+                className="text-slate-400 hover:text-white flex items-center gap-1 text-[11px] p-1 shrink-0"
               >
                 <RotateCcw className="w-3 h-3" />
                 <span>Clear</span>
@@ -549,13 +549,13 @@ export const CashierTill: React.FC<CashierTillProps> = ({
             </div>
           </div>
 
-          {/* Two Primary Action Buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          {/* Two Primary Action Buttons (Responsive: 1 col on mobile, 2 col on tablet, 1 col on laptop, 2 col on wide desktop) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3 pt-1">
             {/* Action 1: Give Change Now */}
             <button
               onClick={handleGiveChangeNow}
               disabled={purchaseAmount <= 0 || amountReceived < purchaseAmount}
-              className={`p-4 min-h-[85px] rounded-2xl font-bold text-left shadow-sm transition-all flex flex-col justify-between ${
+              className={`p-3.5 sm:p-4 min-h-[80px] sm:min-h-[85px] rounded-2xl font-bold text-left shadow-sm transition-all flex flex-col justify-between ${
                 purchaseAmount > 0 && amountReceived >= purchaseAmount
                   ? 'bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white cursor-pointer'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'
@@ -581,7 +581,7 @@ export const CashierTill: React.FC<CashierTillProps> = ({
             <button
               onClick={handleRecordChange}
               disabled={changeDue <= 0}
-              className={`p-4 min-h-[85px] rounded-2xl font-bold text-left shadow-sm transition-all flex flex-col justify-between ${
+              className={`p-3.5 sm:p-4 min-h-[80px] sm:min-h-[85px] rounded-2xl font-bold text-left shadow-sm transition-all flex flex-col justify-between ${
                 changeDue > 0
                   ? 'bg-amber-500 hover:bg-amber-600 active:scale-98 text-white cursor-pointer'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'
@@ -590,7 +590,7 @@ export const CashierTill: React.FC<CashierTillProps> = ({
               <div className="flex items-center justify-between mb-1">
                 <BookmarkPlus className="w-5 h-5 text-amber-100" />
                 <span className="text-[10px] font-mono uppercase bg-amber-700/40 px-2 py-0.5 rounded text-amber-100">
-                  WhatsApp Redirect
+                  WhatsApp
                 </span>
               </div>
               <div>
@@ -605,10 +605,10 @@ export const CashierTill: React.FC<CashierTillProps> = ({
           </div>
 
           {/* Quick Info Box */}
-          <div className="p-3.5 bg-slate-100 rounded-xl text-xs text-slate-600 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <div className="p-3 sm:p-3.5 bg-slate-100 rounded-xl text-xs text-slate-600 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Direct WhatsApp Redirect: No Meta API, tokens or webhooks required.</span>
+              <span>Direct WhatsApp Redirect: No Meta API or tokens required.</span>
             </div>
             {completedRecord && (
               <button

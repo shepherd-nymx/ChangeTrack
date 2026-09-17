@@ -52,14 +52,25 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
         title="Install ChangeTrack as a standalone desktop or mobile app"
         className={
           variant === 'nav'
-            ? `flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95 ${className}`
+            ? `flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95 shrink-0 min-h-[34px] min-w-[34px] ${className}`
             : variant === 'hero'
             ? `flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all active:scale-95 ${className}`
-            : `flex items-center gap-1 px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition-colors ${className}`
+            : `flex items-center gap-1 px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition-colors shrink-0 ${className}`
         }
       >
-        <Download className="w-3.5 h-3.5" />
-        <span>{isInstalling ? 'Installing...' : 'Install App'}</span>
+        <Download className="w-3.5 h-3.5 shrink-0" />
+        {variant === 'nav' ? (
+          <span className="hidden sm:inline">
+            {isInstalling ? 'Installing...' : (
+              <>
+                <span>Install</span>
+                <span className="hidden xl:inline"> App</span>
+              </>
+            )}
+          </span>
+        ) : (
+          <span>{isInstalling ? 'Installing...' : 'Install App'}</span>
+        )}
       </button>
 
       {/* Guide Modal for iOS Safari / Manual Installation */}

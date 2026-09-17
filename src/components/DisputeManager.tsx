@@ -136,17 +136,17 @@ export const DisputeManager: React.FC<DisputeManagerProps> = ({
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6">
+    <div className="w-full max-w-6xl mx-auto space-y-5 sm:space-y-6">
       {/* Header Banner */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-amber-500/10 text-amber-700 rounded-xl border border-amber-200">
-            <ShieldAlert className="w-6 h-6" />
+          <div className="p-2.5 sm:p-3 bg-amber-500/10 text-amber-700 rounded-xl border border-amber-200 shrink-0">
+            <ShieldAlert className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-extrabold text-slate-900">Anti-Dispute Investigation Center</h2>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono">
+              <h2 className="text-base sm:text-lg font-extrabold text-slate-900">Anti-Dispute Investigation Center</h2>
+              <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono">
                 TAMPER-RESISTANT
               </span>
             </div>
@@ -156,10 +156,10 @@ export const DisputeManager: React.FC<DisputeManagerProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={() => setShowNewDisputeModal(true)}
-            className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-2"
+            className="w-full sm:w-auto px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 min-h-[44px]"
           >
             <AlertTriangle className="w-4 h-4 text-amber-400" />
             <span>Log Customer Claim</span>
@@ -168,13 +168,13 @@ export const DisputeManager: React.FC<DisputeManagerProps> = ({
       </div>
 
       {/* Quick Search For Transaction Evidence */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+      <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
             <Search className="w-4 h-4 text-indigo-600" />
             <span>Search Transaction Audit Trail</span>
           </h3>
-          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 flex-wrap">
             <span>Quick Case Samples:</span>
             {['TX-10293', 'CT-48291', 'CT-39104', 'TX-10288'].map(id => (
               <button
@@ -191,7 +191,7 @@ export const DisputeManager: React.FC<DisputeManagerProps> = ({
           </div>
         </div>
 
-        <form onSubmit={handleSearchSubmit} className="flex gap-2">
+        <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input

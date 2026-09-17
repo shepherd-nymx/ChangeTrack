@@ -75,7 +75,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 font-sans antialiased flex flex-col selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-slate-100 text-slate-900 font-sans antialiased flex flex-col selection:bg-indigo-500 selection:text-white">
       {/* PWA Install Banner */}
       <PWAInstallBanner />
 
@@ -95,7 +95,7 @@ export function App() {
       />
 
       {/* Main App Content Viewport */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+      <main className="flex-1 p-3 sm:p-5 lg:p-6 max-w-7xl w-full mx-auto min-w-0">
         {currentRoleView === 'CASHIER' && (
           <CashierTill
             key={`cashier-${refreshKey}`}

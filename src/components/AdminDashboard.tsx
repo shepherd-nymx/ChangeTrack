@@ -250,7 +250,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* 6 Core Dashboard Metric KPI Cards (Prompt requirements) */}
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-3.5">
         {/* 1. Today's Sales */}
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
           <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
@@ -348,11 +348,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* Main Content Workspace with Tabs */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         {/* Navigation Tabs */}
-        <div className="flex flex-wrap items-center justify-between border-b border-slate-200 px-6 pt-3 bg-slate-50/50">
-          <div className="flex gap-1 overflow-x-auto text-xs font-bold">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 px-4 sm:px-6 pt-3 bg-slate-50/50 gap-2">
+          <div className="flex gap-1 overflow-x-auto text-xs font-bold no-scrollbar max-w-full pb-1 sm:pb-0">
             <button
               onClick={() => setActiveTab('RECORDS')}
-              className={`py-3 px-4 rounded-t-xl transition-all ${
+              className={`py-3 px-4 rounded-t-xl transition-all shrink-0 ${
                 activeTab === 'RECORDS'
                   ? 'bg-white border-t-2 border-x border-slate-200 text-slate-900 font-extrabold -mb-[1px]'
                   : 'text-slate-500 hover:text-slate-800'
@@ -362,7 +362,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </button>
             <button
               onClick={() => setActiveTab('TRANSACTIONS')}
-              className={`py-3 px-4 rounded-t-xl transition-all ${
+              className={`py-3 px-4 rounded-t-xl transition-all shrink-0 ${
                 activeTab === 'TRANSACTIONS'
                   ? 'bg-white border-t-2 border-x border-slate-200 text-slate-900 font-extrabold -mb-[1px]'
                   : 'text-slate-500 hover:text-slate-800'
@@ -372,7 +372,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </button>
             <button
               onClick={() => setActiveTab('CHARTS')}
-              className={`py-3 px-4 rounded-t-xl transition-all ${
+              className={`py-3 px-4 rounded-t-xl transition-all shrink-0 ${
                 activeTab === 'CHARTS'
                   ? 'bg-white border-t-2 border-x border-slate-200 text-slate-900 font-extrabold -mb-[1px]'
                   : 'text-slate-500 hover:text-slate-800'
@@ -382,7 +382,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </button>
             <button
               onClick={() => setActiveTab('AUDIT')}
-              className={`py-3 px-4 rounded-t-xl transition-all ${
+              className={`py-3 px-4 rounded-t-xl transition-all shrink-0 ${
                 activeTab === 'AUDIT'
                   ? 'bg-white border-t-2 border-x border-slate-200 text-slate-900 font-extrabold -mb-[1px]'
                   : 'text-slate-500 hover:text-slate-800'
@@ -394,15 +394,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           {/* Quick Search & Filter bar for tables */}
           {(activeTab === 'RECORDS' || activeTab === 'TRANSACTIONS') && (
-            <div className="py-2 flex items-center gap-2">
-              <div className="relative">
+            <div className="py-2 flex items-center gap-2 flex-wrap w-full sm:w-auto">
+              <div className="relative flex-1 sm:flex-none">
                 <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search phone, ID, name..."
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-slate-800"
+                  className="w-full sm:w-auto pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-slate-800"
                 />
               </div>
 
@@ -410,7 +410,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <select
                   value={statusFilter}
                   onChange={e => setStatusFilter(e.target.value as any)}
-                  className="py-1.5 px-2 text-xs bg-white border border-slate-300 rounded-lg font-semibold text-slate-700"
+                  className="py-1.5 px-2 text-xs bg-white border border-slate-300 rounded-lg font-semibold text-slate-700 shrink-0"
                 >
                   <option value="ALL">All Statuses</option>
                   <option value="OUTSTANDING">🟠 OUTSTANDING</option>
