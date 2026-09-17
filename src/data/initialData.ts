@@ -398,10 +398,14 @@ export const INITIAL_DISPUTES: Dispute[] = [
 
 export const INITIAL_WHATSAPP_CONFIG: WhatsAppConfig = {
   isEnabled: true,
-  phoneNumberId: '104829102938122',
-  wabaId: '391029381200192',
+  defaultCountryCode: '+263',
+  autoOpenRedirectOnRecord: true,
+  autoOpenRedirectOnCollect: true,
+  customCollectionInstructions: 'Present your Change ID or show this WhatsApp message at any till checkout. Valid for 30 days at all shop branches.',
+  phoneNumberId: '',
+  wabaId: '',
   accessToken: '',
-  businessSenderNumber: '+1 555 019 2831',
+  businessSenderNumber: '',
   autoSendOnCreate: true,
   autoSendOnCollect: true,
   fallbackSmsEnabled: false

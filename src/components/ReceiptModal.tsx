@@ -1,13 +1,30 @@
-import React from 'react';
-import { Printer, X, CheckCircle, Share2, MessageSquare } from 'lucide-react';
+import React, { useState } from 'react';
+import { 
+  Printer, 
+  X, 
+  CheckCircle, 
+  MessageSquare, 
+  Copy, 
+  Check, 
+  ExternalLink,
+  Store,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-react';
 import { ChangeRecord, Transaction, Shop } from '../types';
 import { QrCodeDisplay } from './QrCodeDisplay';
-import { buildWhatsAppDirectLink } from '../services/whatsapp';
+import { 
+  buildWhatsAppDirectLink, 
+  generateRecordChangeMessage, 
+  formatDateTime 
+} from '../services/whatsapp';
+import { storage } from '../services/storage';
 
 interface ReceiptModalProps {
   changeRecord?: ChangeRecord;
   transaction?: Transaction;
   shop: Shop;
+  customMessageText?: string;
   onClose: () => void;
 }
 
@@ -15,8 +32,12 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
   changeRecord,
   transaction,
   shop,
+  customMessageText,
   onClose
 }) => {
+  const [copied, setCopied] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
   const handlePrint = () => {
     window.print();
   };
@@ -25,13 +46,31 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
   const phone = changeRecord?.customerPhone || transaction?.customerPhone || '';
   const amount = changeRecord ? changeRecord.amountOwed : (transaction?.changeOwed || 0);
 
-  const directWaLink = phone && changeRecord 
-    ? buildWhatsAppDirectLink(phone, `*${shop.name}*\nChange Slip: ${changeRecord.id}\nAmount: ${currency}${amount.toFixed(2)}\nStatus: ${changeRecord.status}`)
-    : '';
+  const waConfig = storage.getWhatsAppConfig();
+  const defaultCountryCode = waConfig.defaultCountryCode || '+263';
+
+  // Construct exact WhatsApp message
+  const prefilledMessage = customMessageText || (changeRecord 
+    ? generateRecordChangeMessage(
+        shop, 
+        changeRecord, 
+        undefined, 
+        undefined, 
+        waConfig.customCollectionInstructions
+      )
+    : `*${shop.name}*\nTransaction Ref: ${transaction?.id}\nAmount: ${currency}${amount.toFixed(2)}`);
+
+  const directWaLink = phone ? buildWhatsAppDirectLink(phone, prefilledMessage, defaultCountryCode) : '';
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(prefilledMessage);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-xs overflow-y-auto">
-      <div className="relative w-full max-w-sm rounded-2xl bg-white shadow-2xl overflow-hidden my-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
+      <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden my-4 sm:my-6">
         {/* Modal Top Bar (hidden on print) */}
         <div className="flex items-center justify-between px-5 py-3.5 bg-slate-900 text-white print:hidden">
           <div className="flex items-center gap-2">
@@ -45,6 +84,70 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
             <X className="w-4 h-4" />
           </button>
         </div>
+
+        {/* WhatsApp Quick Action Banner (Top Callout) */}
+        {changeRecord && directWaLink && (
+          <div className="p-4 bg-emerald-50 border-b border-emerald-200 print:hidden space-y-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-emerald-600 text-white rounded-xl shadow-xs">
+                  <MessageSquare className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-extrabold text-emerald-950 uppercase tracking-wide">
+                    WhatsApp Redirect Ready
+                  </h4>
+                  <p className="text-[11px] text-emerald-800">
+                    To: <span className="font-mono font-bold">{changeRecord.customerPhone}</span>
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-200/80 text-emerald-900 uppercase">
+                No Meta API
+              </span>
+            </div>
+
+            {/* Prominent Direct WhatsApp Send Button */}
+            <a
+              href={directWaLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-center"
+            >
+              <MessageSquare className="w-4 h-4 fill-white" />
+              <span>OPEN WHATSAPP (SEND CHANGE RECEIPT)</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+
+            <div className="flex items-center justify-between text-[11px] text-emerald-800 pt-0.5">
+              <span>Chat opens pre-filled with customer number & message. Press Send.</span>
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="font-bold text-emerald-700 hover:text-emerald-950 underline flex items-center gap-1 shrink-0"
+              >
+                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copied ? 'Copied!' : 'Copy Text'}</span>
+              </button>
+            </div>
+
+            {/* Toggle Preview of prefilled message */}
+            <button
+              type="button"
+              onClick={() => setShowPreview(!showPreview)}
+              className="text-[11px] font-semibold text-emerald-900 flex items-center gap-1 hover:underline"
+            >
+              {showPreview ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              <span>{showPreview ? 'Hide message preview' : 'View pre-filled message text'}</span>
+            </button>
+
+            {showPreview && (
+              <div className="p-3 bg-white rounded-xl border border-emerald-200 text-slate-800 text-[11px] whitespace-pre-line font-sans leading-relaxed shadow-xs">
+                {prefilledMessage}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Printable Thermal Receipt Card */}
         <div id="printable-receipt" className="p-6 text-slate-900 font-mono text-xs bg-white border-b border-dashed border-slate-300">
@@ -137,7 +240,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
               Digital tamper-resistant verification powered by <span className="font-bold">ChangeTrack</span>
             </p>
             <p className="text-[9px] text-slate-500 italic">
-              A WhatsApp confirmation has been dispatched. Please collect change within 30 days.
+              A WhatsApp change slip link has been prepared. Please collect change within 30 days.
             </p>
             <p className="text-[10px] font-bold text-slate-700">*** THANK YOU FOR YOUR CUSTOM ***</p>
           </div>
@@ -148,37 +251,19 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={handlePrint}
-              className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-medium text-xs shadow-xs transition-colors"
+              className="flex items-center justify-center gap-1.5 min-h-[44px] py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs shadow-xs transition-colors"
             >
               <Printer className="w-4 h-4" />
               <span>Print Slip</span>
             </button>
 
-            {directWaLink ? (
-              <a
-                href={directWaLink}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium text-xs shadow-xs transition-colors"
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span>WhatsApp</span>
-              </a>
-            ) : (
-              <button
-                onClick={onClose}
-                className="py-2.5 px-3 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl font-medium text-xs transition-colors"
-              >
-                Done
-              </button>
-            )}
+            <button
+              onClick={onClose}
+              className="min-h-[44px] py-2.5 px-3 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl font-bold text-xs transition-colors text-center"
+            >
+              Done / Close
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="w-full py-2 text-center text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            Close Window
-          </button>
         </div>
       </div>
     </div>

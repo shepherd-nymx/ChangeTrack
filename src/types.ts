@@ -159,13 +159,18 @@ export interface Dispute {
 
 export interface WhatsAppConfig {
   isEnabled: boolean;
-  phoneNumberId: string;
-  wabaId: string;
-  accessToken: string;
-  businessSenderNumber: string;
-  autoSendOnCreate: boolean;
-  autoSendOnCollect: boolean;
-  fallbackSmsEnabled: boolean;
+  defaultCountryCode: string;
+  autoOpenRedirectOnRecord: boolean;
+  autoOpenRedirectOnCollect: boolean;
+  customCollectionInstructions?: string;
+  // Legacy optional fields for data backward compatibility
+  phoneNumberId?: string;
+  wabaId?: string;
+  accessToken?: string;
+  businessSenderNumber?: string;
+  autoSendOnCreate?: boolean;
+  autoSendOnCollect?: boolean;
+  fallbackSmsEnabled?: boolean;
 }
 
 export interface DashboardStats {

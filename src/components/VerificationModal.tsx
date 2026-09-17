@@ -11,18 +11,27 @@ import {
   User, 
   ArrowRight, 
   X, 
-  Sparkles, 
   ShieldCheck,
   RotateCcw,
   MessageSquare,
   Building2,
-  Wallet
+  Wallet,
+  ExternalLink,
+  Copy,
+  Check,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { ChangeRecord, Employee, Shop } from '../types';
 import { storage } from '../services/storage';
 import { QrScanner } from './QrScanner';
-import { formatDateTime, buildWhatsAppDirectLink } from '../services/whatsapp';
+import { 
+  formatDateTime, 
+  buildWhatsAppDirectLink, 
+  generateCollectedChangeMessage,
+  generateMultiCollectMessage 
+} from '../services/whatsapp';
 
 interface VerificationModalProps {
   initialSearchQuery?: string;
@@ -48,9 +57,19 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
   const [collectionSuccess, setCollectionSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // WhatsApp Redirect info for collected change
+  const [collectionWaLink, setCollectionWaLink] = useState<string | null>(null);
+  const [collectionWaMessageText, setCollectionWaMessageText] = useState<string | null>(null);
+  const [copiedMessage, setCopiedMessage] = useState(false);
+  const [showMessagePreview, setShowMessagePreview] = useState(false);
+
   // Admin reversal state
   const [showAdminReversal, setShowAdminReversal] = useState(false);
   const [reversalReason, setReversalReason] = useState('');
+
+  const waConfig = storage.getWhatsAppConfig();
+  const defaultCountryCode = waConfig.defaultCountryCode || '+263';
+  const currency = shop.currencySymbol || '$';
 
   useEffect(() => {
     if (initialSearchQuery) {
@@ -63,6 +82,8 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
     setCollectionSuccess(false);
     setSelectedRecord(null);
     setMatchedPhoneRecords([]);
+    setCollectionWaLink(null);
+    setCollectionWaMessageText(null);
 
     const clean = query.trim();
     if (!clean) return;
@@ -73,7 +94,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
       if (record) {
         setSelectedRecord(record);
       } else {
-        setErrorMessage(`No change record found with ID "${clean.toUpperCase()}". Please verify the number on the WhatsApp slip.`);
+        setErrorMessage(`No change record found with ID "${clean.toUpperCase()}". Please verify the number on the customer's WhatsApp slip.`);
       }
     } else {
       // Look up by Phone
@@ -92,7 +113,6 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
     setIsQrScannerOpen(false);
     let changeId = scannedData.trim();
 
-    // Check if it's a JSON payload
     try {
       if (scannedData.startsWith('{')) {
         const parsed = JSON.parse(scannedData);
@@ -114,6 +134,12 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
     }
   };
 
+  // Helper to open direct WhatsApp redirect
+  const openWhatsAppUrl = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  // 1. Collect individual change record
   const handleConfirmCollection = async () => {
     if (!selectedRecord) return;
     setIsProcessing(true);
@@ -136,11 +162,27 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
     if (res.success && res.record) {
       setSelectedRecord(res.record);
       setCollectionSuccess(true);
+      
+      const link = res.waDirectLink || buildWhatsAppDirectLink(
+        res.record.customerPhone,
+        res.waMessageText || generateCollectedChangeMessage(shop, res.record, res.remainingCustomerBalance),
+        defaultCountryCode
+      );
+      const text = res.waMessageText || generateCollectedChangeMessage(shop, res.record, res.remainingCustomerBalance);
+
+      setCollectionWaLink(link);
+      setCollectionWaMessageText(text);
+
       if (typeof onRecordUpdated === 'function') {
         onRecordUpdated();
       }
 
-      // Celebrate with subtle confetti
+      // If auto-open is enabled in config, trigger redirect
+      if (waConfig.autoOpenRedirectOnCollect && link) {
+        openWhatsAppUrl(link);
+      }
+
+      // Celebrate with confetti
       try {
         confetti({
           particleCount: 50,
@@ -158,6 +200,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
     }
   };
 
+  // 2. Settle all accumulated customer change slips
   const handleCollectAllForCustomer = async (phone: string) => {
     if (!phone) return;
     setIsProcessing(true);
@@ -173,8 +216,18 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
 
     if (res.success) {
       setCollectionSuccess(true);
+      
+      if (res.waDirectLink && res.waMessageText) {
+        setCollectionWaLink(res.waDirectLink);
+        setCollectionWaMessageText(res.waMessageText);
+      }
+
       if (typeof onRecordUpdated === 'function') {
         onRecordUpdated();
+      }
+
+      if (waConfig.autoOpenRedirectOnCollect && res.waDirectLink) {
+        openWhatsAppUrl(res.waDirectLink);
       }
 
       try {
@@ -212,6 +265,9 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
       setSelectedRecord(res.record);
       setShowAdminReversal(false);
       setReversalReason('');
+      setCollectionSuccess(false);
+      setCollectionWaLink(null);
+      setCollectionWaMessageText(null);
       if (typeof onRecordUpdated === 'function') {
         onRecordUpdated();
       }
@@ -221,20 +277,24 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
     }
   };
 
-  const currency = shop.currencySymbol || '$';
+  const handleCopyConfirmationText = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedMessage(true);
+    setTimeout(() => setCopiedMessage(false), 2000);
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-xs overflow-y-auto">
-      <div className="relative w-full max-w-xl rounded-2xl bg-white shadow-2xl overflow-hidden my-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
+      <div className="relative w-full max-w-xl rounded-2xl bg-white shadow-2xl overflow-hidden my-3 sm:my-6">
         {/* Header */}
-        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+        <div className="px-5 sm:px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold">Anti-Dispute Customer Verification</h2>
-              <p className="text-xs text-slate-400">Verify customer change entitlement before handing over cash</p>
+              <h2 className="text-sm sm:text-base font-bold">Anti-Dispute Customer Verification</h2>
+              <p className="text-[11px] sm:text-xs text-slate-400">Verify customer change entitlement before handing over cash</p>
             </div>
           </div>
           <button
@@ -246,35 +306,39 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
         </div>
 
         {/* Verification Method Tabs */}
-        <div className="grid grid-cols-3 p-2 bg-slate-100 border-b border-slate-200 text-xs font-semibold text-slate-600">
+        <div className="grid grid-cols-3 p-1.5 sm:p-2 bg-slate-100 border-b border-slate-200 text-xs font-semibold text-slate-600">
           <button
             onClick={() => {
               setActiveMethod('ID');
               setSelectedRecord(null);
+              setCollectionSuccess(false);
+              setCollectionWaLink(null);
             }}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg transition-all ${
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg transition-all min-h-[44px] ${
               activeMethod === 'ID'
                 ? 'bg-white text-slate-900 shadow-xs border border-slate-200 font-bold'
                 : 'hover:bg-slate-200/60'
             }`}
           >
             <Hash className="w-4 h-4 text-emerald-600" />
-            <span>Method 1: Change ID</span>
+            <span className="truncate">Change ID</span>
           </button>
 
           <button
             onClick={() => {
               setActiveMethod('PHONE');
               setSelectedRecord(null);
+              setCollectionSuccess(false);
+              setCollectionWaLink(null);
             }}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg transition-all ${
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg transition-all min-h-[44px] ${
               activeMethod === 'PHONE'
                 ? 'bg-white text-slate-900 shadow-xs border border-slate-200 font-bold'
                 : 'hover:bg-slate-200/60'
             }`}
           >
             <Phone className="w-4 h-4 text-emerald-600" />
-            <span>Method 2: Phone</span>
+            <span className="truncate">Phone Lookup</span>
           </button>
 
           <button
@@ -282,19 +346,19 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
               setActiveMethod('QR');
               setIsQrScannerOpen(true);
             }}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg transition-all ${
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg transition-all min-h-[44px] ${
               activeMethod === 'QR'
                 ? 'bg-white text-slate-900 shadow-xs border border-slate-200 font-bold'
                 : 'hover:bg-slate-200/60'
             }`}
           >
             <QrCode className="w-4 h-4 text-indigo-600" />
-            <span>Method 4: QR Code</span>
+            <span className="truncate">Scan QR</span>
           </button>
         </div>
 
         {/* Search Bar */}
-        <div className="p-5 border-b border-slate-100 bg-white">
+        <div className="p-4 sm:p-5 border-b border-slate-100 bg-white">
           <form
             onSubmit={e => {
               e.preventDefault();
@@ -311,15 +375,15 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                 placeholder={
                   activeMethod === 'ID'
                     ? 'Enter Change ID (e.g. CT-48291)'
-                    : 'Enter customer phone number (e.g. +263 77 123 4567)'
+                    : 'Enter customer phone number (e.g. 77 123 4567)'
                 }
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all uppercase"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all uppercase min-h-[44px]"
                 autoFocus
               />
             </div>
             <button
               type="submit"
-              className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-xl transition-colors shadow-xs"
+              className="px-4 sm:px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm rounded-xl transition-colors shadow-xs min-h-[44px]"
             >
               Verify
             </button>
@@ -327,14 +391,14 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
               type="button"
               onClick={() => setIsQrScannerOpen(true)}
               title="Open Camera QR Scanner"
-              className="p-2.5 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 rounded-xl transition-colors"
+              className="p-2.5 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
               <QrCode className="w-5 h-5" />
             </button>
           </form>
 
           {/* Quick suggestions */}
-          <div className="mt-2.5 flex items-center gap-2 text-xs text-slate-500">
+          <div className="mt-2.5 flex items-center gap-2 text-xs text-slate-500 flex-wrap">
             <span className="font-semibold text-slate-600">Quick Demo Records:</span>
             {['CT-48291', 'CT-39104', 'CT-51820'].map(id => (
               <button
@@ -354,9 +418,9 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
         </div>
 
         {/* Results Area */}
-        <div className="p-6 bg-slate-50 min-h-[260px] max-h-[460px] overflow-y-auto">
+        <div className="p-4 sm:p-6 bg-slate-50 min-h-[260px] max-h-[500px] overflow-y-auto">
           {errorMessage && (
-            <div className="p-4 mb-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-start gap-3">
+            <div className="p-4 mb-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
               <div>
                 <p className="font-bold">Verification Notice</p>
@@ -368,7 +432,6 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
           {/* If multiple records found for phone search */}
           {matchedPhoneRecords.length > 0 && !selectedRecord && (
             <div className="space-y-4">
-              {/* Customer Accumulated Balance Header */}
               {(() => {
                 const outstandingMatched = matchedPhoneRecords.filter(r => r.status === 'OUTSTANDING');
                 const totalOutstandingMatchedAmount = Math.round(outstandingMatched.reduce((sum, r) => sum + r.amountOwed, 0) * 100) / 100;
@@ -405,7 +468,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                           type="button"
                           onClick={() => handleCollectAllForCustomer(customerPhoneForMatched)}
                           disabled={isProcessing}
-                          className="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-black rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 shrink-0"
+                          className="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-black rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 shrink-0 min-h-[44px]"
                         >
                           <CheckCircle2 className="w-4 h-4" />
                           <span>
@@ -416,21 +479,54 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                     </div>
 
                     <p className="text-[11px] text-amber-800 bg-amber-100/60 p-2 rounded-lg">
-                      💡 Customer has multiple change slips. You can collect each individual slip below or click <strong>Payout Full Balance</strong> to settle all slips at once. A WhatsApp receipt will confirm the settlement.
+                      💡 Customer has multiple change slips. Settle all slips at once or select individual slips below.
                     </p>
                   </div>
                 );
               })()}
 
-              {collectionSuccess && (
-                <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-300 text-emerald-900 text-center space-y-1">
-                  <div className="inline-flex p-2 bg-emerald-100 rounded-full text-emerald-700 mb-1">
-                    <CheckCircle2 className="w-6 h-6" />
+              {/* Multi-Collect WhatsApp Send Callout Banner */}
+              {collectionSuccess && collectionWaLink && (
+                <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-emerald-300 text-emerald-900 space-y-3 shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-emerald-600 text-white rounded-xl">
+                      <CheckCircle2 className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-extrabold text-sm text-emerald-950">
+                        Full Balance Payout Recorded!
+                      </p>
+                      <p className="text-xs text-emerald-800">
+                        Send the customer their settlement receipt via WhatsApp.
+                      </p>
+                    </div>
                   </div>
-                  <p className="font-bold text-base">All Outstanding Change Collected Successfully!</p>
-                  <p className="text-xs text-emerald-700">
-                    Full customer balance cleared to {currency}0.00. WhatsApp confirmation has been dispatched.
-                  </p>
+
+                  {/* WhatsApp Direct Link Button */}
+                  <a
+                    href={collectionWaLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 min-h-[44px] text-center"
+                  >
+                    <MessageSquare className="w-4 h-4 fill-white" />
+                    <span>SEND VIA WHATSAPP (COLLECTION CONFIRMATION)</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+
+                  <div className="flex items-center justify-between text-[11px] text-emerald-800">
+                    <span>Chat opens pre-filled with customer number & message. Press Send.</span>
+                    {collectionWaMessageText && (
+                      <button
+                        type="button"
+                        onClick={() => handleCopyConfirmationText(collectionWaMessageText)}
+                        className="font-bold text-emerald-700 hover:text-emerald-950 underline flex items-center gap-1 shrink-0"
+                      >
+                        {copiedMessage ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedMessage ? 'Copied!' : 'Copy Text'}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -441,8 +537,20 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                 {matchedPhoneRecords.map(rec => (
                   <div
                     key={rec.id}
-                    onClick={() => setSelectedRecord(rec)}
-                    className="p-3.5 bg-white border border-slate-200 hover:border-emerald-500 rounded-xl cursor-pointer shadow-xs hover:shadow-md transition-all flex items-center justify-between"
+                    onClick={() => {
+                      setSelectedRecord(rec);
+                      setCollectionSuccess(rec.status === 'COLLECTED');
+                      if (rec.status === 'COLLECTED') {
+                        const link = buildWhatsAppDirectLink(
+                          rec.customerPhone,
+                          generateCollectedChangeMessage(shop, rec, 0),
+                          defaultCountryCode
+                        );
+                        setCollectionWaLink(link);
+                        setCollectionWaMessageText(generateCollectedChangeMessage(shop, rec, 0));
+                      }
+                    }}
+                    className="p-3.5 bg-white border border-slate-200 hover:border-emerald-500 rounded-xl cursor-pointer shadow-xs hover:shadow-md transition-all flex items-center justify-between min-h-[50px]"
                   >
                     <div>
                       <div className="flex items-center gap-2">
@@ -480,6 +588,17 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
           {/* Single Selected Record Verification View */}
           {selectedRecord && (
             <div className="space-y-4">
+              {/* Back to list button if phone lookup */}
+              {matchedPhoneRecords.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedRecord(null)}
+                  className="text-xs text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1 mb-1"
+                >
+                  ← Back to customer's {matchedPhoneRecords.length} change slips
+                </button>
+              )}
+
               {/* CASE 1: OUTSTANDING CHANGE (Legitimate Claim) */}
               {selectedRecord.status === 'OUTSTANDING' && (
                 <div className="rounded-2xl border-2 border-emerald-400 bg-white p-5 shadow-lg relative overflow-hidden">
@@ -529,55 +648,104 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                     </p>
                   )}
 
-                  {collectionSuccess ? (
-                    <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-300 text-emerald-900 text-center space-y-1">
-                      <div className="inline-flex p-2 bg-emerald-100 rounded-full text-emerald-700 mb-1">
-                        <CheckCircle2 className="w-6 h-6" />
-                      </div>
-                      <p className="font-bold text-base">Change Collected Successfully!</p>
-                      <p className="text-xs text-emerald-700">
-                        {currency}{selectedRecord.amountOwed.toFixed(2)} cash dispensed. Collection WhatsApp confirmation has been dispatched.
-                      </p>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={handleConfirmCollection}
-                      disabled={isProcessing}
-                      className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-                    >
-                      <CheckCircle2 className="w-5 h-5" />
-                      <span>{isProcessing ? 'Processing Handover...' : 'CONFIRM CASH COLLECTION'}</span>
-                    </button>
-                  )}
+                  {/* Primary Handover Action Button */}
+                  <button
+                    onClick={handleConfirmCollection}
+                    disabled={isProcessing}
+                    className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 min-h-[48px]"
+                  >
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span>{isProcessing ? 'Processing Handover...' : 'CONFIRM CASH COLLECTION'}</span>
+                  </button>
                 </div>
               )}
 
-              {/* CASE 2: ALREADY COLLECTED (CRITICAL ANTI-FRAUD BANNER) */}
+              {/* CASE 2: ALREADY COLLECTED (CRITICAL ANTI-FRAUD BANNER + SEND RECEIPT VIA WHATSAPP) */}
               {selectedRecord.status === 'COLLECTED' && (
-                <div className="rounded-2xl border-2 border-rose-300 bg-rose-50/70 p-5 shadow-md space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="p-3 bg-rose-100 text-rose-700 rounded-xl border border-rose-200 shrink-0">
-                      <ShieldAlert className="w-7 h-7" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-base font-black text-rose-900 tracking-tight">
-                          CHANGE ALREADY COLLECTED
-                        </h4>
-                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-rose-200 text-rose-800 uppercase">
-                          Fraud Protected
-                        </span>
+                <div className="rounded-2xl border-2 border-emerald-300 bg-white p-5 shadow-md space-y-4">
+                  {/* Top Status Banner */}
+                  <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-300 text-emerald-900 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-emerald-100 rounded-full text-emerald-700 shrink-0">
+                        <CheckCircle2 className="w-6 h-6" />
                       </div>
-                      <p className="text-xs text-rose-700 mt-1 leading-relaxed">
-                        This change record was already dispensed and marked collected. Double collection is strictly prohibited.
-                      </p>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-black text-base text-emerald-950">
+                            Change Collected ({currency}{selectedRecord.amountOwed.toFixed(2)})
+                          </h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 uppercase">
+                            Dispensed
+                          </span>
+                        </div>
+                        <p className="text-xs text-emerald-800 mt-1">
+                          Cash was verified & dispensed. Open WhatsApp to send the customer their official ChangeTrack collection confirmation receipt.
+                        </p>
+                      </div>
                     </div>
+
+                    {/* Prominent Send via WhatsApp Button */}
+                    {(() => {
+                      const confirmationText = collectionWaMessageText || generateCollectedChangeMessage(
+                        shop, 
+                        selectedRecord, 
+                        0
+                      );
+                      const waLink = collectionWaLink || buildWhatsAppDirectLink(
+                        selectedRecord.customerPhone,
+                        confirmationText,
+                        defaultCountryCode
+                      );
+
+                      return (
+                        <div className="pt-2 border-t border-emerald-200/80 space-y-2">
+                          <a
+                            href={waLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-center min-h-[44px]"
+                          >
+                            <MessageSquare className="w-4 h-4 fill-white" />
+                            <span>SEND VIA WHATSAPP (COLLECTION CONFIRMATION)</span>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+
+                          <div className="flex items-center justify-between text-[11px] text-emerald-800 pt-0.5">
+                            <span>Pre-filled with customer number & message. Cashier only presses Send.</span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyConfirmationText(confirmationText)}
+                              className="font-bold text-emerald-700 hover:text-emerald-950 underline flex items-center gap-1 shrink-0"
+                            >
+                              {copiedMessage ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                              <span>{copiedMessage ? 'Copied!' : 'Copy Text'}</span>
+                            </button>
+                          </div>
+
+                          {/* Preview toggle */}
+                          <button
+                            type="button"
+                            onClick={() => setShowMessagePreview(!showMessagePreview)}
+                            className="text-[11px] font-semibold text-emerald-900 flex items-center gap-1 hover:underline pt-1"
+                          >
+                            {showMessagePreview ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                            <span>{showMessagePreview ? 'Hide message preview' : 'View collection confirmation text'}</span>
+                          </button>
+
+                          {showMessagePreview && (
+                            <div className="p-3 bg-white rounded-xl border border-emerald-200 text-slate-800 text-[11px] whitespace-pre-line font-sans leading-relaxed shadow-xs">
+                              {confirmationText}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Audit Evidence Card */}
-                  <div className="bg-white rounded-xl p-4 border border-rose-200 space-y-2 text-xs">
-                    <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-                      <span className="text-slate-500">Amount:</span>
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-2 text-xs">
+                    <div className="flex justify-between items-center pb-2 border-b border-slate-200">
+                      <span className="text-slate-500 font-medium">Amount Dispensed:</span>
                       <span className="text-lg font-black text-slate-900 font-mono-num">
                         {currency}{selectedRecord.amountOwed.toFixed(2)}
                       </span>
@@ -594,15 +762,15 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                       <span className="text-slate-500">Original Date Created:</span>
                       <span className="font-medium text-slate-700">{formatDateTime(selectedRecord.createdAt)}</span>
                     </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-slate-100">
-                      <span className="font-bold text-rose-800">Collection Date & Time:</span>
-                      <span className="font-bold text-rose-800">
+                    <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                      <span className="font-bold text-slate-800">Collection Date & Time:</span>
+                      <span className="font-bold text-slate-800">
                         {selectedRecord.collectedAt ? formatDateTime(selectedRecord.collectedAt) : 'Recorded'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-rose-800">Cashier Who Processed Collection:</span>
-                      <span className="font-bold text-rose-900 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                      <span className="font-bold text-slate-800">Dispensing Till Cashier:</span>
+                      <span className="font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-300">
                         {selectedRecord.collectedByEmployeeName || 'Authorized Cashier'}
                       </span>
                     </div>
@@ -612,17 +780,9 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Neutral Dispute Statement */}
-                  <div className="p-3 bg-white/80 rounded-xl border border-rose-100 text-xs text-slate-600 space-y-1">
-                    <p className="font-semibold text-slate-800">Shop Verification Record:</p>
-                    <p className="text-[11px] leading-relaxed">
-                      "Our system records indicate that your change of {currency}{selectedRecord.amountOwed.toFixed(2)} was collected on {selectedRecord.collectedAt ? formatDateTime(selectedRecord.collectedAt) : 'earlier date'}. If there is any discrepancy, please consult the store manager."
-                    </p>
-                  </div>
-
                   {/* Admin Correction Override */}
                   {currentEmployee.role === 'ADMIN' && (
-                    <div className="pt-2 border-t border-rose-200">
+                    <div className="pt-2 border-t border-slate-200">
                       {!showAdminReversal ? (
                         <button
                           type="button"
@@ -698,14 +858,14 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 bg-slate-100 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
+        <div className="px-5 sm:px-6 py-3.5 bg-slate-100 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
           <div className="flex items-center gap-1.5">
             <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
             <span>Till Cashier: <strong className="text-slate-700">{currentEmployee.name}</strong></span>
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-white hover:bg-slate-200 text-slate-800 font-semibold rounded-lg border border-slate-300 transition-colors"
+            className="px-4 py-2 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-lg border border-slate-300 transition-colors min-h-[38px]"
           >
             Done
           </button>

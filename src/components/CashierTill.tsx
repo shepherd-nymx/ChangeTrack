@@ -9,12 +9,14 @@ import {
   ArrowRight, 
   QrCode, 
   Printer, 
-  RotateCcw,
-  Sparkles,
-  MessageSquare,
-  ShieldCheck,
-  AlertCircle,
-  Wallet
+  RotateCcw, 
+  MessageSquare, 
+  ShieldCheck, 
+  AlertCircle, 
+  Wallet,
+  ExternalLink,
+  Copy,
+  Check
 } from 'lucide-react';
 import { Employee, Shop, ChangeRecord, Transaction, WhatsAppMessage } from '../types';
 import { storage } from '../services/storage';
@@ -50,14 +52,16 @@ export const CashierTill: React.FC<CashierTillProps> = ({
   const [customerName, setCustomerName] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
 
-  // Modals & previews
+  // Modals & WhatsApp Redirect state
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [verificationInitialQuery, setVerificationInitialQuery] = useState('');
   const [completedRecord, setCompletedRecord] = useState<ChangeRecord | null>(null);
   const [completedTx, setCompletedTx] = useState<Transaction | null>(null);
-  const [lastWaMessage, setLastWaMessage] = useState<WhatsAppMessage | null>(null);
+  const [lastWaDirectLink, setLastWaDirectLink] = useState<string | null>(null);
+  const [lastWaMessageText, setLastWaMessageText] = useState<string | null>(null);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [copiedMessage, setCopiedMessage] = useState(false);
 
   const currency = shop.currencySymbol || '$';
 
@@ -87,7 +91,6 @@ export const CashierTill: React.FC<CashierTillProps> = ({
     return storage.getCustomerByPhone(fullPhoneClean);
   }, [fullPhoneClean, cleanPhoneInput, toastMessage]);
 
-  const isChangeNeeded = changeDue > 0;
   const isInvalidTender = amountReceived > 0 && purchaseAmount > 0 && amountReceived < purchaseAmount;
 
   // Handle quick cash tender buttons
@@ -134,13 +137,14 @@ export const CashierTill: React.FC<CashierTillProps> = ({
 
     setCompletedTx(res.transaction);
     setCompletedRecord(null);
-    setLastWaMessage(null);
+    setLastWaDirectLink(null);
+    setLastWaMessageText(null);
     showToast(`Transaction ${res.transaction.id} completed. Cash change of ${currency}${changeDue.toFixed(2)} dispensed.`);
     handleClear();
     notifyChange();
   };
 
-  // 2. Record Change
+  // 2. Record Change - Generate ChangeTrack message and open WhatsApp directly
   const handleRecordChange = async () => {
     if (purchaseAmount <= 0 || changeDue <= 0) {
       alert('Cannot record change: no change is owed for this sale.');
@@ -149,7 +153,7 @@ export const CashierTill: React.FC<CashierTillProps> = ({
 
     const cleanNumber = customerPhoneRaw.replace(/[^0-9]/g, '').replace(/^0+/, '');
     if (!cleanNumber || cleanNumber.length < 5) {
-      alert('Please enter a valid customer phone number to record change and send WhatsApp receipt.');
+      alert("Please enter the customer's WhatsApp number to record change and generate their digital receipt.");
       return;
     }
 
@@ -166,24 +170,38 @@ export const CashierTill: React.FC<CashierTillProps> = ({
 
     setCompletedTx(res.transaction);
     setCompletedRecord(res.changeRecord);
-    setLastWaMessage(res.waMessage || null);
+    setLastWaDirectLink(res.waDirectLink || null);
+    setLastWaMessageText(res.waMessageText || null);
     setShowReceiptModal(true);
-    showToast(`Change Record ${res.changeRecord.id} generated! ${currency}${changeDue.toFixed(2)} recorded.`);
+
+    // Open WhatsApp directly with pre-filled message
+    if (res.waDirectLink) {
+      window.open(res.waDirectLink, '_blank', 'noopener,noreferrer');
+    }
+
+    showToast(`Change Record ${res.changeRecord.id} generated! WhatsApp opened with customer number & message.`);
     handleClear();
     notifyChange();
   };
 
+  const handleCopyLastMessage = () => {
+    if (!lastWaMessageText) return;
+    navigator.clipboard.writeText(lastWaMessageText);
+    setCopiedMessage(true);
+    setTimeout(() => setCopiedMessage(false), 2000);
+  };
+
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-6">
+    <div className="w-full max-w-5xl mx-auto space-y-5 px-2 sm:px-0">
       {/* Till Header Status Banner */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-xs">
             <Coins className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-extrabold text-slate-900">Cashier POS Quick Till</h2>
+              <h2 className="text-sm sm:text-base font-extrabold text-slate-900">Cashier POS Quick Till</h2>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
                 LIVE TILL
               </span>
@@ -195,13 +213,13 @@ export const CashierTill: React.FC<CashierTillProps> = ({
         </div>
 
         {/* Action Button: Quick Collect / Verify Customer Change */}
-        <div className="flex items-center gap-2">
+        <div className="w-full sm:w-auto">
           <button
             onClick={() => {
               setVerificationInitialQuery('');
               setIsVerificationModalOpen(true);
             }}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white text-xs font-bold rounded-xl shadow-xs transition-all"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white text-xs font-bold rounded-xl shadow-xs transition-all"
           >
             <ShieldCheck className="w-4 h-4" />
             <span>Verify & Collect Customer Change</span>
@@ -209,18 +227,78 @@ export const CashierTill: React.FC<CashierTillProps> = ({
         </div>
       </div>
 
+      {/* WhatsApp Redirect Status Callout (When recent change record exists) */}
+      {completedRecord && lastWaDirectLink && (
+        <div className="p-4 bg-emerald-50 border-2 border-emerald-300 rounded-2xl shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-xs shrink-0">
+              <MessageSquare className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="text-xs sm:text-sm font-extrabold text-emerald-950 uppercase tracking-wide">
+                  WhatsApp Change Receipt Ready
+                </h4>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900">
+                  {completedRecord.id}
+                </span>
+              </div>
+              <p className="text-xs text-emerald-800 mt-0.5">
+                Customer: <span className="font-semibold">{completedRecord.customerPhone}</span> • Amount: <span className="font-mono font-bold">{currency}{completedRecord.amountOwed.toFixed(2)}</span>
+              </p>
+              <p className="text-[11px] text-emerald-700">
+                Customer number and message are pre-filled in WhatsApp. Cashier only needs to press <strong>Send</strong>.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+            <a
+              href={lastWaDirectLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[42px] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-sm transition-all"
+            >
+              <MessageSquare className="w-4 h-4 fill-white" />
+              <span>Open WhatsApp</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+
+            <button
+              type="button"
+              onClick={handleCopyLastMessage}
+              className="px-3 py-2.5 min-h-[42px] bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-xl transition-colors flex items-center gap-1"
+              title="Copy WhatsApp Message"
+            >
+              {copiedMessage ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedMessage ? 'Copied' : 'Copy'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowReceiptModal(true)}
+              className="px-3 py-2.5 min-h-[42px] bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1"
+              title="Print Receipt Slip"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Slip</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Toast notification */}
       {toastMessage && (
         <div className="p-3 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-xl text-xs font-semibold flex items-center justify-between animate-fade-in">
           <span>{toastMessage}</span>
-          <button onClick={() => setToastMessage(null)} className="text-emerald-700 font-bold">×</button>
+          <button onClick={() => setToastMessage(null)} className="text-emerald-700 font-bold p-1">×</button>
         </div>
       )}
 
       {/* Main Till Register Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
         {/* Left Column: Transaction Input (7 Cols) */}
-        <div className="lg:col-span-7 space-y-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+        <div className="lg:col-span-7 space-y-4 sm:space-y-5 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-xs">
           {/* Purchase Amount */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
@@ -237,7 +315,7 @@ export const CashierTill: React.FC<CashierTillProps> = ({
                 value={purchaseAmountStr}
                 onChange={e => setPurchaseAmountStr(e.target.value)}
                 placeholder="0.00"
-                className="w-full pl-10 pr-4 py-3 text-2xl font-black text-slate-900 font-mono-num bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3 min-h-[50px] text-2xl font-black text-slate-900 font-mono-num bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:outline-none transition-all"
               />
             </div>
           </div>
@@ -252,7 +330,7 @@ export const CashierTill: React.FC<CashierTillProps> = ({
                 <button
                   type="button"
                   onClick={handleExactTender}
-                  className="text-xs text-emerald-600 font-bold hover:underline"
+                  className="text-xs text-emerald-600 font-bold hover:underline py-1 px-2"
                 >
                   Exact Amount ({currency}{purchaseAmount.toFixed(2)})
                 </button>
@@ -269,19 +347,19 @@ export const CashierTill: React.FC<CashierTillProps> = ({
                 value={amountReceivedStr}
                 onChange={e => setAmountReceivedStr(e.target.value)}
                 placeholder="0.00"
-                className="w-full pl-10 pr-4 py-3 text-2xl font-black text-slate-900 font-mono-num bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3 min-h-[50px] text-2xl font-black text-slate-900 font-mono-num bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:outline-none transition-all"
               />
             </div>
 
-            {/* Quick Cash Tender Pills */}
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
+            {/* Quick Cash Tender Pills (Touch Friendly) */}
+            <div className="mt-2.5 flex flex-wrap gap-1.5 sm:gap-2">
               <span className="text-[11px] font-semibold text-slate-400 self-center mr-1">Quick Bills:</span>
               {[1, 2, 5, 10, 20, 50, 100].map(val => (
                 <button
                   key={val}
                   type="button"
                   onClick={() => handleQuickTender(val)}
-                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-mono font-bold transition-colors"
+                  className="px-3.5 py-2 min-h-[40px] bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 rounded-xl text-xs font-mono font-bold transition-colors"
                 >
                   {currency}{val}
                 </button>
@@ -299,19 +377,21 @@ export const CashierTill: React.FC<CashierTillProps> = ({
           {/* Customer Details for Change Record */}
           <div className="pt-4 border-t border-slate-100 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                3. Customer Verification Info (Required for "Record Change")
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                3. Customer WhatsApp Number (For "Record Change")
               </span>
-              <span className="text-[10px] text-slate-400">Receives WhatsApp notification</span>
+              <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                Direct WhatsApp
+              </span>
             </div>
 
-            {/* Phone Number */}
+            {/* WhatsApp Phone Number Input */}
             <div className="grid grid-cols-12 gap-2">
-              <div className="col-span-4">
+              <div className="col-span-4 sm:col-span-3">
                 <select
                   value={phoneCountryCode}
                   onChange={e => setPhoneCountryCode(e.target.value)}
-                  className="w-full py-2.5 px-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full py-3 px-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[46px]"
                 >
                   <option value="+263">ZW (+263)</option>
                   <option value="+27">ZA (+27)</option>
@@ -324,14 +404,14 @@ export const CashierTill: React.FC<CashierTillProps> = ({
                   <option value="+44">UK (+44)</option>
                 </select>
               </div>
-              <div className="col-span-8 relative">
+              <div className="col-span-8 sm:col-span-9 relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="tel"
                   value={customerPhoneRaw}
                   onChange={e => setCustomerPhoneRaw(e.target.value)}
-                  placeholder="Customer Phone (e.g. 77 123 4567)"
-                  className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Customer WhatsApp Number (e.g. 77 123 4567)"
+                  className="w-full pl-9 pr-3 py-3 min-h-[46px] bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
             </div>
@@ -345,7 +425,7 @@ export const CashierTill: React.FC<CashierTillProps> = ({
                   value={customerName}
                   onChange={e => setCustomerName(e.target.value)}
                   placeholder={existingCustomer?.name ? existingCustomer.name : "Customer Name (Optional)"}
-                  className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none"
+                  className="w-full pl-9 pr-3 py-2.5 min-h-[44px] bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none"
                 />
               </div>
               <div>
@@ -354,7 +434,7 @@ export const CashierTill: React.FC<CashierTillProps> = ({
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
                   placeholder="Notes / items (Optional)"
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none"
+                  className="w-full px-3 py-2.5 min-h-[44px] bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none"
                 />
               </div>
             </div>
@@ -401,9 +481,9 @@ export const CashierTill: React.FC<CashierTillProps> = ({
 
                 <p className="text-[11px] text-indigo-800">
                   {changeDue > 0 ? (
-                    <>✨ <strong>Auto-Accumulate:</strong> This change adds on top of their running balance. Customer receives WhatsApp update with their new cumulative total.</>
+                    <>✨ <strong>Auto-Accumulate:</strong> This change adds on top of their running balance. The WhatsApp message will include their updated cumulative total.</>
                   ) : (
-                    <>Customer has uncollected change in record. You can collect it via the Verify & Collect button.</>
+                    <>Customer has uncollected change in record. Click Verify & Collect to hand over cash.</>
                   )}
                 </p>
               </div>
@@ -414,7 +494,7 @@ export const CashierTill: React.FC<CashierTillProps> = ({
         {/* Right Column: Change Display & Dual Actions (5 Cols) */}
         <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
           {/* Automatic Calculated Change Display Card */}
-          <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 relative overflow-hidden flex flex-col justify-between min-h-[220px]">
+          <div className="bg-slate-900 text-white p-5 sm:p-6 rounded-2xl shadow-lg border border-slate-800 relative overflow-hidden flex flex-col justify-between min-h-[220px]">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
                 Calculated Change
@@ -427,14 +507,14 @@ export const CashierTill: React.FC<CashierTillProps> = ({
             </div>
 
             <div className="my-auto py-2">
-              <div className="text-5xl font-black font-mono-num tracking-tight text-white flex items-baseline">
+              <div className="text-4xl sm:text-5xl font-black font-mono-num tracking-tight text-white flex items-baseline">
                 <span className="text-3xl text-emerald-400 mr-1">{currency}</span>
                 <span>{changeDue.toFixed(2)}</span>
               </div>
               <p className="text-xs text-slate-400 mt-2">
                 {amountReceived >= purchaseAmount && purchaseAmount > 0
                   ? `Customer paid ${currency}${amountReceived.toFixed(2)} on a ${currency}${purchaseAmount.toFixed(2)} order.`
-                  : 'Awaiting purchase and payment values...'}
+                  : 'Awaiting purchase and cash tender values...'}
               </p>
 
               {/* Cumulative balance preview in change card if existing customer */}
@@ -449,7 +529,7 @@ export const CashierTill: React.FC<CashierTillProps> = ({
                     <span className="font-mono text-amber-400">+{currency}{changeDue.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-emerald-300 border-t border-slate-700 pt-1 text-xs">
-                    <span>New Total WhatsApp Balance:</span>
+                    <span>New Total Balance:</span>
                     <span className="font-mono">{currency}{((existingCustomer.totalBalanceOwed || 0) + changeDue).toFixed(2)}</span>
                   </div>
                 </div>
@@ -461,7 +541,7 @@ export const CashierTill: React.FC<CashierTillProps> = ({
               <button
                 type="button"
                 onClick={handleClear}
-                className="text-slate-400 hover:text-white flex items-center gap-1 text-[11px]"
+                className="text-slate-400 hover:text-white flex items-center gap-1 text-[11px] p-1"
               >
                 <RotateCcw className="w-3 h-3" />
                 <span>Clear</span>
@@ -475,16 +555,16 @@ export const CashierTill: React.FC<CashierTillProps> = ({
             <button
               onClick={handleGiveChangeNow}
               disabled={purchaseAmount <= 0 || amountReceived < purchaseAmount}
-              className={`p-4 rounded-2xl font-bold text-left shadow-sm transition-all flex flex-col justify-between ${
+              className={`p-4 min-h-[85px] rounded-2xl font-bold text-left shadow-sm transition-all flex flex-col justify-between ${
                 purchaseAmount > 0 && amountReceived >= purchaseAmount
                   ? 'bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white cursor-pointer'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'
               }`}
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1">
                 <CheckCircle className="w-5 h-5 text-emerald-200" />
                 <span className="text-[10px] font-mono uppercase bg-emerald-800/40 px-2 py-0.5 rounded text-emerald-100">
-                  Instant
+                  Instant Cash
                 </span>
               </div>
               <div>
@@ -492,7 +572,7 @@ export const CashierTill: React.FC<CashierTillProps> = ({
                   GIVE CHANGE NOW
                 </h4>
                 <p className="text-[11px] opacity-90 mt-0.5">
-                  Handed over in cash right away
+                  Dispensed in cash right away
                 </p>
               </div>
             </button>
@@ -501,16 +581,16 @@ export const CashierTill: React.FC<CashierTillProps> = ({
             <button
               onClick={handleRecordChange}
               disabled={changeDue <= 0}
-              className={`p-4 rounded-2xl font-bold text-left shadow-sm transition-all flex flex-col justify-between ${
+              className={`p-4 min-h-[85px] rounded-2xl font-bold text-left shadow-sm transition-all flex flex-col justify-between ${
                 changeDue > 0
                   ? 'bg-amber-500 hover:bg-amber-600 active:scale-98 text-white cursor-pointer'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'
               }`}
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1">
                 <BookmarkPlus className="w-5 h-5 text-amber-100" />
                 <span className="text-[10px] font-mono uppercase bg-amber-700/40 px-2 py-0.5 rounded text-amber-100">
-                  Digital Record
+                  WhatsApp Redirect
                 </span>
               </div>
               <div>
@@ -518,25 +598,25 @@ export const CashierTill: React.FC<CashierTillProps> = ({
                   RECORD CHANGE
                 </h4>
                 <p className="text-[11px] opacity-90 mt-0.5">
-                  Generates Change ID & WhatsApp
+                  Opens WhatsApp with pre-filled slip
                 </p>
               </div>
             </button>
           </div>
 
           {/* Quick Info Box */}
-          <div className="p-3.5 bg-slate-100 rounded-xl text-xs text-slate-600 flex items-center justify-between">
+          <div className="p-3.5 bg-slate-100 rounded-xl text-xs text-slate-600 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-emerald-600" />
-              <span>WhatsApp notifications dispatched automatically.</span>
+              <MessageSquare className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Direct WhatsApp Redirect: No Meta API, tokens or webhooks required.</span>
             </div>
             {completedRecord && (
               <button
                 onClick={() => setShowReceiptModal(true)}
-                className="text-indigo-600 font-bold hover:underline flex items-center gap-1"
+                className="text-indigo-600 font-bold hover:underline flex items-center gap-1 shrink-0"
               >
                 <Printer className="w-3.5 h-3.5" />
-                <span>Last Receipt</span>
+                <span>View Slip</span>
               </button>
             )}
           </div>
@@ -559,6 +639,7 @@ export const CashierTill: React.FC<CashierTillProps> = ({
           changeRecord={completedRecord || undefined}
           transaction={completedTx || undefined}
           shop={shop}
+          customMessageText={lastWaMessageText || undefined}
           onClose={() => setShowReceiptModal(false)}
         />
       )}

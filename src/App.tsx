@@ -179,7 +179,7 @@ export function App() {
           </div>
           <div className="flex items-center gap-4 text-slate-400">
             <span>Branch: {shop.branchName || 'Main Terminal'}</span>
-            <span>WhatsApp Cloud API v21.0</span>
+            <span>WhatsApp Direct Redirect (No Meta API)</span>
             <span>Thermal 80mm ESC/POS Ready</span>
           </div>
         </div>

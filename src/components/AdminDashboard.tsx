@@ -21,11 +21,17 @@ import {
   Eye,
   Trash2,
   Lock,
-  Store
+  Store,
+  MessageSquare
 } from 'lucide-react';
 import { Shop, Employee, ChangeRecord, Transaction, AuditLog, DashboardStats } from '../types';
 import { storage } from '../services/storage';
-import { formatDateTime } from '../services/whatsapp';
+import { 
+  formatDateTime, 
+  buildWhatsAppDirectLink, 
+  generateRecordChangeMessage, 
+  generateCollectedChangeMessage 
+} from '../services/whatsapp';
 import { VerificationModal } from './VerificationModal';
 import { CustomerHistoryModal } from './CustomerHistoryModal';
 import { ReceiptModal } from './ReceiptModal';
@@ -494,6 +500,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-right space-x-1 whitespace-nowrap">
+                      {/* WhatsApp Direct Chat Link */}
+                      <a
+                        href={buildWhatsAppDirectLink(
+                          rec.customerPhone,
+                          rec.status === 'COLLECTED'
+                            ? generateCollectedChangeMessage(shop, rec, 0)
+                            : generateRecordChangeMessage(shop, rec)
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={rec.status === 'COLLECTED' ? "Send Collection Confirmation via WhatsApp" : "Send Change Slip via WhatsApp"}
+                        className="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors inline-flex items-center"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                      </a>
+
                       <button
                         onClick={() => setSelectedReceiptRecord(rec)}
                         title="View & Print Slip"

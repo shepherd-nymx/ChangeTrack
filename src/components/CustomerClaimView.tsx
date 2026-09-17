@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { QrCode, Phone, CheckCircle, Clock, Store, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
+import { QrCode, Phone, CheckCircle, Clock, Store, ShieldCheck, Sparkles, AlertCircle, MessageSquare, ExternalLink } from 'lucide-react';
 import { ChangeRecord, Shop } from '../types';
 import { storage } from '../services/storage';
 import { QrCodeDisplay } from './QrCodeDisplay';
-import { formatDateTime } from '../services/whatsapp';
+import { formatDateTime, buildWhatsAppDirectLink, generateRecordChangeMessage, generateCollectedChangeMessage } from '../services/whatsapp';
 
 interface CustomerClaimViewProps {
   shop: Shop;
@@ -15,16 +15,28 @@ export const CustomerClaimView: React.FC<CustomerClaimViewProps> = ({ shop }) =>
 
   const currentRecord = records.find(r => r.id === selectedRecordId) || records[0];
   const currency = shop.currencySymbol || '$';
+  const waConfig = storage.getWhatsAppConfig();
+  const defaultCountryCode = waConfig.defaultCountryCode || '+263';
+
+  const waMessage = currentRecord
+    ? currentRecord.status === 'COLLECTED'
+      ? generateCollectedChangeMessage(shop, currentRecord, 0)
+      : generateRecordChangeMessage(shop, currentRecord)
+    : '';
+
+  const waLink = currentRecord
+    ? buildWhatsAppDirectLink(currentRecord.customerPhone, waMessage, defaultCountryCode)
+    : '#';
 
   return (
-    <div className="w-full max-w-md mx-auto space-y-6">
+    <div className="w-full max-w-md mx-auto space-y-5 px-2 sm:px-0">
       {/* Demo Switcher for Preview */}
-      <div className="bg-white p-3 rounded-xl border border-slate-200 text-xs flex items-center justify-between shadow-xs">
+      <div className="bg-white p-3 rounded-2xl border border-slate-200 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-xs">
         <span className="font-semibold text-slate-500">Preview As Customer:</span>
         <select
           value={currentRecord?.id}
           onChange={e => setSelectedRecordId(e.target.value)}
-          className="p-1.5 bg-slate-50 border border-slate-300 rounded-lg font-mono font-bold text-slate-800"
+          className="w-full sm:w-auto p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-800 text-xs"
         >
           {records.map(r => (
             <option key={r.id} value={r.id}>
@@ -100,6 +112,24 @@ export const CustomerClaimView: React.FC<CustomerClaimViewProps> = ({ shop }) =>
               Or show your Change ID <strong className="font-mono text-slate-800">{currentRecord?.id}</strong> at any till checkout.
             </p>
           </div>
+
+          {/* Direct WhatsApp View Button */}
+          {currentRecord && (
+            <div className="pt-2">
+              <a
+                href={waLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 min-h-[44px]"
+              >
+                <MessageSquare className="w-4 h-4 fill-white" />
+                <span>
+                  {currentRecord.status === 'COLLECTED' ? 'View WhatsApp Collection Receipt' : 'Open WhatsApp Change Slip'}
+                </span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Details Footer */}
@@ -124,10 +154,10 @@ export const CustomerClaimView: React.FC<CustomerClaimViewProps> = ({ shop }) =>
       <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-2xl text-xs text-indigo-900 space-y-1">
         <div className="flex items-center gap-1.5 font-bold">
           <ShieldCheck className="w-4 h-4 text-indigo-700" />
-          <span>Customer Tamper Protection</span>
+          <span>Customer Anti-Loss Protection</span>
         </div>
         <p className="text-[11px] text-indigo-800 leading-relaxed">
-          Your Change ID is secured in {shop.name}'s digital ledger. You can collect your change at any branch within 30 days.
+          Your Change ID is secured in {shop.name}'s digital ledger. You can collect your change at any branch anytime.
         </p>
       </div>
     </div>

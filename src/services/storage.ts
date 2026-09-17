@@ -23,7 +23,14 @@ import {
   INITIAL_CUSTOMERS,
   INITIAL_CUSTOMER_LEDGER
 } from '../data/initialData';
-import { sendWhatsAppNotification } from './whatsapp';
+import {
+  sendWhatsAppNotification,
+  buildWhatsAppDirectLink,
+  generateRecordChangeMessage,
+  generateCollectedChangeMessage,
+  generateMultiCollectMessage,
+  createWhatsAppRedirectLog
+} from './whatsapp';
 
 const KEYS = {
   SHOP: 'changetrack_shop',
@@ -436,7 +443,13 @@ class StorageService {
     customerName?: string;
     employee: Employee;
     notes?: string;
-  }): Promise<{ transaction: Transaction; changeRecord: ChangeRecord; waMessage?: WhatsAppMessage }> {
+  }): Promise<{ 
+    transaction: Transaction; 
+    changeRecord: ChangeRecord; 
+    waMessage?: WhatsAppMessage;
+    waDirectLink?: string;
+    waMessageText?: string;
+  }> {
     const changeOwed = Math.round((params.amountReceived - params.purchaseTotal) * 100) / 100;
     const txId = `TX-${Math.floor(10000 + Math.random() * 90000)}`;
     const changeId = `CT-${Math.floor(10000 + Math.random() * 90000)}`;
@@ -528,39 +541,42 @@ class StorageService {
       params.employee.name
     );
 
-    // Send WhatsApp notification with updated cumulative balance
+    // Prepare ChangeTrack WhatsApp redirect with updated cumulative balance
     const waConfig = this.getWhatsAppConfig();
-    let waMessage: WhatsAppMessage | undefined;
-    if (waConfig.autoSendOnCreate) {
-      try {
-        waMessage = await sendWhatsAppNotification(
-          waConfig, 
-          shop, 
-          changeRecord, 
-          'CHANGE_RECORDED', 
-          newBalance, 
-          previousBalance
-        );
-        const msgs = this.getWhatsAppMessages();
-        msgs.unshift(waMessage);
-        this.save(KEYS.WHATSAPP_MSGS, msgs);
+    const defaultCountryCode = waConfig.defaultCountryCode || '+263';
+    const waMessageText = generateRecordChangeMessage(
+      shop,
+      changeRecord,
+      newBalance,
+      previousBalance,
+      waConfig.customCollectionInstructions
+    );
+    const waDirectLink = buildWhatsAppDirectLink(params.customerPhone, waMessageText, defaultCountryCode);
 
-        this.addAuditLog({
-          shopId: shop.id,
-          action: 'WHATSAPP_SENT',
-          entityType: 'CHANGE_RECORD',
-          entityId: changeId,
-          actorId: params.employee.id,
-          actorName: 'WhatsApp Service',
-          actorRole: 'SYSTEM',
-          details: `WhatsApp notification dispatched for ${changeId} to ${params.customerPhone}. Total balance owed: $${newBalance.toFixed(2)}.`
-        });
-      } catch (err) {
-        console.error('WhatsApp send error:', err);
-      }
-    }
+    // Create local WhatsApp redirect log
+    const waMessage = createWhatsAppRedirectLog(changeRecord, shop, 'CHANGE_RECORDED', waMessageText);
+    const msgs = this.getWhatsAppMessages();
+    msgs.unshift(waMessage);
+    this.save(KEYS.WHATSAPP_MSGS, msgs);
 
-    return { transaction, changeRecord, waMessage };
+    this.addAuditLog({
+      shopId: shop.id,
+      action: 'WHATSAPP_SENT',
+      entityType: 'CHANGE_RECORD',
+      entityId: changeId,
+      actorId: params.employee.id,
+      actorName: 'WhatsApp Redirect',
+      actorRole: 'SYSTEM',
+      details: `WhatsApp redirect prepared for ${changeId} to ${params.customerPhone}. Total balance owed: $${newBalance.toFixed(2)}.`
+    });
+
+    return { 
+      transaction, 
+      changeRecord, 
+      waMessage, 
+      waDirectLink, 
+      waMessageText 
+    };
   }
 
   // 3. Collect change (Anti-fraud verification)
@@ -574,6 +590,8 @@ class StorageService {
     record?: ChangeRecord;
     waMessage?: WhatsAppMessage;
     remainingCustomerBalance?: number;
+    waDirectLink?: string;
+    waMessageText?: string;
   }> {
     const records = this.getChangeRecords();
     const cleanId = params.changeId.trim().toUpperCase();
@@ -646,42 +664,39 @@ class StorageService {
       details: `Change Record ${record.id} ($${record.amountOwed.toFixed(2)}) collected by customer ${record.customerPhone}. Remaining balance: $${remainingBalance.toFixed(2)}. Verified via ${params.method} by ${params.employee.name}.`
     });
 
-    // Send collection WhatsApp message
+    // Prepare WhatsApp collection confirmation redirect
     const waConfig = this.getWhatsAppConfig();
-    let waMessage: WhatsAppMessage | undefined;
-    if (waConfig.autoSendOnCollect) {
-      try {
-        waMessage = await sendWhatsAppNotification(
-          waConfig, 
-          shop, 
-          updatedRecord, 
-          'CHANGE_COLLECTED', 
-          remainingBalance
-        );
-        const msgs = this.getWhatsAppMessages();
-        msgs.unshift(waMessage);
-        this.save(KEYS.WHATSAPP_MSGS, msgs);
+    const defaultCountryCode = waConfig.defaultCountryCode || '+263';
+    const waMessageText = generateCollectedChangeMessage(
+      shop, 
+      updatedRecord, 
+      remainingBalance
+    );
+    const waDirectLink = buildWhatsAppDirectLink(record.customerPhone, waMessageText, defaultCountryCode);
 
-        this.addAuditLog({
-          shopId: shop.id,
-          action: 'WHATSAPP_SENT',
-          entityType: 'CHANGE_RECORD',
-          entityId: record.id,
-          actorId: params.employee.id,
-          actorName: 'WhatsApp Service',
-          actorRole: 'SYSTEM',
-          details: `Collection confirmation WhatsApp sent to ${record.customerPhone} for ${record.id}. Remaining customer balance: $${remainingBalance.toFixed(2)}.`
-        });
-      } catch (err) {
-        console.error('WhatsApp collection send error:', err);
-      }
-    }
+    const waMessage = createWhatsAppRedirectLog(updatedRecord, shop, 'CHANGE_COLLECTED', waMessageText);
+    const msgs = this.getWhatsAppMessages();
+    msgs.unshift(waMessage);
+    this.save(KEYS.WHATSAPP_MSGS, msgs);
+
+    this.addAuditLog({
+      shopId: shop.id,
+      action: 'WHATSAPP_SENT',
+      entityType: 'CHANGE_RECORD',
+      entityId: record.id,
+      actorId: params.employee.id,
+      actorName: 'WhatsApp Redirect',
+      actorRole: 'SYSTEM',
+      details: `Collection confirmation WhatsApp redirect prepared for ${record.customerPhone} for ${record.id}. Remaining balance: $${remainingBalance.toFixed(2)}.`
+    });
 
     return {
       success: true,
       record: updatedRecord,
       waMessage,
-      remainingCustomerBalance: remainingBalance
+      remainingCustomerBalance: remainingBalance,
+      waDirectLink,
+      waMessageText
     };
   }
 
@@ -695,6 +710,8 @@ class StorageService {
     collectedRecords: ChangeRecord[];
     totalAmountCollected: number;
     waMessage?: WhatsAppMessage;
+    waDirectLink?: string;
+    waMessageText?: string;
     error?: string;
   }> {
     const cleanPhone = params.phone.replace(/[^0-9]/g, '');
@@ -759,32 +776,42 @@ class StorageService {
       details: `Full customer balance payout: $${totalCollected.toFixed(2)} across ${collectedIds.length} change slips for ${params.phone}. Settled by ${params.employee.name}.`
     });
 
-    // Send WhatsApp notification
+    // Prepare WhatsApp multi-collect confirmation redirect
     const waConfig = this.getWhatsAppConfig();
+    const defaultCountryCode = waConfig.defaultCountryCode || '+263';
+    const customer = this.getCustomerByPhone(params.phone);
+    const waMessageText = generateMultiCollectMessage(
+      shop,
+      outstandingForCustomer,
+      totalCollected,
+      params.employee.name,
+      params.phone,
+      customer?.name
+    );
+    const waDirectLink = buildWhatsAppDirectLink(params.phone, waMessageText, defaultCountryCode);
+
     let waMessage: WhatsAppMessage | undefined;
-    if (waConfig.autoSendOnCollect && outstandingForCustomer[0]) {
-      try {
-        const dummyRecord: ChangeRecord = {
-          ...outstandingForCustomer[0],
-          id: collectedIds.length > 1 ? `${collectedIds[0]} (+${collectedIds.length - 1} slips)` : collectedIds[0],
-          amountOwed: totalCollected,
-          collectedAt: now,
-          collectedByEmployeeName: params.employee.name
-        };
-        waMessage = await sendWhatsAppNotification(waConfig, shop, dummyRecord, 'CHANGE_COLLECTED', 0.00);
-        const msgs = this.getWhatsAppMessages();
-        msgs.unshift(waMessage);
-        this.save(KEYS.WHATSAPP_MSGS, msgs);
-      } catch (err) {
-        console.error('WhatsApp collection send error:', err);
-      }
+    if (outstandingForCustomer[0]) {
+      const dummyRecord: ChangeRecord = {
+        ...outstandingForCustomer[0],
+        id: collectedIds.length > 1 ? `${collectedIds[0]} (+${collectedIds.length - 1} slips)` : collectedIds[0],
+        amountOwed: totalCollected,
+        collectedAt: now,
+        collectedByEmployeeName: params.employee.name
+      };
+      waMessage = createWhatsAppRedirectLog(dummyRecord, shop, 'CHANGE_COLLECTED', waMessageText);
+      const msgs = this.getWhatsAppMessages();
+      msgs.unshift(waMessage);
+      this.save(KEYS.WHATSAPP_MSGS, msgs);
     }
 
     return {
       success: true,
       collectedRecords: outstandingForCustomer,
       totalAmountCollected: totalCollected,
-      waMessage
+      waMessage,
+      waDirectLink,
+      waMessageText
     };
   }
 
