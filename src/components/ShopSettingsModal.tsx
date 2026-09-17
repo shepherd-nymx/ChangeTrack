@@ -20,7 +20,8 @@ import {
   AlertTriangle,
   Smartphone,
   Download,
-  Wifi
+  Wifi,
+  UserCheck
 } from 'lucide-react';
 import { Shop } from '../types';
 import { storage } from '../services/storage';
@@ -55,6 +56,7 @@ export const ShopSettingsModal: React.FC<ShopSettingsModalProps> = ({
 }) => {
   const [name, setName] = useState(shop.name);
   const [branchName, setBranchName] = useState(shop.branchName || '');
+  const [ownerName, setOwnerName] = useState(shop.ownerName || storage.getAdminName() || 'Tariro Moyo');
   const [phone, setPhone] = useState(shop.phone);
   const [address, setAddress] = useState(shop.address);
   const [currencySymbol, setCurrencySymbol] = useState(shop.currencySymbol || '$');
@@ -119,6 +121,7 @@ export const ShopSettingsModal: React.FC<ShopSettingsModalProps> = ({
       ...shop,
       name: name.trim(),
       branchName: branchName.trim(),
+      ownerName: ownerName.trim(),
       phone: phone.trim(),
       address: address.trim(),
       currency: currency.trim() || 'USD',
@@ -256,6 +259,24 @@ export const ShopSettingsModal: React.FC<ShopSettingsModalProps> = ({
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
+                </div>
+
+                <div className="p-3.5 bg-indigo-50/60 border border-indigo-200/80 rounded-2xl">
+                  <label className="block text-xs font-bold text-indigo-950 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                    <UserCheck className="w-3.5 h-3.5 text-indigo-600" />
+                    Administrator / Shop Owner Name <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={ownerName}
+                    onChange={e => setOwnerName(e.target.value)}
+                    placeholder="e.g. Tariro Moyo"
+                    className="w-full px-3.5 py-2 bg-white border border-indigo-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <p className="text-[11px] text-indigo-900/70 mt-1">
+                    This is the designated primary Administrator name shown in the Owner Console, till approvals, and managerial audit logs.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

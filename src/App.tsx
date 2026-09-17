@@ -46,7 +46,13 @@ export function App() {
     setRefreshKey(prev => prev + 1);
     const updatedShop = storage.getShop();
     setShop(updatedShop);
-    setEmployees(storage.getEmployees());
+    const updatedEmps = storage.getEmployees();
+    setEmployees(updatedEmps);
+    // Keep currentEmployee in sync with latest data, or fallback if deleted
+    setCurrentEmployee(prev => {
+      const fresh = updatedEmps.find(e => e.id === prev.id);
+      return fresh || updatedEmps[0] || prev;
+    });
   };
 
   const handleShopUpdated = (updatedShop: Shop) => {
@@ -148,8 +154,17 @@ export function App() {
       {showEmployeesModal && (
         <EmployeesModal
           shop={shop}
+          currentEmployee={currentEmployee}
           onClose={() => setShowEmployeesModal(false)}
-          onEmployeesUpdated={handleRefresh}
+          onEmployeesUpdated={(deletedId) => {
+            handleRefresh();
+            if (deletedId && currentEmployee.id === deletedId) {
+              const remaining = storage.getEmployees();
+              if (remaining.length > 0) {
+                setCurrentEmployee(remaining[0]);
+              }
+            }
+          }}
         />
       )}
 

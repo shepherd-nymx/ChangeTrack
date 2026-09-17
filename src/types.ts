@@ -8,6 +8,7 @@ export interface Shop {
   id: string;
   name: string;
   branchName?: string;
+  ownerName?: string;
   logoUrl?: string;
   phone: string;
   address: string;
@@ -110,8 +111,8 @@ export interface AuditLog {
   id: string;
   shopId: string;
   timestamp: string;
-  action: 'TRANSACTION_CREATED' | 'CHANGE_RECORDED' | 'CHANGE_COLLECTED' | 'CHANGE_CANCELLED' | 'CHANGE_REVERSED' | 'DISPUTE_OPENED' | 'DISPUTE_RESOLVED' | 'WHATSAPP_SENT' | 'SETTINGS_UPDATED';
-  entityType: 'TRANSACTION' | 'CHANGE_RECORD' | 'DISPUTE' | 'SETTINGS';
+  action: 'TRANSACTION_CREATED' | 'CHANGE_RECORDED' | 'CHANGE_COLLECTED' | 'CHANGE_CANCELLED' | 'CHANGE_REVERSED' | 'DISPUTE_OPENED' | 'DISPUTE_RESOLVED' | 'WHATSAPP_SENT' | 'SETTINGS_UPDATED' | 'EMPLOYEE_CREATED' | 'EMPLOYEE_UPDATED' | 'EMPLOYEE_DELETED';
+  entityType: 'TRANSACTION' | 'CHANGE_RECORD' | 'DISPUTE' | 'SETTINGS' | 'EMPLOYEE';
   entityId: string;
   actorId: string;
   actorName: string;

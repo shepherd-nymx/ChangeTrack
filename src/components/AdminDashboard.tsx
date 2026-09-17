@@ -22,7 +22,10 @@ import {
   Trash2,
   Lock,
   Store,
-  MessageSquare
+  MessageSquare,
+  Edit3,
+  Check,
+  X
 } from 'lucide-react';
 import { Shop, Employee, ChangeRecord, Transaction, AuditLog, DashboardStats } from '../types';
 import { storage } from '../services/storage';
@@ -67,6 +70,37 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Admin Cancel Modal
   const [cancellingRecord, setCancellingRecord] = useState<ChangeRecord | null>(null);
   const [cancelReason, setCancelReason] = useState('');
+
+  // Editable Admin Name State
+  const currentAdminName = shop.ownerName || storage.getAdminName();
+  const [isEditingAdminName, setIsEditingAdminName] = useState(false);
+  const [adminNameInput, setAdminNameInput] = useState(currentAdminName);
+  const [adminSaveFeedback, setAdminSaveFeedback] = useState<string | null>(null);
+
+  // Sync adminNameInput when shop or currentEmployee changes
+  React.useEffect(() => {
+    if (!isEditingAdminName) {
+      setAdminNameInput(shop.ownerName || storage.getAdminName());
+    }
+  }, [shop.ownerName, isEditingAdminName]);
+
+  const handleSaveAdminName = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const clean = adminNameInput.trim();
+    if (!clean) {
+      alert('Administrator name cannot be blank.');
+      return;
+    }
+    const res = storage.updateAdminName(clean, currentEmployee);
+    if (res.success) {
+      setIsEditingAdminName(false);
+      setAdminSaveFeedback(`Admin name updated to "${clean}"`);
+      setTimeout(() => setAdminSaveFeedback(null), 3500);
+      onRefresh();
+    } else {
+      alert(res.error || 'Failed to update administrator name.');
+    }
+  };
 
   const stats: DashboardStats = storage.getDashboardStats();
   const allRecords = storage.getChangeRecords();
@@ -200,9 +234,80 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 Admin & Owner Console
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Store Branch: {shop.branchName || 'Main Till'} | {shop.address}
-            </p>
+            
+            {/* Administrator Name Display & Inline Quick Edit */}
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1 text-xs text-slate-600">
+              <div className="flex items-center gap-1.5">
+                <span className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider">Admin:</span>
+                {isEditingAdminName ? (
+                  <form onSubmit={handleSaveAdminName} className="flex items-center gap-1">
+                    <input
+                      type="text"
+                      value={adminNameInput}
+                      onChange={e => setAdminNameInput(e.target.value)}
+                      placeholder="Admin Name"
+                      className="px-2.5 py-0.5 text-xs font-bold bg-white border-2 border-indigo-500 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-xs"
+                      autoFocus
+                    />
+                    <button
+                      type="submit"
+                      title="Save admin name"
+                      className="p-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors shadow-2xs"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdminNameInput(currentAdminName);
+                        setIsEditingAdminName(false);
+                      }}
+                      title="Cancel"
+                      className="p-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </form>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <span 
+                      onClick={() => {
+                        setAdminNameInput(currentAdminName);
+                        setIsEditingAdminName(true);
+                      }}
+                      title="Click to edit Administrator name"
+                      className="font-extrabold text-indigo-950 bg-indigo-50/80 hover:bg-indigo-100/90 border border-indigo-200/80 px-2 py-0.5 rounded-lg cursor-pointer transition-colors"
+                    >
+                      {currentAdminName}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdminNameInput(currentAdminName);
+                        setIsEditingAdminName(true);
+                      }}
+                      title="Edit Administrator Name"
+                      className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors flex items-center gap-1"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span className="text-[10px] text-indigo-600 font-bold hidden sm:inline">Edit</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {adminSaveFeedback && (
+                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md animate-fade-in flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                  {adminSaveFeedback}
+                </span>
+              )}
+
+              <span className="text-slate-300 hidden sm:inline">•</span>
+              <span className="text-slate-500 text-[11px]">Branch: {shop.branchName || 'Main Till'}</span>
+              <span className="text-slate-300 hidden sm:inline">•</span>
+              <span className="text-slate-500 text-[11px] truncate max-w-[220px]">{shop.address}</span>
+            </div>
           </div>
         </div>
 
@@ -227,7 +332,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors"
           >
             <Users className="w-4 h-4 text-slate-500" />
-            <span>Employees ({employees.length})</span>
+            <span>Manage Cashiers ({employees.length})</span>
           </button>
           <button
             onClick={onOpenWhatsAppSettings}
@@ -612,12 +717,34 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {cashierMetrics.map(emp => (
                   <div key={emp.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-bold text-slate-900">{emp.name}</h4>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase">{emp.role}</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-9 h-9 rounded-xl ${emp.avatarColor || 'bg-slate-700'} text-white flex items-center justify-center font-black text-xs shrink-0 shadow-2xs`}>
+                          {emp.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-slate-900 truncate leading-tight">{emp.name}</h4>
+                          <span className={`text-[9px] font-black px-1.5 py-0.2 rounded uppercase ${
+                            emp.role === 'ADMIN' ? 'text-indigo-700 bg-indigo-50' : 'text-emerald-700 bg-emerald-50'
+                          }`}>
+                            {emp.role}
+                          </span>
+                        </div>
                       </div>
-                      <span className={`w-2.5 h-2.5 rounded-full ${emp.active ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span 
+                          className={`w-2 h-2 rounded-full ${emp.active ? 'bg-emerald-500' : 'bg-rose-400'}`} 
+                          title={emp.active ? 'Active' : 'Suspended'}
+                        />
+                        <button
+                          onClick={onOpenEmployeesModal}
+                          title={`Manage or edit ${emp.name}`}
+                          className="px-2 py-1 bg-white hover:bg-indigo-50 text-indigo-700 hover:text-indigo-900 border border-slate-200 hover:border-indigo-300 rounded-lg text-[10px] font-bold transition-colors flex items-center gap-1 shadow-2xs"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                          <span>Manage</span>
+                        </button>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200">

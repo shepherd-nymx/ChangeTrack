@@ -73,6 +73,7 @@ class StorageService {
     return {
       ...INITIAL_SHOP,
       ...shop,
+      ownerName: shop.ownerName || INITIAL_SHOP.ownerName || 'Tariro Moyo',
       ownerPasscode: shop.ownerPasscode !== undefined ? shop.ownerPasscode : '1234',
       isPasscodeRequired: shop.isPasscodeRequired !== undefined ? shop.isPasscodeRequired : true
     };
@@ -80,7 +81,60 @@ class StorageService {
 
   updateShop(shop: Shop): Shop {
     this.save(KEYS.SHOP, shop);
+
+    // If ownerName is set, keep the primary ADMIN employee in sync
+    if (shop.ownerName && shop.ownerName.trim()) {
+      const employees = this.getEmployees();
+      const adminIndex = employees.findIndex(e => e.role === 'ADMIN');
+      if (adminIndex !== -1 && employees[adminIndex].name !== shop.ownerName.trim()) {
+        employees[adminIndex].name = shop.ownerName.trim();
+        this.save(KEYS.EMPLOYEES, employees);
+      }
+    }
+
     return shop;
+  }
+
+  getAdminName(): string {
+    const shop = this.getShop();
+    if (shop.ownerName && shop.ownerName.trim()) return shop.ownerName.trim();
+    const admin = this.getEmployees().find(e => e.role === 'ADMIN');
+    return admin?.name || 'Tariro Moyo';
+  }
+
+  updateAdminName(newName: string, actor?: Employee): { success: boolean; newName?: string; error?: string } {
+    const cleanName = newName.trim();
+    if (!cleanName) {
+      return { success: false, error: 'Administrator name cannot be blank.' };
+    }
+
+    const shop = this.getShop();
+    const oldName = shop.ownerName || 'Shop Administrator';
+    shop.ownerName = cleanName;
+    this.save(KEYS.SHOP, shop);
+
+    const employees = this.getEmployees();
+    let admin = employees.find(e => e.id === actor?.id && e.role === 'ADMIN');
+    if (!admin) {
+      admin = employees.find(e => e.role === 'ADMIN');
+    }
+    if (admin) {
+      admin.name = cleanName;
+      this.save(KEYS.EMPLOYEES, employees);
+    }
+
+    this.addAuditLog({
+      shopId: shop.id,
+      action: 'EMPLOYEE_UPDATED',
+      entityType: 'EMPLOYEE',
+      entityId: admin?.id || 'admin',
+      actorId: actor?.id || 'admin',
+      actorName: cleanName,
+      actorRole: 'ADMIN',
+      details: `Administrator name changed from "${oldName}" to "${cleanName}".`
+    });
+
+    return { success: true, newName: cleanName };
   }
 
   // --- Employees ---
@@ -88,7 +142,11 @@ class StorageService {
     return this.load<Employee[]>(KEYS.EMPLOYEES, INITIAL_EMPLOYEES);
   }
 
-  addEmployee(emp: Omit<Employee, 'id'>): Employee {
+  getEmployeeById(id: string): Employee | undefined {
+    return this.getEmployees().find(e => e.id === id);
+  }
+
+  addEmployee(emp: Omit<Employee, 'id'>, actor?: Employee): Employee {
     const employees = this.getEmployees();
     const newEmp: Employee = {
       ...emp,
@@ -96,15 +154,156 @@ class StorageService {
     };
     employees.push(newEmp);
     this.save(KEYS.EMPLOYEES, employees);
+
+    const shop = this.getShop();
+    this.addAuditLog({
+      shopId: shop.id,
+      action: 'EMPLOYEE_CREATED',
+      entityType: 'EMPLOYEE',
+      entityId: newEmp.id,
+      actorId: actor?.id || 'admin',
+      actorName: actor?.name || 'Shop Owner',
+      actorRole: actor?.role || 'ADMIN',
+      details: `New staff operator created: ${newEmp.name} (${newEmp.role}, ${newEmp.email}). Till access enabled.`
+    });
+
     return newEmp;
   }
 
-  toggleEmployeeStatus(id: string): Employee[] {
-    const employees = this.getEmployees().map(emp => 
-      emp.id === id ? { ...emp, active: !emp.active } : emp
-    );
+  updateEmployee(
+    id: string, 
+    updates: Partial<Omit<Employee, 'id' | 'shopId'>>,
+    actor?: Employee
+  ): { success: boolean; employee?: Employee; error?: string } {
+    const employees = this.getEmployees();
+    const index = employees.findIndex(e => e.id === id);
+    if (index === -1) {
+      return { success: false, error: 'Staff member not found.' };
+    }
+
+    const currentEmp = employees[index];
+
+    // Safety check: If demoting or deactivating the last active Admin, prevent lock-out
+    if (
+      (updates.role === 'CASHIER' && currentEmp.role === 'ADMIN') ||
+      (updates.active === false && currentEmp.active && currentEmp.role === 'ADMIN')
+    ) {
+      const remainingActiveAdmins = employees.filter(e => e.id !== id && e.role === 'ADMIN' && e.active);
+      if (remainingActiveAdmins.length === 0) {
+        return { 
+          success: false, 
+          error: 'Cannot demote or suspend the only active Administrator. At least one active Administrator must remain.' 
+        };
+      }
+    }
+
+    const updatedEmp: Employee = {
+      ...currentEmp,
+      ...updates
+    };
+
+    employees[index] = updatedEmp;
     this.save(KEYS.EMPLOYEES, employees);
-    return employees;
+
+    const shop = this.getShop();
+
+    // If an Admin employee was updated with a new name, keep shop.ownerName in sync
+    if ((currentEmp.role === 'ADMIN' || updates.role === 'ADMIN') && updates.name && updates.name.trim()) {
+      if (shop.ownerName !== updates.name.trim()) {
+        shop.ownerName = updates.name.trim();
+        this.save(KEYS.SHOP, shop);
+      }
+    }
+
+    const changesSummary = Object.entries(updates)
+      .map(([k, v]) => `${k}: ${k === 'pin' ? '••••' : v}`)
+      .join(', ');
+
+    this.addAuditLog({
+      shopId: shop.id,
+      action: 'EMPLOYEE_UPDATED',
+      entityType: 'EMPLOYEE',
+      entityId: id,
+      actorId: actor?.id || 'admin',
+      actorName: actor?.name || 'Shop Owner',
+      actorRole: actor?.role || 'ADMIN',
+      details: `Staff member ${updatedEmp.name} (${id}) updated by ${actor?.name || 'Owner'}. Updated fields: [${changesSummary}].`
+    });
+
+    return { success: true, employee: updatedEmp };
+  }
+
+  deleteEmployee(
+    id: string,
+    actor?: Employee
+  ): { success: boolean; error?: string } {
+    const employees = this.getEmployees();
+    const target = employees.find(e => e.id === id);
+    if (!target) {
+      return { success: false, error: 'Staff member not found.' };
+    }
+
+    // Safety check: Cannot delete the last Administrator
+    if (target.role === 'ADMIN') {
+      const otherAdmins = employees.filter(e => e.id !== id && e.role === 'ADMIN');
+      if (otherAdmins.length === 0) {
+        return {
+          success: false,
+          error: 'Cannot delete the only remaining Administrator. Promote another staff member to Administrator first.'
+        };
+      }
+    }
+
+    const remaining = employees.filter(e => e.id !== id);
+    this.save(KEYS.EMPLOYEES, remaining);
+
+    const shop = this.getShop();
+    this.addAuditLog({
+      shopId: shop.id,
+      action: 'EMPLOYEE_DELETED',
+      entityType: 'EMPLOYEE',
+      entityId: id,
+      actorId: actor?.id || 'admin',
+      actorName: actor?.name || 'Shop Owner',
+      actorRole: actor?.role || 'ADMIN',
+      details: `Staff member ${target.name} (${target.role}, ${target.email}) deleted from system by ${actor?.name || 'Owner'}. Historical transaction and audit records remain intact.`
+    });
+
+    return { success: true };
+  }
+
+  toggleEmployeeStatus(id: string, actor?: Employee): Employee[] {
+    const employees = this.getEmployees();
+    const target = employees.find(e => e.id === id);
+    if (!target) return employees;
+
+    // If attempting to suspend the last active Admin, prevent it
+    if (target.active && target.role === 'ADMIN') {
+      const otherActiveAdmins = employees.filter(e => e.id !== id && e.role === 'ADMIN' && e.active);
+      if (otherActiveAdmins.length === 0) {
+        return employees;
+      }
+    }
+
+    const newActive = !target.active;
+    const updated = employees.map(emp => 
+      emp.id === id ? { ...emp, active: newActive } : emp
+    );
+    this.save(KEYS.EMPLOYEES, updated);
+
+    const shop = this.getShop();
+    this.addAuditLog({
+      shopId: shop.id,
+      action: 'EMPLOYEE_UPDATED',
+      entityType: 'EMPLOYEE',
+      entityId: id,
+      actorId: actor?.id || 'admin',
+      actorName: actor?.name || 'Shop Owner',
+      actorRole: actor?.role || 'ADMIN',
+      details: `Staff member ${target.name} till access status changed to ${newActive ? 'ACTIVE' : 'SUSPENDED'}.`
+    });
+
+    return updated;
   }
 
   // --- Transactions ---

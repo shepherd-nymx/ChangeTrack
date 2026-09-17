@@ -103,6 +103,7 @@ export const INITIAL_SHOP: Shop = {
   id: 'shop-abc-001',
   name: 'ABC Tuckshop & Supermarket',
   branchName: 'Main Terminal Till #1',
+  ownerName: 'Tariro Moyo',
   logoUrl: '',
   phone: '+263 77 200 1122',
   address: '42 Market Way, Central Avenue',
