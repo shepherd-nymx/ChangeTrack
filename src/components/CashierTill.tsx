@@ -156,8 +156,13 @@ export const CashierTill: React.FC<CashierTillProps> = ({
 
   // 1. Give Full Change Now
   const handleGiveChangeNow = () => {
-    if (purchaseAmount <= 0 || amountReceived < purchaseAmount) {
-      alert('Please enter valid purchase amount and received cash tender.');
+    if (purchaseAmount <= 0 || amountReceived < purchaseAmount || isNaN(purchaseAmount) || isNaN(amountReceived)) {
+      showToast('Please enter a valid purchase amount and received cash tender.');
+      return;
+    }
+
+    if (purchaseAmount > 100000 || amountReceived > 100000) {
+      showToast('Amount exceeds maximum till limit ($100,000.00).');
       return;
     }
 
@@ -181,14 +186,14 @@ export const CashierTill: React.FC<CashierTillProps> = ({
 
   // 2. Record Full Change - Generate ChangeTrack message and open WhatsApp directly
   const handleRecordChange = async () => {
-    if (purchaseAmount <= 0 || changeDue <= 0) {
-      alert('Cannot record change: no change is owed for this sale.');
+    if (purchaseAmount <= 0 || changeDue <= 0 || isNaN(changeDue)) {
+      showToast('Cannot record change: no change is owed for this sale.');
       return;
     }
 
     const cleanNumber = customerPhoneRaw.replace(/[^0-9]/g, '').replace(/^0+/, '');
-    if (!cleanNumber || cleanNumber.length < 5) {
-      alert("Please enter the customer's WhatsApp number to record change and generate their digital receipt.");
+    if (!cleanNumber || cleanNumber.length < 5 || cleanNumber.length > 15) {
+      showToast("Please enter a valid customer phone number (5-15 digits) to record change.");
       return;
     }
 
@@ -209,9 +214,13 @@ export const CashierTill: React.FC<CashierTillProps> = ({
     setLastWaMessageText(res.waMessageText || null);
     setShowReceiptModal(true);
 
-    // Open WhatsApp directly with pre-filled message
+    // Safely open WhatsApp directly with pre-filled message
     if (res.waDirectLink) {
-      window.open(res.waDirectLink, '_blank', 'noopener,noreferrer');
+      try {
+        window.open(res.waDirectLink, '_blank', 'noopener,noreferrer');
+      } catch (err) {
+        console.warn('Could not auto-open WhatsApp link:', err);
+      }
     }
 
     showToast(`Change Record ${res.changeRecord.id} generated! WhatsApp opened with customer number & message.`);
@@ -221,24 +230,24 @@ export const CashierTill: React.FC<CashierTillProps> = ({
 
   // 3. Record Partial Change (Cashier gives partial cash now, rest recorded as change)
   const handleRecordPartialChange = async () => {
-    if (purchaseAmount <= 0 || changeDue <= 0) {
-      alert('Cannot record change: no change is due for this sale.');
+    if (purchaseAmount <= 0 || changeDue <= 0 || isNaN(changeDue)) {
+      showToast('Cannot record change: no change is due for this sale.');
       return;
     }
 
-    if (partialCashGiven <= 0) {
-      alert('Please enter the cash amount given to customer, or use standard "Record Change" for full change.');
+    if (partialCashGiven <= 0 || isNaN(partialCashGiven)) {
+      showToast('Please enter the cash amount given to customer, or use standard "Record Change" for full change.');
       return;
     }
 
     if (partialCashGiven >= changeDue) {
-      alert(`The cash given (${currency}${partialCashGiven.toFixed(2)}) covers all or more than the change due (${currency}${changeDue.toFixed(2)}). Use "Give Change Now" instead.`);
+      showToast(`The cash given (${currency}${partialCashGiven.toFixed(2)}) covers all change due (${currency}${changeDue.toFixed(2)}). Use "Give Change Now" instead.`);
       return;
     }
 
     const cleanNumber = customerPhoneRaw.replace(/[^0-9]/g, '').replace(/^0+/, '');
-    if (!cleanNumber || cleanNumber.length < 5) {
-      alert("Please enter the customer's WhatsApp number to record the remaining change and generate their digital slip.");
+    if (!cleanNumber || cleanNumber.length < 5 || cleanNumber.length > 15) {
+      showToast("Please enter a valid customer phone number (5-15 digits) to record remaining change.");
       return;
     }
 
@@ -263,7 +272,11 @@ export const CashierTill: React.FC<CashierTillProps> = ({
     setShowReceiptModal(true);
 
     if (res.waDirectLink) {
-      window.open(res.waDirectLink, '_blank', 'noopener,noreferrer');
+      try {
+        window.open(res.waDirectLink, '_blank', 'noopener,noreferrer');
+      } catch (err) {
+        console.warn('Could not auto-open WhatsApp link:', err);
+      }
     }
 
     showToast(`Partial change saved! Handed ${currency}${partialCashGiven.toFixed(2)} cash, recorded ${currency}${remainingPartialChangeOwed.toFixed(2)} to ${fullPhone}.`);
@@ -273,14 +286,19 @@ export const CashierTill: React.FC<CashierTillProps> = ({
 
   // 4. Direct Register Change (Operator simply wants to register a person's change without a sale)
   const handleRegisterDirectChange = async () => {
-    if (directChangeAmount <= 0) {
-      alert('Please enter a valid change amount to register.');
+    if (directChangeAmount <= 0 || isNaN(directChangeAmount)) {
+      showToast('Please enter a valid change amount to register.');
+      return;
+    }
+
+    if (directChangeAmount > 100000) {
+      showToast('Direct change amount exceeds maximum limit ($100,000.00).');
       return;
     }
 
     const cleanNumber = customerPhoneRaw.replace(/[^0-9]/g, '').replace(/^0+/, '');
-    if (!cleanNumber || cleanNumber.length < 5) {
-      alert("Please enter the customer's WhatsApp number to register their change.");
+    if (!cleanNumber || cleanNumber.length < 5 || cleanNumber.length > 15) {
+      showToast("Please enter a valid customer phone number (5-15 digits) to register change.");
       return;
     }
 
@@ -301,7 +319,11 @@ export const CashierTill: React.FC<CashierTillProps> = ({
     setShowReceiptModal(true);
 
     if (res.waDirectLink) {
-      window.open(res.waDirectLink, '_blank', 'noopener,noreferrer');
+      try {
+        window.open(res.waDirectLink, '_blank', 'noopener,noreferrer');
+      } catch (err) {
+        console.warn('Could not auto-open WhatsApp link:', err);
+      }
     }
 
     showToast(`Direct change of ${currency}${directChangeAmount.toFixed(2)} registered to ${fullPhone}! WhatsApp opened.`);

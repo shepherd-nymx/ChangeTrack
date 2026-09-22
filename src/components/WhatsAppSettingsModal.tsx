@@ -32,6 +32,8 @@ export const WhatsAppSettingsModal: React.FC<WhatsAppSettingsModalProps> = ({
   const [testPhone, setTestPhone] = useState('+263771234567');
   const [copiedText, setCopiedText] = useState(false);
 
+  const [savedFeedback, setSavedFeedback] = useState(false);
+
   const messages = storage.getWhatsAppMessages();
   const currency = shop.currencySymbol || '$';
 
@@ -39,7 +41,8 @@ export const WhatsAppSettingsModal: React.FC<WhatsAppSettingsModalProps> = ({
     e.preventDefault();
     storage.updateWhatsAppConfig(config);
     onConfigUpdated();
-    alert('WhatsApp direct redirect preferences updated successfully.');
+    setSavedFeedback(true);
+    setTimeout(() => setSavedFeedback(false), 3000);
   };
 
   const copyTemplateText = (text: string) => {
@@ -241,20 +244,28 @@ export const WhatsAppSettingsModal: React.FC<WhatsAppSettingsModalProps> = ({
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-semibold text-xs min-h-[40px]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs shadow-xs min-h-[40px]"
-                >
-                  Save Settings
-                </button>
+              <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+                {savedFeedback ? (
+                  <span className="text-xs font-bold text-emerald-600 flex items-center gap-1.5 animate-in fade-in">
+                    <CheckCheck className="w-4 h-4" />
+                    <span>Settings saved successfully!</span>
+                  </span>
+                ) : <span />}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-semibold text-xs min-h-[40px]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs shadow-xs min-h-[40px]"
+                  >
+                    Save Settings
+                  </button>
+                </div>
               </div>
             </form>
           )}

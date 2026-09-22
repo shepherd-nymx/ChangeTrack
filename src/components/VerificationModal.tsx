@@ -136,7 +136,11 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
 
   // Helper to open direct WhatsApp redirect
   const openWhatsAppUrl = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
+    try {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      console.warn('Could not auto-open WhatsApp link:', err);
+    }
   };
 
   // 1. Collect individual change record
@@ -251,7 +255,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
   const handleAdminReversal = () => {
     if (!selectedRecord || !reversalReason.trim()) return;
     if (currentEmployee.role !== 'ADMIN') {
-      alert('Only Shop Administrators can reverse a collection record.');
+      setErrorMessage('Security Authorization Required: Only Shop Administrators can reverse a collection record.');
       return;
     }
 
@@ -271,9 +275,9 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
       if (typeof onRecordUpdated === 'function') {
         onRecordUpdated();
       }
-      alert(`Record ${selectedRecord.id} successfully reverted to OUTSTANDING with audit entry.`);
+      setErrorMessage(null);
     } else {
-      alert(res.error || 'Failed to reverse collection');
+      setErrorMessage(res.error || 'Failed to reverse collection');
     }
   };
 

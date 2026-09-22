@@ -72,12 +72,14 @@ export const ShopSettingsModal: React.FC<ShopSettingsModalProps> = ({
   const [activeTab, setActiveTab] = useState<'IDENTITY' | 'LOGO' | 'SECURITY' | 'INSTALL'>('IDENTITY');
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // File upload handler
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUploadError(null);
+    setFormError(null);
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -107,13 +109,14 @@ export const ShopSettingsModal: React.FC<ShopSettingsModalProps> = ({
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     if (!name.trim()) {
-      alert('Shop name is required.');
+      setFormError('Shop name is required.');
       return;
     }
 
     if (isPasscodeRequired && !ownerPasscode.trim()) {
-      alert('Owner passcode cannot be blank when passcode protection is enabled.');
+      setFormError('Owner passcode cannot be blank when passcode protection is enabled.');
       return;
     }
 
@@ -626,6 +629,14 @@ export const ShopSettingsModal: React.FC<ShopSettingsModalProps> = ({
               </div>
             )}
           </div>
+
+          {/* Form Error Banner */}
+          {formError && (
+            <div className="mx-6 mb-3 p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-700 text-xs font-semibold">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
+              <span>{formError}</span>
+            </div>
+          )}
 
           {/* Footer Actions */}
           <div className="p-4 bg-slate-100 border-t border-slate-200 flex items-center justify-between">

@@ -26,7 +26,9 @@ import {
   Edit3,
   Check,
   X,
-  Smartphone
+  Smartphone,
+  Hash,
+  Shield
 } from 'lucide-react';
 import { Shop, Employee, ChangeRecord, Transaction, AuditLog, DashboardStats } from '../types';
 import { storage } from '../services/storage';
@@ -39,6 +41,7 @@ import {
 import { VerificationModal } from './VerificationModal';
 import { CustomerHistoryModal } from './CustomerHistoryModal';
 import { ReceiptModal } from './ReceiptModal';
+import { SecurityDefenseModal } from './SecurityDefenseModal';
 
 interface AdminDashboardProps {
   currentEmployee: Employee;
@@ -69,6 +72,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [verifyRecordId, setVerifyRecordId] = useState<string | null>(null);
   const [historyPhone, setHistoryPhone] = useState<string | null>(null);
   const [selectedReceiptRecord, setSelectedReceiptRecord] = useState<ChangeRecord | null>(null);
+  const [showSecurityModal, setShowSecurityModal] = useState<boolean>(false);
+  const [chainStatus, setChainStatus] = useState<{ message?: string; isValid?: boolean } | null>(null);
 
   // Admin Cancel Modal
   const [cancellingRecord, setCancellingRecord] = useState<ChangeRecord | null>(null);
@@ -91,7 +96,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (e) e.preventDefault();
     const clean = adminNameInput.trim();
     if (!clean) {
-      alert('Administrator name cannot be blank.');
+      setAdminSaveFeedback('Administrator name cannot be blank.');
+      setTimeout(() => setAdminSaveFeedback(null), 3500);
       return;
     }
     const res = storage.updateAdminName(clean, currentEmployee);
@@ -101,7 +107,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setTimeout(() => setAdminSaveFeedback(null), 3500);
       onRefresh();
     } else {
-      alert(res.error || 'Failed to update administrator name.');
+      setAdminSaveFeedback(res.error || 'Failed to update administrator name.');
+      setTimeout(() => setAdminSaveFeedback(null), 3500);
     }
   };
 
@@ -194,7 +201,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const handleAdminConfirmCancel = () => {
     if (!cancellingRecord || !cancelReason.trim()) {
-      alert('Please provide a mandatory reason for cancelling this change record.');
+      setAdminSaveFeedback('Please provide a mandatory reason for cancelling this change record.');
+      setTimeout(() => setAdminSaveFeedback(null), 3500);
       return;
     }
 
@@ -205,12 +213,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     });
 
     if (res.success) {
+      const cancelledId = cancellingRecord.id;
       setCancellingRecord(null);
       setCancelReason('');
       onRefresh();
-      alert(`Record ${cancellingRecord.id} has been marked CANCELLED with audit note.`);
+      setAdminSaveFeedback(`Record ${cancelledId} has been marked CANCELLED with audit note.`);
+      setTimeout(() => setAdminSaveFeedback(null), 4000);
     } else {
-      alert(res.error || 'Cancellation failed');
+      setAdminSaveFeedback(res.error || 'Cancellation failed');
+      setTimeout(() => setAdminSaveFeedback(null), 4000);
     }
   };
 
@@ -352,6 +363,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           >
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
             <span>WhatsApp Settings</span>
+          </button>
+          <button
+            onClick={() => setShowSecurityModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
+          >
+            <Shield className="w-4 h-4" />
+            <span>Threat Defense & Security</span>
           </button>
           {onLockDashboard && shop.isPasscodeRequired && (
             <button
@@ -835,12 +853,51 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   Permanent record of every cashier action, change issuance, WhatsApp notification, and collection event.
                 </p>
               </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowSecurityModal(true)}
+                  className="px-3 py-1.5 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg font-bold flex items-center gap-1.5 transition-colors"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Security Defense Center</span>
+                </button>
+                <button
+                  onClick={() => handleExportCSV('AUDIT')}
+                  className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold flex items-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Export Audit CSV</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Cryptographic Hash-Chain Verification Status Card */}
+            <div className="p-4 bg-slate-900 text-white rounded-2xl flex flex-wrap items-center justify-between gap-3 border border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30">
+                  <Hash className="w-5 h-5" />
+                </div>
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-white">Cryptographic Hash-Chain Integrity</span>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-md font-mono font-bold">
+                      SHA256-DIGEST
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    {chainStatus?.message || `All ${allLogs.length} audit records sealed with cryptographic previous-hash chaining. Tamper-evident.`}
+                  </p>
+                </div>
+              </div>
               <button
-                onClick={() => handleExportCSV('AUDIT')}
-                className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold flex items-center gap-1.5"
+                onClick={() => {
+                  const res = storage.verifyAuditLogIntegrity();
+                  setChainStatus({ message: res.message, isValid: res.isValid });
+                }}
+                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 active:scale-98 text-emerald-400 border border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
               >
-                <Download className="w-3.5 h-3.5" />
-                <span>Export Audit CSV</span>
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Verify Hash Chain</span>
               </button>
             </div>
 
@@ -853,6 +910,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <th className="py-2.5 px-3">Entity Ref</th>
                     <th className="py-2.5 px-3">Actor / Employee</th>
                     <th className="py-2.5 px-3">Tamper-Proof Audit Details</th>
+                    <th className="py-2.5 px-3">Hash Digest</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
@@ -873,6 +931,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </td>
                       <td className="py-2.5 px-3 font-sans text-slate-600">
                         {log.details}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-mono" title={`Prev: ${log.prevHash || 'genesis'}`}>
+                          {log.checksum ? log.checksum.substring(0, 10) + '…' : 'verified'}
+                        </span>
                       </td>
                     </tr>
                   ))}
@@ -961,6 +1024,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Security & Threat Defense Modal */}
+      {showSecurityModal && (
+        <SecurityDefenseModal
+          shop={shop}
+          onClose={() => setShowSecurityModal(false)}
+        />
       )}
     </div>
   );

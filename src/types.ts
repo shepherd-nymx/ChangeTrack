@@ -117,8 +117,8 @@ export interface AuditLog {
   id: string;
   shopId: string;
   timestamp: string;
-  action: 'TRANSACTION_CREATED' | 'CHANGE_RECORDED' | 'CHANGE_COLLECTED' | 'CHANGE_CANCELLED' | 'CHANGE_REVERSED' | 'DISPUTE_OPENED' | 'DISPUTE_RESOLVED' | 'WHATSAPP_SENT' | 'SETTINGS_UPDATED' | 'EMPLOYEE_CREATED' | 'EMPLOYEE_UPDATED' | 'EMPLOYEE_DELETED';
-  entityType: 'TRANSACTION' | 'CHANGE_RECORD' | 'DISPUTE' | 'SETTINGS' | 'EMPLOYEE';
+  action: 'TRANSACTION_CREATED' | 'CHANGE_RECORDED' | 'CHANGE_COLLECTED' | 'CHANGE_CANCELLED' | 'CHANGE_REVERSED' | 'DISPUTE_OPENED' | 'DISPUTE_RESOLVED' | 'WHATSAPP_SENT' | 'SETTINGS_UPDATED' | 'EMPLOYEE_CREATED' | 'EMPLOYEE_UPDATED' | 'EMPLOYEE_DELETED' | 'SECURITY_FAILED_AUTH' | 'SECURITY_LOCKOUT' | 'SECURITY_TAMPER_DETECTED';
+  entityType: 'TRANSACTION' | 'CHANGE_RECORD' | 'DISPUTE' | 'SETTINGS' | 'EMPLOYEE' | 'SECURITY';
   entityId: string;
   actorId: string;
   actorName: string;
@@ -126,6 +126,26 @@ export interface AuditLog {
   details: string;
   ipAddress?: string;
   metadata?: Record<string, any>;
+  checksum?: string;
+  prevHash?: string;
+}
+
+export interface SecurityAuditReport {
+  isSecure: boolean;
+  totalChecks: number;
+  passedChecks: number;
+  chainIntegrityValid: boolean;
+  tamperedRecordsCount: number;
+  rateLimitActive: boolean;
+  secretsExposedInStorage: boolean;
+  inputValidationEnforced: boolean;
+  lastScannedAt: string;
+  findings: Array<{
+    id: string;
+    level: 'PASS' | 'WARN' | 'CRITICAL';
+    title: string;
+    description: string;
+  }>;
 }
 
 export interface WhatsAppMessage {
