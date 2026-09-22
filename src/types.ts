@@ -72,6 +72,8 @@ export interface Transaction {
   changeGivenNow: number;
   changeOwed: number; // recorded as outstanding
   hasOutstandingChange: boolean;
+  isPartialChange?: boolean; // True when customer was given partial cash and remainder recorded
+  isDirectRegistration?: boolean; // True when change was directly registered without purchase total
   changeRecordId?: string;
   customerPhone?: string;
   customerName?: string;
@@ -88,7 +90,11 @@ export interface ChangeRecord {
   cashierName: string;
   customerPhone: string;
   customerName?: string;
-  amountOwed: number;
+  amountOwed: number; // Remaining amount owed to customer
+  totalChangeCalculated?: number; // Total calculated change before partial cash payment
+  partialCashGivenNow?: number; // Amount of cash paid immediately at the till
+  isPartialChange?: boolean; // Flag indicating partial cash payout
+  isDirectRegistration?: boolean; // Flag indicating direct change registration without sale
   status: ChangeStatus;
   createdAt: string; // ISO string
   qrCodePayload: string; // string or verification token
@@ -184,4 +190,23 @@ export interface DashboardStats {
   activeDisputesCount: number;
   totalChangeRecordedAllTime: number;
   totalChangeCollectedAllTime: number;
+}
+
+export interface PhonePortalProfile {
+  portalId: string; // Unique portal identifier for this phone (e.g. portal_7x9k2m)
+  deviceId: string; // Unique device UUID stored on this phone
+  deviceName: string; // e.g. "Main Cashier Phone"
+  createdAt: string;
+  isFirstLaunch?: boolean;
+}
+
+export interface SupabaseSyncConfig {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  isEnabled: boolean;
+  autoSync: boolean;
+  lastSyncedAt?: string;
+  syncStatus: 'IDLE' | 'SYNCING' | 'SUCCESS' | 'ERROR' | 'DISCONNECTED';
+  lastErrorMessage?: string;
+  syncedRecordsCount?: number;
 }

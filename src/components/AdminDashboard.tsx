@@ -25,7 +25,8 @@ import {
   MessageSquare,
   Edit3,
   Check,
-  X
+  X,
+  Smartphone
 } from 'lucide-react';
 import { Shop, Employee, ChangeRecord, Transaction, AuditLog, DashboardStats } from '../types';
 import { storage } from '../services/storage';
@@ -46,6 +47,7 @@ interface AdminDashboardProps {
   onOpenWhatsAppSettings: () => void;
   onOpenEmployeesModal: () => void;
   onOpenShopSettings: () => void;
+  onOpenPhonePortal?: () => void;
   onLockDashboard?: () => void;
 }
 
@@ -56,6 +58,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onOpenWhatsAppSettings,
   onOpenEmployeesModal,
   onOpenShopSettings,
+  onOpenPhonePortal,
   onLockDashboard
 }) => {
   const [activeTab, setActiveTab] = useState<'RECORDS' | 'TRANSACTIONS' | 'AUDIT' | 'CHARTS'>('RECORDS');
@@ -313,6 +316,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         {/* Global Action Shortcuts */}
         <div className="flex flex-wrap items-center gap-2">
+          {onOpenPhonePortal && (
+            <button
+              onClick={onOpenPhonePortal}
+              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold transition-colors shadow-xs"
+            >
+              <Smartphone className="w-4 h-4 text-emerald-600" />
+              <span>Phone Portal & Cloud Sync</span>
+            </button>
+          )}
           <button
             onClick={onOpenShopSettings}
             className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-xl text-xs font-bold transition-colors shadow-xs"

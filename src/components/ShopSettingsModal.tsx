@@ -347,6 +347,20 @@ export const ShopSettingsModal: React.FC<ShopSettingsModalProps> = ({
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
+
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <div>
+                      <div className="text-[11px] font-bold text-slate-800">
+                        Phone Portal ID: <span className="font-mono font-black text-emerald-700">{storage.getPortalId()}</span>
+                      </div>
+                      <div className="text-[10px] text-slate-500">
+                        This phone's data in Supabase is strictly partitioned under this portal ID.
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 

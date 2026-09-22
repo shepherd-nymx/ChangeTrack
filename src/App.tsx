@@ -10,6 +10,7 @@ import { WhatsAppSettingsModal } from './components/WhatsAppSettingsModal';
 import { EmployeesModal } from './components/EmployeesModal';
 import { ShopSettingsModal } from './components/ShopSettingsModal';
 import { OwnerPasscodeModal } from './components/OwnerPasscodeModal';
+import { PhonePortalModal } from './components/PhonePortalModal';
 import { PWAInstallBanner } from './components/PWAInstallBanner';
 import { OfflineIndicator } from './components/OfflineIndicator';
 
@@ -41,6 +42,7 @@ export function App() {
   const [showWhatsAppSettings, setShowWhatsAppSettings] = useState(false);
   const [showEmployeesModal, setShowEmployeesModal] = useState(false);
   const [showShopSettings, setShowShopSettings] = useState(false);
+  const [showPhonePortalModal, setShowPhonePortalModal] = useState(false);
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
@@ -95,6 +97,7 @@ export function App() {
         onOpenWhatsAppSettings={() => setShowWhatsAppSettings(true)}
         onOpenEmployeesModal={() => setShowEmployeesModal(true)}
         onOpenShopSettings={() => setShowShopSettings(true)}
+        onOpenPhonePortal={() => setShowPhonePortalModal(true)}
         isOwnerUnlocked={isOwnerUnlocked}
         onRequireOwnerPasscode={handleRequireOwnerPasscode}
         onLockOwnerDashboard={handleLockOwnerDashboard}
@@ -121,6 +124,7 @@ export function App() {
             onOpenWhatsAppSettings={() => setShowWhatsAppSettings(true)}
             onOpenEmployeesModal={() => setShowEmployeesModal(true)}
             onOpenShopSettings={() => setShowShopSettings(true)}
+            onOpenPhonePortal={() => setShowPhonePortalModal(true)}
             onLockDashboard={handleLockOwnerDashboard}
           />
         )}
@@ -181,6 +185,14 @@ export function App() {
           shop={shop}
           onSuccess={handleOwnerUnlockSuccess}
           onClose={() => setShowOwnerPasscodeModal(false)}
+        />
+      )}
+
+      {showPhonePortalModal && (
+        <PhonePortalModal
+          isOpen={showPhonePortalModal}
+          onClose={() => setShowPhonePortalModal(false)}
+          onDataChanged={handleRefresh}
         />
       )}
 

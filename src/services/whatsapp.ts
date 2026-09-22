@@ -86,10 +86,22 @@ export function generateRecordChangeMessage(
     }
   }
 
+  let changeDetailsSection = `💵 *Change Amount Due:* *${currency}${record.amountOwed.toFixed(2)}*`;
+  
+  if (record.isPartialChange && record.partialCashGivenNow !== undefined && record.totalChangeCalculated !== undefined) {
+    changeDetailsSection = `💵 *Total Change Due:* *${currency}${record.totalChangeCalculated.toFixed(2)}*
+💵 *Cash Handed to You Now:* *${currency}${record.partialCashGivenNow.toFixed(2)}*
+🔖 *Remaining Change Owed:* *${currency}${record.amountOwed.toFixed(2)}*`;
+  } else if (record.isDirectRegistration) {
+    changeDetailsSection = `💵 *Direct Change Registered:* *${currency}${record.amountOwed.toFixed(2)}*`;
+  }
+
   const instructions = customInstructions?.trim() || 
 `• Present this Change ID (*${record.id}*) or show this WhatsApp message at any till checkout.
 • Our cashier will verify your Change ID and hand over your cash change on your next visit.
 • Keep this WhatsApp confirmation for your records.`;
+
+  const noteLine = record.notes ? `\n📝 *Notes:* ${record.notes}` : '';
 
   return `*${shop.name.toUpperCase()}*
 *DIGITAL CHANGE RECEIPT*
@@ -97,11 +109,11 @@ export function generateRecordChangeMessage(
 Hello ${customerName},
 Your change has been recorded securely.
 
-💵 *Change Amount Due:* *${currency}${record.amountOwed.toFixed(2)}*
+${changeDetailsSection}
 🔖 *Change ID:* *${record.id}*
 📅 *Date & Time:* ${formattedDate}
 🏬 *Store:* ${shop.name}${shop.branchName ? ` (${shop.branchName})` : ''}
-📌 *Status:* Outstanding${balanceSection}
+📌 *Status:* Outstanding${balanceSection}${noteLine}
 
 *Collection Instructions:*
 ${instructions}

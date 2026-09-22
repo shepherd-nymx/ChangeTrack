@@ -182,23 +182,58 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
                   <span className="text-slate-500">Transaction Ref:</span>
                   <span className="font-bold">{transaction.id}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Purchase Total:</span>
-                  <span>{currency}{transaction.purchaseTotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Amount Tendered:</span>
-                  <span>{currency}{transaction.amountReceived.toFixed(2)}</span>
-                </div>
+                {transaction.purchaseTotal > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Purchase Total:</span>
+                    <span>{currency}{transaction.purchaseTotal.toFixed(2)}</span>
+                  </div>
+                )}
+                {transaction.amountReceived > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Amount Tendered:</span>
+                    <span>{currency}{transaction.amountReceived.toFixed(2)}</span>
+                  </div>
+                )}
+                {transaction.isPartialChange && transaction.changeGivenNow > 0 && (
+                  <div className="flex justify-between text-emerald-700 font-bold">
+                    <span>Cash Given At Till:</span>
+                    <span>{currency}{transaction.changeGivenNow.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
             )}
 
             {changeRecord && (
               <div className="pt-2 mt-2 border-t border-slate-200 space-y-1.5">
+                {changeRecord.isPartialChange && changeRecord.partialCashGivenNow !== undefined && changeRecord.totalChangeCalculated !== undefined && (
+                  <div className="p-2 bg-slate-50 rounded border border-slate-200 text-[11px] space-y-1 mb-1">
+                    <div className="flex justify-between text-slate-600">
+                      <span>Total Change Due:</span>
+                      <span className="font-mono font-bold">{currency}{changeRecord.totalChangeCalculated.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-emerald-700 font-bold">
+                      <span>Cash Paid Now:</span>
+                      <span className="font-mono">-{currency}{changeRecord.partialCashGivenNow.toFixed(2)}</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-between items-center text-sm font-black bg-amber-50 p-2 rounded border border-amber-200">
-                  <span className="text-amber-900">OUTSTANDING CHANGE:</span>
+                  <span className="text-amber-900">
+                    {changeRecord.isPartialChange ? 'REMAINING CHANGE OWED:' : changeRecord.isDirectRegistration ? 'DIRECT CHANGE REGISTERED:' : 'OUTSTANDING CHANGE:'}
+                  </span>
                   <span className="text-amber-900 text-base">{currency}{changeRecord.amountOwed.toFixed(2)}</span>
                 </div>
+                {changeRecord.isPartialChange && (
+                  <div className="text-[10px] text-amber-800 font-semibold px-1">
+                    * Partial cash was handed to customer. Remainder saved to ChangeTrack.
+                  </div>
+                )}
+                {changeRecord.isDirectRegistration && (
+                  <div className="text-[10px] text-indigo-700 font-semibold px-1">
+                    * Direct change registered without store purchase.
+                  </div>
+                )}
                 <div className="flex justify-between text-[11px]">
                   <span className="text-slate-500">Change ID:</span>
                   <span className="font-bold text-slate-900 tracking-wider">{changeRecord.id}</span>

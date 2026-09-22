@@ -1,0 +1,503 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Smartphone, 
+  Database, 
+  Cloud, 
+  CloudCheck, 
+  CloudOff, 
+  Copy, 
+  Check, 
+  RefreshCw, 
+  UploadCloud, 
+  DownloadCloud, 
+  Link2, 
+  RotateCcw, 
+  Sparkles, 
+  ShieldCheck, 
+  AlertCircle, 
+  X, 
+  Eye, 
+  EyeOff, 
+  Layers
+} from 'lucide-react';
+import { storage } from '../services/storage';
+import { supabaseService } from '../services/supabase';
+import { PhonePortalProfile, SupabaseSyncConfig } from '../types';
+
+interface PhonePortalModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onDataChanged?: () => void;
+}
+
+export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
+  isOpen,
+  onClose,
+  onDataChanged
+}) => {
+  const [profile, setProfile] = useState<PhonePortalProfile>(() => storage.getPhonePortalProfile());
+  const [syncConfig, setSyncConfig] = useState<SupabaseSyncConfig>(() => supabaseService.getConfig());
+  
+  const [urlInput, setUrlInput] = useState(syncConfig.supabaseUrl || '');
+  const [keyInput, setKeyInput] = useState(syncConfig.supabaseAnonKey || '');
+  const [showKey, setShowKey] = useState(false);
+  const [autoSync, setAutoSync] = useState(syncConfig.autoSync ?? true);
+
+  const [copied, setCopied] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [isTesting, setIsTesting] = useState(false);
+  const [isPushing, setIsPushing] = useState(false);
+  const [isPulling, setIsPulling] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+
+  // Switch portal state
+  const [targetPortalId, setTargetPortalId] = useState('');
+  const [showSwitchConfirm, setShowSwitchConfirm] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      const currentProfile = storage.getPhonePortalProfile();
+      const currentConfig = supabaseService.getConfig();
+      setProfile(currentProfile);
+      setSyncConfig(currentConfig);
+      setUrlInput(currentConfig.supabaseUrl || '');
+      setKeyInput(currentConfig.supabaseAnonKey || '');
+      setAutoSync(currentConfig.autoSync ?? true);
+      setTestResult(null);
+      setStatusMessage(null);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const handleCopyPortalId = () => {
+    navigator.clipboard.writeText(profile.portalId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSaveConfig = () => {
+    const updated = supabaseService.saveConfig({
+      supabaseUrl: urlInput.trim(),
+      supabaseAnonKey: keyInput.trim(),
+      autoSync,
+      isEnabled: true
+    });
+    setSyncConfig(updated);
+    setStatusMessage({ type: 'success', text: 'Supabase credentials saved successfully.' });
+    setTimeout(() => setStatusMessage(null), 3000);
+  };
+
+  const handleTestConnection = async () => {
+    setIsTesting(true);
+    setTestResult(null);
+    try {
+      const result = await supabaseService.testConnection(urlInput, keyInput, profile.portalId);
+      setTestResult(result);
+    } catch (err: any) {
+      setTestResult({ success: false, message: err?.message || 'Connection failed.' });
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  const handlePushAll = async () => {
+    handleSaveConfig();
+    setIsPushing(true);
+    setStatusMessage({ type: 'info', text: 'Syncing all local data to Supabase...' });
+    try {
+      const result = await storage.pushCurrentPortalToSupabase();
+      if (result.success) {
+        setStatusMessage({
+          type: 'success',
+          text: `Successfully synced ${result.pushedCount} records to Supabase under Portal: ${profile.portalId}`
+        });
+        setSyncConfig(supabaseService.getConfig());
+      } else {
+        setStatusMessage({
+          type: 'error',
+          text: result.error || 'Failed to push data to Supabase.'
+        });
+      }
+    } catch (e: any) {
+      setStatusMessage({ type: 'error', text: e?.message || 'Push sync failed.' });
+    } finally {
+      setIsPushing(false);
+    }
+  };
+
+  const handlePullAll = async () => {
+    handleSaveConfig();
+    setIsPulling(true);
+    setStatusMessage({ type: 'info', text: 'Pulling records from Supabase...' });
+    try {
+      const result = await storage.pullCurrentPortalFromSupabase();
+      if (result.success) {
+        setStatusMessage({
+          type: 'success',
+          text: `Pulled ${result.count || 0} cloud records isolated for Portal: ${profile.portalId}!`
+        });
+        setSyncConfig(supabaseService.getConfig());
+        onDataChanged?.();
+      } else {
+        setStatusMessage({
+          type: 'error',
+          text: result.error || 'Failed to pull data from Supabase.'
+        });
+      }
+    } catch (e: any) {
+      setStatusMessage({ type: 'error', text: e?.message || 'Pull sync failed.' });
+    } finally {
+      setIsPulling(false);
+    }
+  };
+
+  const handleSwitchPortal = async () => {
+    if (!targetPortalId.trim()) return;
+    setStatusMessage({ type: 'info', text: `Switching to portal ${targetPortalId}...` });
+    try {
+      const res = await storage.switchPortal(targetPortalId.trim());
+      setProfile(storage.getPhonePortalProfile());
+      setShowSwitchConfirm(false);
+      setTargetPortalId('');
+      setStatusMessage({ type: 'success', text: res.message });
+      onDataChanged?.();
+    } catch (e: any) {
+      setStatusMessage({ type: 'error', text: e?.message || 'Failed to switch portal.' });
+    }
+  };
+
+  const handleCreateNewPortal = () => {
+    if (confirm('Create a brand new private portal for this phone? This will give this phone a fresh Portal ID and a clean till.')) {
+      const newProf = storage.resetToNewPortal();
+      setProfile(newProf);
+      setStatusMessage({ type: 'success', text: `Created new isolated Portal: ${newProf.portalId}` });
+      onDataChanged?.();
+    }
+  };
+
+  const handleLoadDemoData = () => {
+    if (confirm('Load sample change slips and transactions for this phone? Useful for testing the till features.')) {
+      storage.loadDemoDataForThisPortal();
+      setStatusMessage({ type: 'success', text: `Sample data loaded for ${profile.portalId}!` });
+      onDataChanged?.();
+    }
+  };
+
+  const isConfigured = Boolean(urlInput && keyInput);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-6">
+        
+        {/* Modal Header */}
+        <div className="flex items-center justify-between px-6 py-4 bg-slate-900 text-white">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg border border-emerald-500/30">
+              <Smartphone className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold">Phone Portal & Cloud Sync</h2>
+              <p className="text-xs text-slate-400">
+                Each phone gets its own portal ID so data is strictly isolated in Supabase
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            title="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+          
+          {/* Status Alert Banner */}
+          {statusMessage && (
+            <div className={`p-3 rounded-xl border text-sm flex items-start space-x-2.5 ${
+              statusMessage.type === 'success' 
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+                : statusMessage.type === 'error'
+                  ? 'bg-rose-50 border-rose-200 text-rose-800'
+                  : 'bg-indigo-50 border-indigo-200 text-indigo-800'
+            }`}>
+              {statusMessage.type === 'success' ? (
+                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+              ) : statusMessage.type === 'error' ? (
+                <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              ) : (
+                <RefreshCw className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5 animate-spin" />
+              )}
+              <div className="flex-1 font-medium">{statusMessage.text}</div>
+            </div>
+          )}
+
+          {/* 1. Phone Portal Identity Card */}
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-600">This Phone's Dedicated Portal</span>
+              </div>
+              <span className="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
+                Isolated Partition
+              </span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-lg border border-slate-200">
+              <div>
+                <div className="text-xs text-slate-500 font-medium">Portal ID (Your Supabase Partition Key)</div>
+                <div className="text-lg font-bold font-mono text-slate-900 tracking-wide select-all">
+                  {profile.portalId}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyPortalId}
+                className="flex items-center justify-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 transition-colors"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4 text-emerald-600" />
+                    <span className="text-emerald-700">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 text-slate-500" />
+                    <span>Copy Portal ID</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Every phone with ChangeTrack installed receives a unique Portal ID. All change records, customer balances, and sales data enter Supabase strictly tagged with <code className="font-mono font-semibold text-slate-800 bg-slate-200 px-1 py-0.5 rounded">{profile.portalId}</code>. No other phone can see or overwrite your data.
+            </p>
+          </div>
+
+          {/* 2. Supabase Cloud Connection Settings */}
+          <div className="border border-slate-200 rounded-xl p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Database className="w-4 h-4 text-indigo-600" />
+                <h3 className="text-sm font-bold text-slate-900">Supabase Cloud Database Settings</h3>
+              </div>
+              {isConfigured ? (
+                <span className="flex items-center space-x-1 text-xs text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  <CloudCheck className="w-3.5 h-3.5" />
+                  <span>Configured</span>
+                </span>
+              ) : (
+                <span className="flex items-center space-x-1 text-xs text-amber-700 font-semibold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                  <CloudOff className="w-3.5 h-3.5" />
+                  <span>Local Mode (Offline)</span>
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Supabase Project URL
+                </label>
+                <input
+                  type="text"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  placeholder="https://xyzcompany.supabase.co"
+                  className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-hidden font-mono text-slate-800"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Supabase Public Anon Key
+                </label>
+                <div className="relative">
+                  <input
+                    type={showKey ? 'text' : 'password'}
+                    value={keyInput}
+                    onChange={(e) => setKeyInput(e.target.value)}
+                    placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    className="w-full px-3 py-2 pr-10 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-hidden font-mono text-slate-800 text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowKey(!showKey)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                  >
+                    {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Auto Sync Toggle */}
+              <div className="flex items-center justify-between pt-1">
+                <div>
+                  <span className="text-xs font-semibold text-slate-800">Auto-push in real-time</span>
+                  <p className="text-[11px] text-slate-500">Every change slip created or collected syncs to Supabase instantly</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={autoSync}
+                    onChange={(e) => setAutoSync(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
+              {/* Test Connection & Save Action buttons */}
+              <div className="flex flex-wrap items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={handleSaveConfig}
+                  className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors"
+                >
+                  Save Credentials
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleTestConnection}
+                  disabled={isTesting || !urlInput || !keyInput}
+                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg border border-indigo-200 transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin' : ''}`} />
+                  <span>{isTesting ? 'Testing...' : 'Test Connection'}</span>
+                </button>
+              </div>
+
+              {/* Test Result Message */}
+              {testResult && (
+                <div className={`p-3 rounded-lg text-xs font-medium border ${
+                  testResult.success 
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+                    : 'bg-rose-50 border-rose-200 text-rose-800'
+                }`}>
+                  {testResult.message}
+                </div>
+              )}
+            </div>
+
+            {/* Cloud Sync Actions */}
+            <div className="border-t border-slate-200 pt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handlePushAll}
+                disabled={isPushing || !isConfigured}
+                className="flex items-center space-x-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50"
+              >
+                <UploadCloud className={`w-4 h-4 ${isPushing ? 'animate-bounce' : ''}`} />
+                <span>{isPushing ? 'Pushing Data...' : 'Push All to Cloud'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handlePullAll}
+                disabled={isPulling || !isConfigured}
+                className="flex items-center space-x-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg border border-slate-300 transition-colors disabled:opacity-50"
+              >
+                <DownloadCloud className={`w-4 h-4 ${isPulling ? 'animate-bounce' : ''}`} />
+                <span>{isPulling ? 'Pulling Data...' : 'Pull from Cloud'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 3. Multi-Phone Till Pairing (Connect 2 phones to the same store) */}
+          <div className="border border-slate-200 rounded-xl p-4 space-y-3 bg-slate-50/50">
+            <div className="flex items-center space-x-2">
+              <Link2 className="w-4 h-4 text-indigo-600" />
+              <h3 className="text-sm font-bold text-slate-900">Multi-Phone Till Pairing (Optional)</h3>
+            </div>
+            <p className="text-xs text-slate-600">
+              Want two phones in the same shop to share the same change records? Enter the Portal ID from Phone #1 below to link this phone to that till.
+            </p>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={targetPortalId}
+                onChange={(e) => setTargetPortalId(e.target.value)}
+                placeholder="e.g. portal_9k2a4x"
+                className="flex-1 px-3 py-1.5 text-xs font-mono bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-hidden"
+              />
+              <button
+                type="button"
+                onClick={() => setShowSwitchConfirm(true)}
+                disabled={!targetPortalId.trim()}
+                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+              >
+                Connect Till
+              </button>
+            </div>
+
+            {showSwitchConfirm && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs space-y-2">
+                <p className="font-semibold text-amber-900">
+                  Switch active portal to <span className="font-mono">{targetPortalId}</span>?
+                </p>
+                <p className="text-amber-800">
+                  This phone will join that store till and sync data with that portal.
+                </p>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleSwitchPortal}
+                    className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-md"
+                  >
+                    Confirm Switch
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowSwitchConfirm(false)}
+                    className="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-md font-medium"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 4. Reset or Demo Tools */}
+          <div className="pt-2 flex flex-wrap items-center justify-between gap-3 text-xs border-t border-slate-200">
+            <button
+              type="button"
+              onClick={handleCreateNewPortal}
+              className="flex items-center space-x-1.5 text-slate-600 hover:text-slate-900 py-1 font-medium"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+              <span>Generate Fresh Private Portal</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleLoadDemoData}
+              className="flex items-center space-x-1.5 text-indigo-600 hover:text-indigo-800 py-1 font-semibold"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Load Sample Test Records</span>
+            </button>
+          </div>
+
+        </div>
+
+        {/* Modal Footer */}
+        <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg shadow-xs transition-colors"
+          >
+            Done
+          </button>
+        </div>
+
+      </div>
+    </div>
+  );
+};

@@ -24,6 +24,7 @@ interface NavbarProps {
   onOpenWhatsAppSettings: () => void;
   onOpenEmployeesModal: () => void;
   onOpenShopSettings: () => void;
+  onOpenPhonePortal: () => void;
   isOwnerUnlocked: boolean;
   onRequireOwnerPasscode: () => void;
   onLockOwnerDashboard: () => void;
@@ -38,12 +39,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenWhatsAppSettings,
   onOpenEmployeesModal,
   onOpenShopSettings,
+  onOpenPhonePortal,
   isOwnerUnlocked,
   onRequireOwnerPasscode,
   onLockOwnerDashboard
 }) => {
   const employees = storage.getEmployees();
   const stats = storage.getDashboardStats();
+  const portalId = storage.getPortalId();
   const currency = shop.currencySymbol || '$';
 
   const handleOwnerTabClick = () => {
@@ -177,6 +180,19 @@ export const Navbar: React.FC<NavbarProps> = ({
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-1.5 pointer-events-none" />
             </div>
+
+            {/* Phone Portal & Supabase Sync Button */}
+            <button
+              onClick={onOpenPhonePortal}
+              title={`Phone Portal: ${portalId} - Click to configure cloud sync`}
+              className="flex items-center gap-1.5 px-2 py-1.5 bg-slate-800 hover:bg-slate-700 hover:border-emerald-500/50 text-slate-200 border border-slate-700 rounded-xl transition-all text-xs font-semibold shrink-0 cursor-pointer"
+            >
+              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <Smartphone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span className="hidden sm:inline font-mono text-[11px] text-slate-300">
+                {portalId.replace('portal_', '#')}
+              </span>
+            </button>
 
             {/* PWA Install Button */}
             <PWAInstallButton variant="nav" />

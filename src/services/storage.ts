@@ -9,7 +9,8 @@ import {
   WhatsAppConfig,
   DashboardStats,
   Customer,
-  CustomerBalanceLedgerEntry
+  CustomerBalanceLedgerEntry,
+  PhonePortalProfile
 } from '../types';
 import {
   INITIAL_SHOP,
@@ -31,8 +32,10 @@ import {
   generateMultiCollectMessage,
   createWhatsAppRedirectLog
 } from './whatsapp';
+import { supabaseService } from './supabase';
 
 const KEYS = {
+  PORTAL_PROFILE: 'changetrack_phone_portal_profile',
   SHOP: 'changetrack_shop',
   EMPLOYEES: 'changetrack_employees',
   TRANSACTIONS: 'changetrack_transactions',
@@ -67,32 +70,281 @@ class StorageService {
     }
   }
 
+  // --- Phone Portal Identity Management ---
+  initPhonePortal(): PhonePortalProfile {
+    const stored = localStorage.getItem(KEYS.PORTAL_PROFILE);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed.portalId) return parsed;
+      } catch (e) {
+        console.warn('Error reading portal profile, regenerating:', e);
+      }
+    }
+
+    // Generate a unique portal ID for this phone
+    const randomHex = Math.random().toString(36).substring(2, 6) + Math.random().toString(36).substring(2, 6);
+    const portalId = `portal_${randomHex}`;
+    const deviceId = `dev_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`;
+
+    const isExistingShopInStorage = Boolean(localStorage.getItem(KEYS.SHOP));
+
+    const profile: PhonePortalProfile = {
+      portalId,
+      deviceId,
+      deviceName: 'Phone Till Portal',
+      createdAt: new Date().toISOString(),
+      isFirstLaunch: !isExistingShopInStorage
+    };
+    this.save(KEYS.PORTAL_PROFILE, profile);
+
+    // If this is a fresh phone installation, initialize a clean, private store
+    if (!isExistingShopInStorage) {
+      const freshShop: Shop = {
+        id: portalId,
+        name: 'My Retail Till',
+        branchName: 'Main Till',
+        ownerName: 'Store Manager',
+        logoUrl: '',
+        phone: '',
+        address: 'Local Till Counter',
+        currency: 'USD',
+        currencySymbol: '$',
+        whatsappNotice: 'Please present your Change ID or WhatsApp confirmation message to collect change within 30 days.',
+        ownerPasscode: '1234',
+        isPasscodeRequired: false
+      };
+      const initialAdmin: Employee = {
+        id: `emp_${portalId}_admin`,
+        shopId: portalId,
+        name: 'Store Manager',
+        email: 'manager@till.com',
+        role: 'ADMIN',
+        pin: '1234',
+        active: true,
+        avatarColor: 'bg-emerald-600'
+      };
+      this.save(KEYS.SHOP, freshShop);
+      this.save(KEYS.EMPLOYEES, [initialAdmin]);
+      this.save(KEYS.CUSTOMERS, []);
+      this.save(KEYS.CUSTOMER_LEDGER, []);
+      this.save(KEYS.TRANSACTIONS, []);
+      this.save(KEYS.CHANGE_RECORDS, []);
+      this.save(KEYS.AUDIT_LOGS, []);
+      this.save(KEYS.DISPUTES, []);
+    } else {
+      // Existing device session: Ensure shop.id is updated to portalId
+      const existingShop = this.load<Shop>(KEYS.SHOP, INITIAL_SHOP);
+      if (existingShop.id !== portalId) {
+        existingShop.id = portalId;
+        this.save(KEYS.SHOP, existingShop);
+      }
+    }
+
+    return profile;
+  }
+
+  getPhonePortalProfile(): PhonePortalProfile {
+    return this.initPhonePortal();
+  }
+
+  getPortalId(): string {
+    return this.initPhonePortal().portalId;
+  }
+
+  updatePhonePortalProfile(updates: Partial<PhonePortalProfile>): PhonePortalProfile {
+    const current = this.initPhonePortal();
+    const updated = { ...current, ...updates };
+    this.save(KEYS.PORTAL_PROFILE, updated);
+    return updated;
+  }
+
+  /**
+   * Switch this phone to another shop's portal ID (e.g. to pair with Phone 1)
+   */
+  async switchPortal(targetPortalId: string): Promise<{ success: boolean; message: string }> {
+    const cleanId = targetPortalId.trim();
+    if (!cleanId || cleanId.length < 5) {
+      return { success: false, message: 'Please enter a valid Portal ID.' };
+    }
+
+    const currentProfile = this.initPhonePortal();
+    currentProfile.portalId = cleanId;
+    currentProfile.isFirstLaunch = false;
+    this.save(KEYS.PORTAL_PROFILE, currentProfile);
+
+    // Update shop ID
+    const shop = this.getShop();
+    shop.id = cleanId;
+    this.save(KEYS.SHOP, shop);
+
+    // If Supabase is configured, pull the shared portal records immediately
+    if (supabaseService.isConfigured()) {
+      const pullResult = await supabaseService.pullRemotePortalData(cleanId);
+      if (pullResult.success) {
+        if (pullResult.shop) {
+          this.save(KEYS.SHOP, { ...shop, ...pullResult.shop, id: cleanId });
+        }
+        if (pullResult.employees && pullResult.employees.length > 0) {
+          this.save(KEYS.EMPLOYEES, pullResult.employees);
+        }
+        if (pullResult.customers) {
+          this.save(KEYS.CUSTOMERS, pullResult.customers);
+        }
+        if (pullResult.transactions) {
+          this.save(KEYS.TRANSACTIONS, pullResult.transactions);
+        }
+        if (pullResult.changeRecords) {
+          this.save(KEYS.CHANGE_RECORDS, pullResult.changeRecords);
+        }
+        if (pullResult.ledger) {
+          this.save(KEYS.CUSTOMER_LEDGER, pullResult.ledger);
+        }
+        return { 
+          success: true, 
+          message: `Switched to portal ${cleanId} and synced ${pullResult.changeRecords?.length || 0} change records from Supabase!` 
+        };
+      }
+    }
+
+    return { 
+      success: true, 
+      message: `Active Portal switched to ${cleanId}. Data will enter Supabase under this portal ID.` 
+    };
+  }
+
+  /**
+   * Reset this phone to a brand new private portal ID
+   */
+  resetToNewPortal(): PhonePortalProfile {
+    const randomHex = Math.random().toString(36).substring(2, 6) + Math.random().toString(36).substring(2, 6);
+    const newPortalId = `portal_${randomHex}`;
+    const deviceId = `dev_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`;
+
+    const profile: PhonePortalProfile = {
+      portalId: newPortalId,
+      deviceId,
+      deviceName: 'Phone Till Portal',
+      createdAt: new Date().toISOString(),
+      isFirstLaunch: false
+    };
+    this.save(KEYS.PORTAL_PROFILE, profile);
+
+    const freshShop: Shop = {
+      id: newPortalId,
+      name: 'My Retail Till',
+      branchName: 'Main Till',
+      ownerName: 'Store Manager',
+      logoUrl: '',
+      phone: '',
+      address: 'Local Till Counter',
+      currency: 'USD',
+      currencySymbol: '$',
+      whatsappNotice: 'Please present your Change ID or WhatsApp confirmation message to collect change within 30 days.',
+      ownerPasscode: '1234',
+      isPasscodeRequired: false
+    };
+
+    const initialAdmin: Employee = {
+      id: `emp_${newPortalId}_admin`,
+      shopId: newPortalId,
+      name: 'Store Manager',
+      email: 'manager@till.com',
+      role: 'ADMIN',
+      pin: '1234',
+      active: true,
+      avatarColor: 'bg-emerald-600'
+    };
+
+    this.save(KEYS.SHOP, freshShop);
+    this.save(KEYS.EMPLOYEES, [initialAdmin]);
+    this.save(KEYS.CUSTOMERS, []);
+    this.save(KEYS.CUSTOMER_LEDGER, []);
+    this.save(KEYS.TRANSACTIONS, []);
+    this.save(KEYS.CHANGE_RECORDS, []);
+    this.save(KEYS.AUDIT_LOGS, []);
+    this.save(KEYS.DISPUTES, []);
+
+    // Sync new shop to Supabase if configured
+    supabaseService.syncShop(freshShop, newPortalId);
+
+    return profile;
+  }
+
+  /**
+   * Load tutorial / demo records stamped with this Phone's Portal ID
+   */
+  loadDemoDataForThisPortal(): void {
+    const portalId = this.getPortalId();
+    const shop = this.getShop();
+
+    const sampleCustomers = INITIAL_CUSTOMERS.map(c => ({
+      ...c,
+      shopId: portalId
+    }));
+    const sampleTxs = INITIAL_TRANSACTIONS.map(t => ({
+      ...t,
+      shopId: portalId
+    }));
+    const sampleRecords = INITIAL_CHANGE_RECORDS.map(r => ({
+      ...r,
+      shopId: portalId,
+      shopName: shop.name
+    }));
+    const sampleLedger = INITIAL_CUSTOMER_LEDGER.map(l => ({
+      ...l,
+      shopId: portalId
+    }));
+
+    this.save(KEYS.CUSTOMERS, sampleCustomers);
+    this.save(KEYS.TRANSACTIONS, sampleTxs);
+    this.save(KEYS.CHANGE_RECORDS, sampleRecords);
+    this.save(KEYS.CUSTOMER_LEDGER, sampleLedger);
+
+    // Push to Supabase if configured
+    supabaseService.pushAllLocalPortalData(portalId, {
+      shop,
+      employees: this.getEmployees(),
+      customers: sampleCustomers,
+      transactions: sampleTxs,
+      changeRecords: sampleRecords,
+      ledger: sampleLedger
+    });
+  }
+
   // --- Shop ---
   getShop(): Shop {
+    const portalId = this.getPortalId();
     const shop = this.load<Shop>(KEYS.SHOP, INITIAL_SHOP);
     return {
       ...INITIAL_SHOP,
       ...shop,
-      ownerName: shop.ownerName || INITIAL_SHOP.ownerName || 'Tariro Moyo',
+      id: portalId, // Always ensure shop.id matches this phone's portal ID
+      ownerName: shop.ownerName || INITIAL_SHOP.ownerName || 'Store Manager',
       ownerPasscode: shop.ownerPasscode !== undefined ? shop.ownerPasscode : '1234',
-      isPasscodeRequired: shop.isPasscodeRequired !== undefined ? shop.isPasscodeRequired : true
+      isPasscodeRequired: shop.isPasscodeRequired !== undefined ? shop.isPasscodeRequired : false
     };
   }
 
   updateShop(shop: Shop): Shop {
-    this.save(KEYS.SHOP, shop);
+    const portalId = this.getPortalId();
+    const updatedShop = { ...shop, id: portalId };
+    this.save(KEYS.SHOP, updatedShop);
 
     // If ownerName is set, keep the primary ADMIN employee in sync
-    if (shop.ownerName && shop.ownerName.trim()) {
+    if (updatedShop.ownerName && updatedShop.ownerName.trim()) {
       const employees = this.getEmployees();
       const adminIndex = employees.findIndex(e => e.role === 'ADMIN');
-      if (adminIndex !== -1 && employees[adminIndex].name !== shop.ownerName.trim()) {
-        employees[adminIndex].name = shop.ownerName.trim();
+      if (adminIndex !== -1 && employees[adminIndex].name !== updatedShop.ownerName.trim()) {
+        employees[adminIndex].name = updatedShop.ownerName.trim();
         this.save(KEYS.EMPLOYEES, employees);
       }
     }
 
-    return shop;
+    // Auto-sync shop to Supabase
+    supabaseService.syncShop(updatedShop, portalId);
+
+    return updatedShop;
   }
 
   getAdminName(): string {
@@ -634,7 +886,7 @@ class StorageService {
     return { transaction };
   }
 
-  // 2. Record change as OUTSTANDING
+  // 2. Record change as OUTSTANDING (Supports full change, partial split change)
   async processRecordChange(params: {
     purchaseTotal: number;
     amountReceived: number;
@@ -642,6 +894,8 @@ class StorageService {
     customerName?: string;
     employee: Employee;
     notes?: string;
+    partialCashGivenNow?: number;
+    isDirectRegistration?: boolean;
   }): Promise<{ 
     transaction: Transaction; 
     changeRecord: ChangeRecord; 
@@ -649,7 +903,15 @@ class StorageService {
     waDirectLink?: string;
     waMessageText?: string;
   }> {
-    const changeOwed = Math.round((params.amountReceived - params.purchaseTotal) * 100) / 100;
+    const rawCalculated = Math.round((params.amountReceived - params.purchaseTotal) * 100) / 100;
+    const totalChangeCalculated = Math.max(0, rawCalculated);
+    const partialCash = params.partialCashGivenNow && params.partialCashGivenNow > 0
+      ? Math.min(totalChangeCalculated, Math.round(params.partialCashGivenNow * 100) / 100)
+      : 0;
+    const changeOwed = Math.round((totalChangeCalculated - partialCash) * 100) / 100;
+    const isPartial = partialCash > 0;
+    const isDirect = !!params.isDirectRegistration;
+
     const txId = `TX-${Math.floor(10000 + Math.random() * 90000)}`;
     const changeId = `CT-${Math.floor(10000 + Math.random() * 90000)}`;
     const shop = this.getShop();
@@ -658,6 +920,8 @@ class StorageService {
     const qrPayload = JSON.stringify({
       id: changeId,
       amount: changeOwed,
+      totalCalculated: totalChangeCalculated,
+      cashGiven: partialCash,
       shop: shop.name,
       phone: params.customerPhone,
       created: now
@@ -673,6 +937,10 @@ class StorageService {
       customerPhone: params.customerPhone,
       customerName: params.customerName || 'Valued Customer',
       amountOwed: changeOwed,
+      totalChangeCalculated: totalChangeCalculated,
+      partialCashGivenNow: partialCash,
+      isPartialChange: isPartial,
+      isDirectRegistration: isDirect,
       status: 'OUTSTANDING',
       createdAt: now,
       qrCodePayload: qrPayload,
@@ -686,10 +954,12 @@ class StorageService {
       cashierName: params.employee.name,
       purchaseTotal: params.purchaseTotal,
       amountReceived: params.amountReceived,
-      changeCalculated: changeOwed,
-      changeGivenNow: 0,
+      changeCalculated: totalChangeCalculated,
+      changeGivenNow: partialCash,
       changeOwed: changeOwed,
-      hasOutstandingChange: true,
+      hasOutstandingChange: changeOwed > 0,
+      isPartialChange: isPartial,
+      isDirectRegistration: isDirect,
       changeRecordId: changeId,
       customerPhone: params.customerPhone,
       customerName: params.customerName,
@@ -716,7 +986,11 @@ class StorageService {
       actorId: params.employee.id,
       actorName: params.employee.name,
       actorRole: params.employee.role,
-      details: `Transaction ${txId} created with outstanding change $${changeOwed.toFixed(2)}.`
+      details: isPartial
+        ? `Transaction ${txId} created with partial cash paid $${partialCash.toFixed(2)} and remaining change $${changeOwed.toFixed(2)} owed.`
+        : isDirect
+          ? `Direct change registration transaction ${txId} for $${changeOwed.toFixed(2)}.`
+          : `Transaction ${txId} created with outstanding change $${changeOwed.toFixed(2)}.`
     });
 
     this.addAuditLog({
@@ -727,7 +1001,11 @@ class StorageService {
       actorId: params.employee.id,
       actorName: params.employee.name,
       actorRole: params.employee.role,
-      details: `Change Record ${changeId} created: $${changeOwed.toFixed(2)} owed to ${params.customerPhone} (${params.customerName || 'Customer'}).`
+      details: isPartial
+        ? `Change Record ${changeId} created: $${changeOwed.toFixed(2)} remaining owed (total change was $${totalChangeCalculated.toFixed(2)}, $${partialCash.toFixed(2)} given in cash) to ${params.customerPhone}.`
+        : isDirect
+          ? `Direct Change Record ${changeId} created: $${changeOwed.toFixed(2)} owed to ${params.customerPhone} (${params.customerName || 'Customer'}).`
+          : `Change Record ${changeId} created: $${changeOwed.toFixed(2)} owed to ${params.customerPhone} (${params.customerName || 'Customer'}).`
     });
 
     // Automatically sync and add to customer running balance
@@ -769,6 +1047,11 @@ class StorageService {
       details: `WhatsApp redirect prepared for ${changeId} to ${params.customerPhone}. Total balance owed: $${newBalance.toFixed(2)}.`
     });
 
+    // Auto-sync to Supabase isolated to this phone's portal ID
+    supabaseService.syncTransaction(transaction, shop.id);
+    supabaseService.syncChangeRecord(changeRecord, shop.id);
+    supabaseService.syncCustomer(customer, shop.id);
+
     return { 
       transaction, 
       changeRecord, 
@@ -776,6 +1059,33 @@ class StorageService {
       waDirectLink, 
       waMessageText 
     };
+  }
+
+  // 3. Direct Change Registration (Operator simply wants to register a person's change without entering a sale)
+  async processDirectRegisterChange(params: {
+    customerPhone: string;
+    customerName?: string;
+    amountOwed: number;
+    employee: Employee;
+    notes?: string;
+  }): Promise<{ 
+    transaction: Transaction; 
+    changeRecord: ChangeRecord; 
+    waMessage?: WhatsAppMessage;
+    waDirectLink?: string;
+    waMessageText?: string;
+  }> {
+    const cleanAmount = Math.round(params.amountOwed * 100) / 100;
+    return this.processRecordChange({
+      purchaseTotal: 0,
+      amountReceived: cleanAmount,
+      customerPhone: params.customerPhone,
+      customerName: params.customerName,
+      employee: params.employee,
+      notes: params.notes || 'Direct change registration',
+      partialCashGivenNow: 0,
+      isDirectRegistration: true
+    });
   }
 
   // 3. Collect change (Anti-fraud verification)
@@ -888,6 +1198,13 @@ class StorageService {
       actorRole: 'SYSTEM',
       details: `Collection confirmation WhatsApp redirect prepared for ${record.customerPhone} for ${record.id}. Remaining balance: $${remainingBalance.toFixed(2)}.`
     });
+
+    // Auto-sync updated change record & customer balance to Supabase
+    supabaseService.syncChangeRecord(updatedRecord, shop.id);
+    const updatedCust = this.getCustomerByPhone(record.customerPhone);
+    if (updatedCust) {
+      supabaseService.syncCustomer(updatedCust, shop.id);
+    }
 
     return {
       success: true,
@@ -1060,6 +1377,9 @@ class StorageService {
       details: `Change Record ${record.id} ($${record.amountOwed.toFixed(2)}) CANCELLED by Admin ${params.adminEmployee.name}. Reason: "${params.reason}".`
     });
 
+    // Auto-sync cancelled record to Supabase
+    supabaseService.syncChangeRecord(updatedRecord, shop.id);
+
     return { success: true, record: updatedRecord };
   }
 
@@ -1158,6 +1478,57 @@ class StorageService {
       activeDisputesCount: activeDisputes.length,
       totalChangeRecordedAllTime,
       totalChangeCollectedAllTime
+    };
+  }
+
+  /**
+   * Push current portal's data to Supabase
+   */
+  async pushCurrentPortalToSupabase(): Promise<{ success: boolean; pushedCount: number; error?: string }> {
+    const portalId = this.getPortalId();
+    return supabaseService.pushAllLocalPortalData(portalId, {
+      shop: this.getShop(),
+      employees: this.getEmployees(),
+      customers: this.getCustomers(),
+      transactions: this.getTransactions(),
+      changeRecords: this.getChangeRecords(),
+      ledger: this.load<CustomerBalanceLedgerEntry[]>(KEYS.CUSTOMER_LEDGER, INITIAL_CUSTOMER_LEDGER)
+    });
+  }
+
+  /**
+   * Pull current portal's data from Supabase
+   */
+  async pullCurrentPortalFromSupabase(): Promise<{ success: boolean; error?: string; count?: number }> {
+    const portalId = this.getPortalId();
+    const result = await supabaseService.pullRemotePortalData(portalId);
+    if (!result.success) {
+      return { success: false, error: result.error };
+    }
+
+    if (result.shop) {
+      const currentShop = this.getShop();
+      this.save(KEYS.SHOP, { ...currentShop, ...result.shop, id: portalId });
+    }
+    if (result.employees && result.employees.length > 0) {
+      this.save(KEYS.EMPLOYEES, result.employees);
+    }
+    if (result.customers) {
+      this.save(KEYS.CUSTOMERS, result.customers);
+    }
+    if (result.transactions) {
+      this.save(KEYS.TRANSACTIONS, result.transactions);
+    }
+    if (result.changeRecords) {
+      this.save(KEYS.CHANGE_RECORDS, result.changeRecords);
+    }
+    if (result.ledger) {
+      this.save(KEYS.CUSTOMER_LEDGER, result.ledger);
+    }
+
+    return { 
+      success: true, 
+      count: (result.changeRecords?.length || 0) + (result.transactions?.length || 0) 
     };
   }
 
