@@ -201,8 +201,8 @@ export interface PhonePortalProfile {
 }
 
 export interface SupabaseSyncConfig {
-  supabaseUrl: string;
-  supabaseAnonKey: string;
+  supabaseUrl?: string;
+  supabaseAnonKey?: string;
   isEnabled: boolean;
   autoSync: boolean;
   lastSyncedAt?: string;

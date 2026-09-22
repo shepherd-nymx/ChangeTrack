@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { 
   Smartphone, 
   Database, 
-  Cloud, 
   CloudCheck, 
   CloudOff, 
   Copy, 
@@ -15,10 +14,8 @@ import {
   Sparkles, 
   ShieldCheck, 
   AlertCircle, 
-  X, 
-  Eye, 
-  EyeOff, 
-  Layers
+  X,
+  Lock
 } from 'lucide-react';
 import { storage } from '../services/storage';
 import { supabaseService } from '../services/supabase';
@@ -37,10 +34,6 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
 }) => {
   const [profile, setProfile] = useState<PhonePortalProfile>(() => storage.getPhonePortalProfile());
   const [syncConfig, setSyncConfig] = useState<SupabaseSyncConfig>(() => supabaseService.getConfig());
-  
-  const [urlInput, setUrlInput] = useState(syncConfig.supabaseUrl || '');
-  const [keyInput, setKeyInput] = useState(syncConfig.supabaseAnonKey || '');
-  const [showKey, setShowKey] = useState(false);
   const [autoSync, setAutoSync] = useState(syncConfig.autoSync ?? true);
 
   const [copied, setCopied] = useState(false);
@@ -60,8 +53,6 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
       const currentConfig = supabaseService.getConfig();
       setProfile(currentProfile);
       setSyncConfig(currentConfig);
-      setUrlInput(currentConfig.supabaseUrl || '');
-      setKeyInput(currentConfig.supabaseAnonKey || '');
       setAutoSync(currentConfig.autoSync ?? true);
       setTestResult(null);
       setStatusMessage(null);
@@ -70,39 +61,39 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
 
   if (!isOpen) return null;
 
+  const isConfigured = supabaseService.isConfigured();
+
   const handleCopyPortalId = () => {
     navigator.clipboard.writeText(profile.portalId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSaveConfig = () => {
-    const updated = supabaseService.saveConfig({
-      supabaseUrl: urlInput.trim(),
-      supabaseAnonKey: keyInput.trim(),
-      autoSync,
-      isEnabled: true
-    });
+  const handleToggleAutoSync = (checked: boolean) => {
+    setAutoSync(checked);
+    const updated = supabaseService.saveConfig({ autoSync: checked });
     setSyncConfig(updated);
-    setStatusMessage({ type: 'success', text: 'Supabase credentials saved successfully.' });
-    setTimeout(() => setStatusMessage(null), 3000);
+    setStatusMessage({
+      type: 'info',
+      text: checked ? 'Real-time cloud sync enabled.' : 'Real-time cloud sync paused.'
+    });
+    setTimeout(() => setStatusMessage(null), 2500);
   };
 
   const handleTestConnection = async () => {
     setIsTesting(true);
     setTestResult(null);
     try {
-      const result = await supabaseService.testConnection(urlInput, keyInput, profile.portalId);
+      const result = await supabaseService.testConnection(profile.portalId);
       setTestResult(result);
     } catch (err: any) {
-      setTestResult({ success: false, message: err?.message || 'Connection failed.' });
+      setTestResult({ success: false, message: err?.message || 'Connection test failed.' });
     } finally {
       setIsTesting(false);
     }
   };
 
   const handlePushAll = async () => {
-    handleSaveConfig();
     setIsPushing(true);
     setStatusMessage({ type: 'info', text: 'Syncing all local data to Supabase...' });
     try {
@@ -127,7 +118,6 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
   };
 
   const handlePullAll = async () => {
-    handleSaveConfig();
     setIsPulling(true);
     setStatusMessage({ type: 'info', text: 'Pulling records from Supabase...' });
     try {
@@ -183,8 +173,6 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
       onDataChanged?.();
     }
   };
-
-  const isConfigured = Boolean(urlInput && keyInput);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
@@ -277,111 +265,83 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
             </p>
           </div>
 
-          {/* 2. Supabase Cloud Connection Settings */}
+          {/* 2. Supabase Cloud Database Status (Zero Secrets in UI) */}
           <div className="border border-slate-200 rounded-xl p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Database className="w-4 h-4 text-indigo-600" />
-                <h3 className="text-sm font-bold text-slate-900">Supabase Cloud Database Settings</h3>
+                <h3 className="text-sm font-bold text-slate-900">Cloud Database Sync (Supabase)</h3>
               </div>
               {isConfigured ? (
-                <span className="flex items-center space-x-1 text-xs text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                <span className="flex items-center space-x-1 text-xs text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                   <CloudCheck className="w-3.5 h-3.5" />
-                  <span>Configured</span>
+                  <span>Cloud Active</span>
                 </span>
               ) : (
-                <span className="flex items-center space-x-1 text-xs text-amber-700 font-semibold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                <span className="flex items-center space-x-1 text-xs text-slate-700 font-semibold bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
                   <CloudOff className="w-3.5 h-3.5" />
-                  <span>Local Mode (Offline)</span>
+                  <span>Local-First (Offline)</span>
                 </span>
               )}
             </div>
 
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Supabase Project URL
-                </label>
-                <input
-                  type="text"
-                  value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
-                  placeholder="https://xyzcompany.supabase.co"
-                  className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-hidden font-mono text-slate-800"
-                />
+            {/* Security notice card - no secrets shown */}
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <div className="flex items-center gap-2">
+                <Lock className="w-4 h-4 text-slate-600 shrink-0" />
+                <span className="text-xs font-bold text-slate-800">
+                  {isConfigured ? 'Secured via Environment Configuration' : 'Local Storage Mode'}
+                </span>
               </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Supabase Public Anon Key
-                </label>
-                <div className="relative">
-                  <input
-                    type={showKey ? 'text' : 'password'}
-                    value={keyInput}
-                    onChange={(e) => setKeyInput(e.target.value)}
-                    placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                    className="w-full px-3 py-2 pr-10 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-hidden font-mono text-slate-800 text-xs"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowKey(!showKey)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
-                  >
-                    {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Auto Sync Toggle */}
-              <div className="flex items-center justify-between pt-1">
-                <div>
-                  <span className="text-xs font-semibold text-slate-800">Auto-push in real-time</span>
-                  <p className="text-[11px] text-slate-500">Every change slip created or collected syncs to Supabase instantly</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={autoSync}
-                    onChange={(e) => setAutoSync(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-9 h-5 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                </label>
-              </div>
-
-              {/* Test Connection & Save Action buttons */}
-              <div className="flex flex-wrap items-center gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={handleSaveConfig}
-                  className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors"
-                >
-                  Save Credentials
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleTestConnection}
-                  disabled={isTesting || !urlInput || !keyInput}
-                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg border border-indigo-200 transition-colors disabled:opacity-50"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin' : ''}`} />
-                  <span>{isTesting ? 'Testing...' : 'Test Connection'}</span>
-                </button>
-              </div>
-
-              {/* Test Result Message */}
-              {testResult && (
-                <div className={`p-3 rounded-lg text-xs font-medium border ${
-                  testResult.success 
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
-                    : 'bg-rose-50 border-rose-200 text-rose-800'
-                }`}>
-                  {testResult.message}
-                </div>
-              )}
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {isConfigured ? (
+                  <>Database credentials are loaded securely from environment variables. Secrets and API keys are never displayed or stored in client UI fields.</>
+                ) : (
+                  <>The app is currently using offline-first local persistence. To connect to Supabase, provide <code className="font-mono font-semibold text-slate-800 bg-slate-200 px-1 py-0.5 rounded">VITE_SUPABASE_URL</code> and <code className="font-mono font-semibold text-slate-800 bg-slate-200 px-1 py-0.5 rounded">VITE_SUPABASE_ANON_KEY</code> in your environment settings.</>
+                )}
+              </p>
             </div>
+
+            {/* Auto Sync Toggle */}
+            <div className="flex items-center justify-between pt-1">
+              <div>
+                <span className="text-xs font-semibold text-slate-800">Auto-push in real-time</span>
+                <p className="text-[11px] text-slate-500">Every change slip created or collected syncs to Supabase instantly</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={autoSync}
+                  onChange={(e) => handleToggleAutoSync(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+              </label>
+            </div>
+
+            {/* Test Connection Button */}
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={handleTestConnection}
+                disabled={isTesting}
+                className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg border border-indigo-200 transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin' : ''}`} />
+                <span>{isTesting ? 'Testing Cloud Connection...' : 'Test Cloud Connection'}</span>
+              </button>
+            </div>
+
+            {/* Test Result Message */}
+            {testResult && (
+              <div className={`p-3 rounded-lg text-xs font-medium border ${
+                testResult.success 
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+                  : 'bg-rose-50 border-rose-200 text-rose-800'
+              }`}>
+                {testResult.message}
+              </div>
+            )}
 
             {/* Cloud Sync Actions */}
             <div className="border-t border-slate-200 pt-3 flex flex-wrap gap-2">

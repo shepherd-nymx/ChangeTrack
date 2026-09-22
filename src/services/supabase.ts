@@ -11,9 +11,12 @@ import {
 
 const SYNC_CONFIG_KEY = 'changetrack_supabase_config';
 
+const getEnvUrl = (): string => (import.meta.env.VITE_SUPABASE_URL as string) || '';
+const getEnvKey = (): string => (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || '';
+
 const DEFAULT_CONFIG: SupabaseSyncConfig = {
-  supabaseUrl: (import.meta.env.VITE_SUPABASE_URL as string) || '',
-  supabaseAnonKey: (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || '',
+  supabaseUrl: getEnvUrl(),
+  supabaseAnonKey: getEnvKey(),
   isEnabled: true,
   autoSync: true,
   syncStatus: 'IDLE'
@@ -25,53 +28,72 @@ class SupabaseService {
   private currentKey = '';
 
   getConfig(): SupabaseSyncConfig {
+    const envUrl = getEnvUrl();
+    const envKey = getEnvKey();
     try {
       const stored = localStorage.getItem(SYNC_CONFIG_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
+        // Scrub any secrets that might have been stored in localStorage previously
+        if (parsed.supabaseAnonKey || parsed.supabaseUrl) {
+          delete parsed.supabaseAnonKey;
+          delete parsed.supabaseUrl;
+          localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(parsed));
+        }
         return {
           ...DEFAULT_CONFIG,
           ...parsed,
-          supabaseUrl: parsed.supabaseUrl || (import.meta.env.VITE_SUPABASE_URL as string) || '',
-          supabaseAnonKey: parsed.supabaseAnonKey || (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || ''
+          supabaseUrl: envUrl,
+          supabaseAnonKey: envKey
         };
       }
     } catch (e) {
       console.warn('Failed to load Supabase sync config:', e);
     }
-    return { ...DEFAULT_CONFIG };
+    return { ...DEFAULT_CONFIG, supabaseUrl: envUrl, supabaseAnonKey: envKey };
   }
 
   saveConfig(config: Partial<SupabaseSyncConfig>): SupabaseSyncConfig {
     const current = this.getConfig();
-    const updated: SupabaseSyncConfig = { ...current, ...config };
+    const updated: SupabaseSyncConfig = { 
+      ...current, 
+      ...config,
+      // Secrets strictly bound to environment variables, never overridden from client or stored
+      supabaseUrl: getEnvUrl(),
+      supabaseAnonKey: getEnvKey()
+    };
     try {
-      localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(updated));
+      // Only persist non-sensitive preference settings
+      const safeToStore = {
+        isEnabled: updated.isEnabled ?? true,
+        autoSync: updated.autoSync ?? true,
+        lastSyncedAt: updated.lastSyncedAt,
+        syncStatus: updated.syncStatus,
+        syncedRecordsCount: updated.syncedRecordsCount
+      };
+      localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(safeToStore));
     } catch (e) {
       console.error('Failed to save Supabase config:', e);
-    }
-    // Invalidate cached client if credentials changed
-    if (updated.supabaseUrl !== this.currentUrl || updated.supabaseAnonKey !== this.currentKey) {
-      this.client = null;
     }
     return updated;
   }
 
   getClient(): SupabaseClient | null {
-    const config = this.getConfig();
-    if (!config.supabaseUrl || !config.supabaseAnonKey) {
+    const envUrl = getEnvUrl();
+    const envKey = getEnvKey();
+    if (!envUrl || !envKey) {
       return null;
     }
 
-    if (!this.client || this.currentUrl !== config.supabaseUrl || this.currentKey !== config.supabaseAnonKey) {
+    if (!this.client || this.currentUrl !== envUrl || this.currentKey !== envKey) {
       try {
-        this.client = createClient(config.supabaseUrl.trim(), config.supabaseAnonKey.trim(), {
+        this.client = createClient(envUrl.trim(), envKey.trim(), {
           auth: {
             persistSession: false
           }
         });
-        this.currentUrl = config.supabaseUrl;
-        this.currentKey = config.supabaseAnonKey;
+        this.currentUrl = envUrl;
+        this.currentKey = envKey;
       } catch (err) {
         console.error('Failed to initialize Supabase client:', err);
         return null;
@@ -82,19 +104,22 @@ class SupabaseService {
   }
 
   isConfigured(): boolean {
-    const config = this.getConfig();
-    return Boolean(config.supabaseUrl && config.supabaseAnonKey);
+    return Boolean(getEnvUrl() && getEnvKey());
   }
 
   /**
    * Test connection to Supabase and verify portal isolation
+   * Strictly uses environment variables; never displays secrets.
    */
-  async testConnection(testUrl?: string, testKey?: string, portalId?: string): Promise<{ success: boolean; message: string; recordCount?: number }> {
-    const url = (testUrl || this.getConfig().supabaseUrl || '').trim();
-    const key = (testKey || this.getConfig().supabaseAnonKey || '').trim();
+  async testConnection(portalId?: string): Promise<{ success: boolean; message: string; recordCount?: number }> {
+    const url = getEnvUrl().trim();
+    const key = getEnvKey().trim();
 
     if (!url || !key) {
-      return { success: false, message: 'Please provide both Supabase URL and Anon Key.' };
+      return { 
+        success: false, 
+        message: 'Supabase credentials are not configured in environment variables (VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY). Running in local offline mode.' 
+      };
     }
 
     try {
@@ -110,21 +135,21 @@ class SupabaseService {
       if (error) {
         return { 
           success: false, 
-          message: `Supabase Error (${error.code || 'Query'}): ${error.message}` 
+          message: `Supabase status: ${error.message}` 
         };
       }
 
       return { 
         success: true, 
         message: portalId 
-          ? `Connected! Found ${count ?? 0} cloud records isolated for Portal: ${portalId}` 
-          : 'Connected successfully to Supabase database!',
+          ? `Connected! Cloud database active and isolated for Portal ID: ${portalId} (${count ?? 0} cloud records).` 
+          : 'Connected successfully to Supabase cloud database!',
         recordCount: count ?? 0
       };
     } catch (err: any) {
       return { 
         success: false, 
-        message: err?.message || 'Failed to connect to Supabase. Check URL format.' 
+        message: err?.message || 'Failed to connect to Supabase.' 
       };
     }
   }
