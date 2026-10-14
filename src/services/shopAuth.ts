@@ -51,7 +51,38 @@ class ShopAuthService {
 
     const { storage } = await import('./storage');
     storage.initCleanLocalStore(shopId);
+
+    this.sendWelcomeEmail(name, email);
     return { success: true };
+  }
+
+  /**
+   * Fire-and-forget welcome email. Failures never block registration: the edge
+   * function logs every attempt server-side and refuses to send twice.
+   */
+  private async sendWelcomeEmail(shopName: string, email: string): Promise<void> {
+    try {
+      const client = supabaseService.getClient();
+      if (!client) return;
+      const { data: sessionData } = await client.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) return;
+
+      const url = `${(import.meta.env.VITE_SUPABASE_URL as string || '').trim()}/functions/v1/send-welcome-email`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ shopName, email })
+      });
+      if (!response.ok) {
+        console.warn('[WelcomeEmail] send failed with status', response.status);
+      }
+    } catch (e) {
+      console.warn('[WelcomeEmail] send failed:', e);
+    }
   }
 
   /**
