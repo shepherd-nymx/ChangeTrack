@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Smartphone, Share2, PlusSquare, CheckCircle2, X } from 'lucide-react';
+import { Download, Smartphone, Share2, PlusSquare, X } from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 
 interface PWAInstallButtonProps {
@@ -17,16 +17,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
 
   // If already running as an installed PWA in standalone mode, hide the install button
   if (isInstalled) {
-    return (
-      <div 
-        id="pwa-installed-badge"
-        className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 bg-brand-500/10 border border-brand-500/30 text-brand-400 rounded-lg text-xs font-semibold uppercase tracking-wide"
-        title="Running in Standalone App Mode"
-      >
-        <CheckCircle2 className="w-3.5 h-3.5" />
-        <span>App Installed</span>
-      </div>
-    );
+    return null;
   }
 
   const handleInstallClick = async () => {

@@ -178,14 +178,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Phone portal / sync */}
             <button
               onClick={onOpenPhonePortal}
-              title={`Phone Portal: ${portalId} — click to configure cloud sync`}
+              title="Phone Portal — click to configure cloud sync"
               className="hidden sm:flex items-center gap-1.5 px-2.5 py-2 bg-white border border-ink-200 hover:border-brand-400 rounded-xl transition-all text-xs font-bold text-ink-600 hover:text-ink-900 shadow-sm tap-scale min-h-[36px]"
             >
               <span className="flex h-1.5 w-1.5 rounded-full bg-brand-500 pulse-ring" />
               <Smartphone className="w-3.5 h-3.5 text-brand-600" />
-              <span className="hidden lg:inline font-mono text-[11px] text-ink-500">
-                {portalId.replace('portal_', '#')}
-              </span>
             </button>
 
             <PWAInstallButton variant="nav" />

@@ -48,6 +48,37 @@ export default defineConfig(() => {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
           runtimeCaching: [
             {
+              // Supabase REST reads (portal data) — network first, fall back to
+              // the last successful response so the portal still renders offline
+              urlPattern: /^https:\/\/[a-z0-9-]+\.supabase\.(co|in)\/rest\/v1\/.*/i,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'supabase-data-cache',
+                expiration: {
+                  maxEntries: 100,
+                  maxAgeSeconds: 60 * 60 * 24 * 14,
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+            {
+              // Supabase auth session/token endpoints (GET only; never cache secrets)
+              urlPattern: /^https:\/\/[a-z0-9-]+\.supabase\.(co|in)\/auth\/v1\/(user|token)\??.*/i,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'supabase-auth-cache',
+                expiration: {
+                  maxEntries: 20,
+                  maxAgeSeconds: 60 * 60 * 24 * 7,
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+            {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
               handler: 'CacheFirst',
               options: {
