@@ -16,6 +16,7 @@ import { PWAInstallBanner } from './components/PWAInstallBanner';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { ShopAuthPage } from './components/ShopAuthPage';
 import { shopAuth } from './services/shopAuth';
+import { useOnlineStatus } from './hooks/useOnlineStatus';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -106,6 +107,20 @@ export function App() {
 
   const [currentRoleView, setCurrentRoleView] = useState<'CASHIER' | 'ADMIN' | 'DISPUTES' | 'CUSTOMER'>('CASHIER');
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Push locally-queued entries to the cloud on load and whenever the device reconnects
+  const isOnline = useOnlineStatus();
+  const [pendingSyncCount, setPendingSyncCount] = useState<number>(() => storage.getPendingSyncCount());
+  useEffect(() => {
+    if (!isOnline) return;
+    let cancelled = false;
+    storage.flushSyncQueue().then(pushed => {
+      if (!cancelled) setPendingSyncCount(storage.getPendingSyncCount());
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOnline, refreshKey]);
 
   // Security & Passcode state
   const [isOwnerUnlocked, setIsOwnerUnlocked] = useState<boolean>(() => !(storage.getShop().isPasscodeRequired));
@@ -199,6 +214,7 @@ export function App() {
             key={`cashier-${refreshKey}`}
             currentEmployee={currentEmployee}
             shop={shop}
+            pendingSyncCount={pendingSyncCount}
             onRecordCreated={handleRefresh}
             onTransactionComplete={handleRefresh}
           />

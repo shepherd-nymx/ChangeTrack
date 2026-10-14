@@ -69,8 +69,22 @@ const KEYS = {
   WHATSAPP_CONFIG: 'changetrack_wa_config',
   CURRENT_USER: 'changetrack_current_user',
   CUSTOMERS: 'changetrack_customers',
-  CUSTOMER_LEDGER: 'changetrack_customer_ledger'
+  CUSTOMER_LEDGER: 'changetrack_customer_ledger',
+  SYNC_QUEUE: 'changetrack_sync_queue'
 };
+
+type SyncQueueEntryType = 'TRANSACTION' | 'CHANGE_RECORD' | 'CUSTOMER';
+
+interface SyncQueueEntry {
+  id: string;
+  type: SyncQueueEntryType;
+  portalId: string;
+  queuedAt: string;
+  attempts: number;
+  payload: Transaction | ChangeRecord | Customer;
+}
+
+const MAX_QUEUE_ATTEMPTS = 20;
 
 class StorageService {
   private load<T>(key: string, defaultValue: T): T {
@@ -91,6 +105,78 @@ class StorageService {
     } catch (e) {
       console.error(`Error saving ${key} to storage:`, e);
     }
+  }
+
+  // --- Offline Sync Queue (retries cloud pushes when the device is back online) ---
+
+  private getSyncQueue(): SyncQueueEntry[] {
+    return this.load<SyncQueueEntry[]>(KEYS.SYNC_QUEUE, []);
+  }
+
+  private setSyncQueue(queue: SyncQueueEntry[]): void {
+    this.save(KEYS.SYNC_QUEUE, queue);
+  }
+
+  getPendingSyncCount(): number {
+    return this.getSyncQueue().length;
+  }
+
+  private queueSync(type: SyncQueueEntryType, payload: Transaction | ChangeRecord | Customer, portalId: string): void {
+    const entry: SyncQueueEntry = {
+      id: `${type}-${payload.id}-${Date.now()}`,
+      type,
+      portalId,
+      queuedAt: new Date().toISOString(),
+      attempts: 0,
+      payload
+    };
+    const queue = this.getSyncQueue();
+    queue.push(entry);
+    this.setSyncQueue(queue);
+    void this.flushSyncQueue();
+  }
+
+  /**
+   * Pushes every queued entry to Supabase. Safe to call at any time:
+   * when the device is offline or Supabase is not configured, entries stay queued.
+   * Returns the number of entries successfully pushed.
+   */
+  async flushSyncQueue(): Promise<number> {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return 0;
+    if (!supabaseService.isConfigured()) return 0;
+
+    const queue = this.getSyncQueue();
+    if (queue.length === 0) return 0;
+
+    const remaining: SyncQueueEntry[] = [];
+    let pushed = 0;
+
+    for (const entry of queue) {
+      let ok = false;
+      try {
+        if (entry.type === 'TRANSACTION') {
+          ok = await supabaseService.syncTransaction(entry.payload as Transaction, entry.portalId);
+        } else if (entry.type === 'CHANGE_RECORD') {
+          ok = await supabaseService.syncChangeRecord(entry.payload as ChangeRecord, entry.portalId);
+        } else if (entry.type === 'CUSTOMER') {
+          ok = await supabaseService.syncCustomer(entry.payload as Customer, entry.portalId);
+        }
+      } catch {
+        ok = false;
+      }
+
+      if (ok) {
+        pushed++;
+      } else {
+        entry.attempts++;
+        if (entry.attempts <= MAX_QUEUE_ATTEMPTS) {
+          remaining.push(entry);
+        }
+      }
+    }
+
+    this.setSyncQueue(remaining);
+    return pushed;
   }
 
   // --- Phone Portal Identity Management ---
@@ -1136,8 +1222,11 @@ class StorageService {
       actorId: params.employee.id,
       actorName: params.employee.name,
       actorRole: params.employee.role,
-      details: `Cash sale ${txId}: Total $${params.purchaseTotal.toFixed(2)}, Received $${params.amountReceived.toFixed(2)}, Change $${change.toFixed(2)} given immediately.`
+      details: `Cash sale ${txId}: Total ${params.purchaseTotal.toFixed(2)}, Received ${params.amountReceived.toFixed(2)}, Change ${change.toFixed(2)} given immediately.`
     });
+
+    // Auto-sync to Supabase (queued automatically if the device is offline)
+    this.queueSync('TRANSACTION', transaction, shop.id);
 
     return { transaction };
   }
@@ -1310,10 +1399,10 @@ class StorageService {
       details: `WhatsApp redirect prepared for ${changeId} to ${params.customerPhone}. Total balance owed: $${newBalance.toFixed(2)}.`
     });
 
-    // Auto-sync to Supabase isolated to this phone's portal ID
-    supabaseService.syncTransaction(transaction, shop.id);
-    supabaseService.syncChangeRecord(changeRecord, shop.id);
-    supabaseService.syncCustomer(customer, shop.id);
+    // Auto-sync to Supabase isolated to this phone's portal ID (queued automatically if offline)
+    this.queueSync('TRANSACTION', transaction, shop.id);
+    this.queueSync('CHANGE_RECORD', changeRecord, shop.id);
+    this.queueSync('CUSTOMER', customer, shop.id);
 
     return { 
       transaction, 
@@ -1462,11 +1551,11 @@ class StorageService {
       details: `Collection confirmation WhatsApp redirect prepared for ${record.customerPhone} for ${record.id}. Remaining balance: $${remainingBalance.toFixed(2)}.`
     });
 
-    // Auto-sync updated change record & customer balance to Supabase
-    supabaseService.syncChangeRecord(updatedRecord, shop.id);
+    // Auto-sync updated change record & customer balance to Supabase (queued automatically if offline)
+    this.queueSync('CHANGE_RECORD', updatedRecord, shop.id);
     const updatedCust = this.getCustomerByPhone(record.customerPhone);
     if (updatedCust) {
-      supabaseService.syncCustomer(updatedCust, shop.id);
+      this.queueSync('CUSTOMER', updatedCust, shop.id);
     }
 
     return {
@@ -1640,8 +1729,8 @@ class StorageService {
       details: `Change Record ${record.id} ($${record.amountOwed.toFixed(2)}) CANCELLED by Admin ${params.adminEmployee.name}. Reason: "${params.reason}".`
     });
 
-    // Auto-sync cancelled record to Supabase
-    supabaseService.syncChangeRecord(updatedRecord, shop.id);
+    // Auto-sync cancelled record to Supabase (queued automatically if offline)
+    this.queueSync('CHANGE_RECORD', updatedRecord, shop.id);
 
     return { success: true, record: updatedRecord };
   }

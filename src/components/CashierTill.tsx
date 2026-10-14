@@ -31,6 +31,7 @@ import { ReceiptModal } from './ReceiptModal';
 interface CashierTillProps {
   currentEmployee: Employee;
   shop: Shop;
+  pendingSyncCount?: number;
   onRecordCreated?: () => void;
   onTransactionComplete?: () => void;
 }
@@ -38,6 +39,7 @@ interface CashierTillProps {
 export const CashierTill: React.FC<CashierTillProps> = ({
   currentEmployee,
   shop,
+  pendingSyncCount = 0,
   onRecordCreated,
   onTransactionComplete
 }) => {
@@ -377,6 +379,11 @@ export const CashierTill: React.FC<CashierTillProps> = ({
             <p className="text-xs text-ink-500">
               Till Operator: <span className="font-semibold text-ink-700">{currentEmployee.name}</span> ({currentEmployee.role})
             </p>
+            {pendingSyncCount > 0 && (
+              <p className="text-[11px] font-bold text-amber-700 mt-0.5">
+                {pendingSyncCount} {pendingSyncCount === 1 ? 'entry' : 'entries'} waiting to sync to the cloud — will send automatically when online.
+              </p>
+            )}
           </div>
         </div>
 
@@ -961,11 +968,10 @@ export const CashierTill: React.FC<CashierTillProps> = ({
                 {/* Action 1: Give Full Change Now */}
                 <button
                   onClick={handleGiveChangeNow}
-                  disabled={purchaseAmount <= 0 || amountReceived < purchaseAmount}
                   className={`p-3.5 sm:p-4 min-h-[80px] sm:min-h-[85px] rounded-2xl font-bold text-left shadow-sm transition-all flex flex-col justify-between ${
                     purchaseAmount > 0 && amountReceived >= purchaseAmount
                       ? 'bg-brand-600 hover:bg-brand-700 active:scale-98 tap-scale text-white cursor-pointer'
-                      : 'bg-ink-100 text-ink-400 cursor-not-allowed'
+                      : 'bg-ink-200 text-ink-400 cursor-not-allowed'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
@@ -987,11 +993,10 @@ export const CashierTill: React.FC<CashierTillProps> = ({
                 {/* Action 2: Record Change */}
                 <button
                   onClick={handleRecordChange}
-                  disabled={changeDue <= 0}
                   className={`p-3.5 sm:p-4 min-h-[80px] sm:min-h-[85px] rounded-2xl font-bold text-left shadow-sm transition-all flex flex-col justify-between ${
                     changeDue > 0
                       ? 'bg-amber-500 hover:bg-amber-600 active:scale-98 tap-scale text-white cursor-pointer'
-                      : 'bg-ink-100 text-ink-400 cursor-not-allowed'
+                      : 'bg-ink-200 text-ink-400 cursor-not-allowed'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
