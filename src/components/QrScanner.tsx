@@ -89,7 +89,7 @@ export const QrScanner: React.FC<QrScannerProps> = ({ onScan, onClose, sampleCha
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/80 p-4 backdrop-blur-sm">
       <div className="relative w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
@@ -106,13 +106,13 @@ export const QrScanner: React.FC<QrScannerProps> = ({ onScan, onClose, sampleCha
               stopCamera();
               onClose();
             }}
-            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+            className="p-1.5 text-ink-400 hover:text-ink-700 rounded-lg hover:bg-ink-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="mt-4 relative overflow-hidden rounded-xl bg-slate-900 aspect-square flex flex-col items-center justify-center">
+        <div className="mt-4 relative overflow-hidden rounded-xl bg-ink-900 aspect-square flex flex-col items-center justify-center">
           {!cameraError ? (
             <>
               <video
@@ -140,7 +140,7 @@ export const QrScanner: React.FC<QrScannerProps> = ({ onScan, onClose, sampleCha
               <div className="inline-flex p-3 rounded-full bg-amber-500/20 text-amber-300">
                 <AlertCircle className="w-8 h-8" />
               </div>
-              <p className="text-xs text-slate-300 max-w-xs mx-auto leading-relaxed">
+              <p className="text-xs text-ink-300 max-w-xs mx-auto leading-relaxed">
                 {cameraError}
               </p>
             </div>
@@ -148,9 +148,9 @@ export const QrScanner: React.FC<QrScannerProps> = ({ onScan, onClose, sampleCha
         </div>
 
         {/* Quick simulator buttons */}
-        <div className="mt-4 pt-3 border-t border-slate-100">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+        <div className="mt-4 pt-3 border-t border-ink-100">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-ink-600 mb-2">
+            <Sparkles className="w-3.5 h-3.5 text-brand-500" />
             <span>Instant Test Triggers (Simulate QR Scan):</span>
           </div>
           <div className="grid grid-cols-3 gap-2">
@@ -158,7 +158,7 @@ export const QrScanner: React.FC<QrScannerProps> = ({ onScan, onClose, sampleCha
               <button
                 key={id}
                 onClick={() => handleSimulateScan(id)}
-                className="px-2.5 py-2 text-xs font-mono font-semibold rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 text-slate-700 transition-all text-center"
+                className="px-2.5 py-2 text-xs font-mono font-semibold rounded-lg border border-ink-200 bg-ink-50 hover:bg-brand-50 hover:border-brand-300 hover:text-brand-700 text-ink-700 transition-all text-center"
               >
                 {id}
               </button>
@@ -172,7 +172,7 @@ export const QrScanner: React.FC<QrScannerProps> = ({ onScan, onClose, sampleCha
               stopCamera();
               onClose();
             }}
-            className="w-full py-2.5 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+            className="w-full py-2.5 text-sm font-semibold text-ink-700 bg-ink-100 hover:bg-ink-200 rounded-xl transition-colors"
           >
             Cancel
           </button>

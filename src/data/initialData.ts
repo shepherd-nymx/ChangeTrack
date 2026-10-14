@@ -123,7 +123,7 @@ export const INITIAL_EMPLOYEES: Employee[] = [
     role: 'ADMIN',
     pin: '1234',
     active: true,
-    avatarColor: 'bg-indigo-600'
+    avatarColor: 'bg-ink-700'
   },
   {
     id: 'emp-cashier-2',
@@ -133,7 +133,7 @@ export const INITIAL_EMPLOYEES: Employee[] = [
     role: 'CASHIER',
     pin: '2222',
     active: true,
-    avatarColor: 'bg-emerald-600'
+    avatarColor: 'bg-brand-600'
   },
   {
     id: 'emp-cashier-3',

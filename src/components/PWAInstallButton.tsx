@@ -20,7 +20,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
     return (
       <div 
         id="pwa-installed-badge"
-        className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-lg text-xs font-semibold"
+        className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 bg-brand-500/10 border border-brand-500/30 text-brand-400 rounded-lg text-xs font-semibold uppercase tracking-wide"
         title="Running in Standalone App Mode"
       >
         <CheckCircle2 className="w-3.5 h-3.5" />
@@ -52,10 +52,10 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
         title="Install ChangeTrack as a standalone desktop or mobile app"
         className={
           variant === 'nav'
-            ? `flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95 shrink-0 min-h-[34px] min-w-[34px] ${className}`
+            ? `flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-500 hover:to-brand-600 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow-md transition-all duration-200 tap-scale shrink-0 min-h-[34px] min-w-[34px] ${className}`
             : variant === 'hero'
-            ? `flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all active:scale-95 ${className}`
-            : `flex items-center gap-1 px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition-colors shrink-0 ${className}`
+            ? `flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 tap-scale ${className}`
+            : `flex items-center gap-1 px-2 py-1 bg-ink-800 hover:bg-ink-700 text-ink-100 rounded-lg text-xs font-medium transition-all duration-200 tap-scale shrink-0 ${className}`
         }
       >
         <Download className="w-3.5 h-3.5 shrink-0" />
@@ -77,80 +77,80 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
       {showGuideModal && (
         <div 
           id="pwa-install-guide-modal"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 bg-ink-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={() => setShowGuideModal(false)}
         >
           <div 
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 text-slate-900 relative"
+            className="surface-card w-full max-w-md rounded-2xl p-6 shadow-2xl border border-ink-200 text-ink-900 relative rise-in"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               id="close-pwa-guide-modal"
               onClick={() => setShowGuideModal(false)}
-              className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              className="absolute top-4 right-4 p-1.5 text-ink-400 hover:text-ink-600 hover:bg-ink-100 rounded-xl transition-all duration-200"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white shadow-md">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white shadow-md">
                 <Smartphone className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-extrabold text-slate-900">Install ChangeTrack</h3>
-                <p className="text-xs text-slate-500">Fast till access & offline-ready POS</p>
+                <h3 className="text-base font-extrabold tracking-tight text-ink-900">Install ChangeTrack</h3>
+                <p className="text-xs text-ink-500">Fast till access & offline-ready POS</p>
               </div>
             </div>
 
             {isIOS ? (
-              <div className="space-y-3 text-xs text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <p className="font-bold text-slate-800 text-sm mb-1">How to install on iPhone & iPad:</p>
+              <div className="space-y-3 text-xs text-ink-600 bg-ink-50 p-4 rounded-xl border border-ink-200">
+                <p className="font-bold text-ink-800 text-sm mb-1">How to install on iPhone & iPad:</p>
                 <div className="flex items-start gap-2.5">
-                  <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0 text-xs">
+                  <div className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center shrink-0 text-xs">
                     1
                   </div>
                   <p className="pt-0.5">
-                    Tap the <strong className="text-slate-900 inline-flex items-center gap-1"><Share2 className="w-3.5 h-3.5 text-indigo-600" /> Share</strong> icon in your Safari toolbar at the bottom or top of your screen.
+                    Tap the <strong className="text-ink-900 inline-flex items-center gap-1"><Share2 className="w-3.5 h-3.5 text-brand-600" /> Share</strong> icon in your Safari toolbar at the bottom or top of your screen.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
-                  <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0 text-xs">
+                  <div className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center shrink-0 text-xs">
                     2
                   </div>
                   <p className="pt-0.5">
-                    Scroll through the menu options and select <strong className="text-slate-900 inline-flex items-center gap-1"><PlusSquare className="w-3.5 h-3.5 text-indigo-600" /> Add to Home Screen</strong>.
+                    Scroll through the menu options and select <strong className="text-ink-900 inline-flex items-center gap-1"><PlusSquare className="w-3.5 h-3.5 text-brand-600" /> Add to Home Screen</strong>.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
-                  <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0 text-xs">
+                  <div className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center shrink-0 text-xs">
                     3
                   </div>
                   <p className="pt-0.5">
-                    Tap <strong className="text-slate-900">Add</strong> in the top-right corner. ChangeTrack will launch as a full-screen native app!
+                    Tap <strong className="text-ink-900">Add</strong> in the top-right corner. ChangeTrack will launch as a full-screen native app!
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="space-y-3 text-xs text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <p className="font-bold text-slate-800 text-sm mb-1">Desktop & Android Installation:</p>
+              <div className="space-y-3 text-xs text-ink-600 bg-ink-50 p-4 rounded-xl border border-ink-200">
+                <p className="font-bold text-ink-800 text-sm mb-1">Desktop & Android Installation:</p>
                 <div className="flex items-start gap-2.5">
-                  <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0 text-xs">
+                  <div className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center shrink-0 text-xs">
                     1
                   </div>
                   <p className="pt-0.5">
-                    In <strong className="text-slate-900">Google Chrome or Edge</strong>, look for the <strong className="text-slate-900">Install icon (⊕ or computer with arrow)</strong> in the right side of the address bar.
+                    In <strong className="text-ink-900">Google Chrome or Edge</strong>, look for the <strong className="text-ink-900">Install icon (⊕ or computer with arrow)</strong> in the right side of the address bar.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
-                  <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0 text-xs">
+                  <div className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center shrink-0 text-xs">
                     2
                   </div>
                   <p className="pt-0.5">
-                    Or click the browser menu (<strong>⋮</strong>), then select <strong className="text-slate-900">Install ChangeTrack...</strong> or <strong className="text-slate-900">Save and share &gt; Install as app</strong>.
+                    Or click the browser menu (<strong>⋮</strong>), then select <strong className="text-ink-900">Install ChangeTrack...</strong> or <strong className="text-ink-900">Save and share &gt; Install as app</strong>.
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5">
-                  <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0 text-xs">
+                  <div className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center shrink-0 text-xs">
                     3
                   </div>
                   <p className="pt-0.5">
@@ -160,12 +160,12 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
               </div>
             )}
 
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-[11px] text-slate-400">Works 100% offline & syncs locally</span>
+            <div className="mt-4 pt-3 border-t border-ink-100 flex items-center justify-between">
+              <span className="text-[11px] text-ink-400">Works 100% offline & syncs locally</span>
               <button
                 id="pwa-guide-modal-close-btn"
                 onClick={() => setShowGuideModal(false)}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors"
+                className="px-4 py-2 bg-ink-900 hover:bg-ink-800 text-white rounded-xl text-xs font-bold transition-all duration-200 tap-scale"
               >
                 Got it
               </button>

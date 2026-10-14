@@ -662,7 +662,7 @@ class SupabaseService {
         role: e.role,
         pin: e.pin || '1234',
         active: Boolean(e.active),
-        avatarColor: e.role === 'ADMIN' ? 'bg-indigo-600' : 'bg-emerald-600'
+        avatarColor: e.role === 'ADMIN' ? 'bg-ink-700' : 'bg-brand-600'
       }));
 
       this.saveConfig({ 

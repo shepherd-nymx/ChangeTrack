@@ -155,23 +155,23 @@ export const OwnerPasscodeModal: React.FC<OwnerPasscodeModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-xs">
-      <div className="relative w-full max-w-sm rounded-3xl bg-white shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 bg-ink-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="relative surface-card w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-ink-200 rise-in">
         {/* Header */}
-        <div className="bg-slate-900 p-6 text-white text-center relative">
+        <div className="bg-ink-900 p-6 text-white text-center relative">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="absolute top-4 right-4 p-1.5 rounded-xl text-ink-400 hover:text-white hover:bg-ink-800 transition-all duration-200"
           >
             <X className="w-5 h-5" />
           </button>
 
-          <div className="inline-flex p-3 bg-indigo-500/20 text-indigo-400 rounded-2xl border border-indigo-500/30 mb-2">
+          <div className="inline-flex p-3 bg-brand-500/20 text-brand-400 rounded-2xl border border-brand-500/30 mb-2 pulse-ring">
             <Lock className="w-6 h-6" />
           </div>
 
-          <h3 className="text-lg font-black tracking-tight">Owner Console Security</h3>
-          <p className="text-xs text-slate-400 mt-1">
+          <h3 className="text-lg font-extrabold tracking-tight">Owner Console Security</h3>
+          <p className="text-xs text-ink-400 mt-1">
             Protected with brute-force rate-limiting & tamper audit trail
           </p>
         </div>
@@ -184,7 +184,7 @@ export const OwnerPasscodeModal: React.FC<OwnerPasscodeModalProps> = ({
               <div className="inline-flex p-2 bg-rose-100 rounded-xl text-rose-700">
                 <Clock className="w-6 h-6 animate-pulse" />
               </div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-rose-800">
+              <h4 className="text-xs font-bold uppercase tracking-wide text-rose-800">
                 Security Lockout Active
               </h4>
               <p className="text-xs text-rose-700 leading-relaxed">
@@ -214,13 +214,13 @@ export const OwnerPasscodeModal: React.FC<OwnerPasscodeModalProps> = ({
                   placeholder="Enter Passcode"
                   maxLength={8}
                   disabled={isLockedOut}
-                  className="w-full text-center text-2xl font-mono font-black tracking-widest py-3 px-10 bg-slate-50 border-2 border-slate-300 focus:border-indigo-600 rounded-2xl focus:outline-none transition-all shadow-inner disabled:bg-slate-100 disabled:opacity-50"
+                  className="w-full text-center text-2xl font-mono font-black tracking-widest py-3 px-10 bg-white border-2 border-ink-200 focus:border-brand-500 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500/40 transition-all shadow-inner disabled:bg-ink-100 disabled:opacity-50"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPasscode(!showPasscode)}
                   disabled={isLockedOut}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 disabled:opacity-30"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600 p-1 disabled:opacity-30 transition-all duration-200"
                   tabIndex={-1}
                 >
                   {showPasscode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -242,7 +242,7 @@ export const OwnerPasscodeModal: React.FC<OwnerPasscodeModalProps> = ({
                     type="button"
                     onClick={() => handleKeyPress(digit)}
                     disabled={isLockedOut}
-                    className="py-3 bg-slate-100 hover:bg-indigo-50 active:bg-indigo-100 text-slate-800 hover:text-indigo-900 font-mono font-bold text-lg rounded-xl transition-all shadow-xs disabled:opacity-40"
+                    className="py-3 bg-ink-100 hover:bg-brand-50 active:bg-brand-100 text-ink-800 hover:text-brand-900 font-mono font-bold text-lg rounded-xl transition-all duration-200 tap-scale shadow-xs disabled:opacity-40"
                   >
                     {digit}
                   </button>
@@ -251,7 +251,7 @@ export const OwnerPasscodeModal: React.FC<OwnerPasscodeModalProps> = ({
                   type="button"
                   onClick={handleClear}
                   disabled={isLockedOut}
-                  className="py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition-all disabled:opacity-40"
+                  className="py-3 bg-ink-100 hover:bg-ink-200 text-ink-600 text-xs font-bold rounded-xl transition-all duration-200 tap-scale disabled:opacity-40"
                 >
                   CLEAR
                 </button>
@@ -259,7 +259,7 @@ export const OwnerPasscodeModal: React.FC<OwnerPasscodeModalProps> = ({
                   type="button"
                   onClick={() => handleKeyPress('0')}
                   disabled={isLockedOut}
-                  className="py-3 bg-slate-100 hover:bg-indigo-50 active:bg-indigo-100 text-slate-800 hover:text-indigo-900 font-mono font-bold text-lg rounded-xl transition-all shadow-xs disabled:opacity-40"
+                  className="py-3 bg-ink-100 hover:bg-brand-50 active:bg-brand-100 text-ink-800 hover:text-brand-900 font-mono font-bold text-lg rounded-xl transition-all duration-200 tap-scale shadow-xs disabled:opacity-40"
                 >
                   0
                 </button>
@@ -267,7 +267,7 @@ export const OwnerPasscodeModal: React.FC<OwnerPasscodeModalProps> = ({
                   type="button"
                   onClick={handleBackspace}
                   disabled={isLockedOut}
-                  className="py-3 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-600 text-xs font-bold rounded-xl transition-all disabled:opacity-40"
+                  className="py-3 bg-ink-100 hover:bg-rose-50 hover:text-rose-700 text-ink-600 text-xs font-bold rounded-xl transition-all duration-200 tap-scale disabled:opacity-40"
                 >
                   ⌫ DEL
                 </button>
@@ -276,7 +276,7 @@ export const OwnerPasscodeModal: React.FC<OwnerPasscodeModalProps> = ({
               <button
                 type="submit"
                 disabled={isLockedOut}
-                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-extrabold text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 mt-3 disabled:bg-slate-400"
+                className="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-sm rounded-xl transition-all duration-200 tap-scale shadow-md flex items-center justify-center gap-2 mt-3 disabled:bg-ink-400"
               >
                 <KeyRound className="w-4 h-4" />
                 <span>UNLOCK OWNER CONSOLE</span>
@@ -285,8 +285,8 @@ export const OwnerPasscodeModal: React.FC<OwnerPasscodeModalProps> = ({
           )}
 
           {/* Secure Policy Notice */}
-          <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 text-center pt-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-ink-500 text-center pt-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-brand-600 shrink-0" />
             <span>Encrypted attempt logging & rate-limit lockout enforced</span>
           </div>
         </div>

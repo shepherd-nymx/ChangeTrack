@@ -288,29 +288,29 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
-      <div className="relative w-full max-w-xl rounded-2xl bg-white shadow-2xl overflow-hidden my-3 sm:my-6">
+    <div className="fixed inset-0 bg-ink-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="relative surface-card w-full max-w-xl max-h-[85vh] overflow-y-auto rise-in">
         {/* Header */}
-        <div className="px-5 sm:px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+        <div className="px-5 sm:px-6 py-4 bg-ink-900 text-white flex items-center justify-between border-b border-ink-800">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30">
+            <div className="p-2 bg-brand-500/20 text-brand-400 rounded-xl border border-brand-500/30">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-sm sm:text-base font-bold">Anti-Dispute Customer Verification</h2>
-              <p className="text-[11px] sm:text-xs text-slate-400">Verify customer change entitlement before handing over cash</p>
+              <h2 className="text-sm sm:text-base font-extrabold tracking-tight">Anti-Dispute Customer Verification</h2>
+              <p className="text-[11px] sm:text-xs text-ink-400">Verify customer change entitlement before handing over cash</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-xl text-ink-400 hover:text-white hover:bg-ink-800 transition-all duration-200"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Verification Method Tabs */}
-        <div className="grid grid-cols-3 p-1.5 sm:p-2 bg-slate-100 border-b border-slate-200 text-xs font-semibold text-slate-600">
+        <div className="grid grid-cols-3 p-1.5 sm:p-2 bg-ink-100 border-b border-ink-200 text-xs font-semibold text-ink-600">
           <button
             onClick={() => {
               setActiveMethod('ID');
@@ -318,13 +318,13 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
               setCollectionSuccess(false);
               setCollectionWaLink(null);
             }}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg transition-all min-h-[44px] ${
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl transition-all duration-200 min-h-[44px] ${
               activeMethod === 'ID'
-                ? 'bg-white text-slate-900 shadow-xs border border-slate-200 font-bold'
-                : 'hover:bg-slate-200/60'
+                ? 'bg-white text-ink-900 shadow-xs border border-ink-200 font-bold'
+                : 'hover:bg-ink-200/60'
             }`}
           >
-            <Hash className="w-4 h-4 text-emerald-600" />
+            <Hash className="w-4 h-4 text-brand-600" />
             <span className="truncate">Change ID</span>
           </button>
 
@@ -335,13 +335,13 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
               setCollectionSuccess(false);
               setCollectionWaLink(null);
             }}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg transition-all min-h-[44px] ${
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl transition-all duration-200 min-h-[44px] ${
               activeMethod === 'PHONE'
-                ? 'bg-white text-slate-900 shadow-xs border border-slate-200 font-bold'
-                : 'hover:bg-slate-200/60'
+                ? 'bg-white text-ink-900 shadow-xs border border-ink-200 font-bold'
+                : 'hover:bg-ink-200/60'
             }`}
           >
-            <Phone className="w-4 h-4 text-emerald-600" />
+            <Phone className="w-4 h-4 text-brand-600" />
             <span className="truncate">Phone Lookup</span>
           </button>
 
@@ -350,19 +350,19 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
               setActiveMethod('QR');
               setIsQrScannerOpen(true);
             }}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg transition-all min-h-[44px] ${
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl transition-all duration-200 min-h-[44px] ${
               activeMethod === 'QR'
-                ? 'bg-white text-slate-900 shadow-xs border border-slate-200 font-bold'
-                : 'hover:bg-slate-200/60'
+                ? 'bg-white text-ink-900 shadow-xs border border-ink-200 font-bold'
+                : 'hover:bg-ink-200/60'
             }`}
           >
-            <QrCode className="w-4 h-4 text-indigo-600" />
+            <QrCode className="w-4 h-4 text-brand-600" />
             <span className="truncate">Scan QR</span>
           </button>
         </div>
 
         {/* Search Bar */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 bg-white">
+        <div className="p-4 sm:p-5 border-b border-ink-100 bg-white">
           <form
             onSubmit={e => {
               e.preventDefault();
@@ -371,7 +371,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
             className="flex gap-2"
           >
             <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400" />
               <input
                 type="text"
                 value={searchQuery}
@@ -381,13 +381,13 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                     ? 'Enter Change ID (e.g. CT-48291)'
                     : 'Enter customer phone number (e.g. 77 123 4567)'
                 }
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all uppercase min-h-[44px]"
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-ink-200 rounded-xl text-xs sm:text-sm text-ink-900 font-medium placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all uppercase min-h-[44px]"
                 autoFocus
               />
             </div>
             <button
               type="submit"
-              className="px-4 sm:px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm rounded-xl transition-colors shadow-xs min-h-[44px]"
+              className="px-4 sm:px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs sm:text-sm rounded-xl transition-all duration-200 tap-scale shadow-xs min-h-[44px]"
             >
               Verify
             </button>
@@ -395,15 +395,15 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
               type="button"
               onClick={() => setIsQrScannerOpen(true)}
               title="Open Camera QR Scanner"
-              className="p-2.5 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2.5 bg-brand-50 border border-brand-200 text-brand-700 hover:bg-brand-100 rounded-xl transition-all duration-200 tap-scale min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
               <QrCode className="w-5 h-5" />
             </button>
           </form>
 
           {/* Quick suggestions */}
-          <div className="mt-2.5 flex items-center gap-2 text-xs text-slate-500 flex-wrap">
-            <span className="font-semibold text-slate-600">Quick Demo Records:</span>
+          <div className="mt-2.5 flex items-center gap-2 text-xs text-ink-500 flex-wrap">
+            <span className="font-semibold text-ink-600">Quick Demo Records:</span>
             {['CT-48291', 'CT-39104', 'CT-51820'].map(id => (
               <button
                 key={id}
@@ -413,7 +413,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                   setActiveMethod('ID');
                   handleSearch(id);
                 }}
-                className="px-2 py-0.5 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 border border-slate-200 rounded font-mono text-[11px] font-semibold transition-colors"
+                className="px-2 py-0.5 bg-ink-100 hover:bg-brand-50 hover:text-brand-700 border border-ink-200 rounded-lg font-mono text-[11px] font-semibold transition-all duration-200 tap-scale"
               >
                 {id}
               </button>
@@ -422,7 +422,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
         </div>
 
         {/* Results Area */}
-        <div className="p-4 sm:p-6 bg-slate-50 min-h-[260px] max-h-[500px] overflow-y-auto">
+        <div className="p-4 sm:p-6 bg-ink-50 min-h-[260px] max-h-[500px] overflow-y-auto">
           {errorMessage && (
             <div className="p-4 mb-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
@@ -458,11 +458,11 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                               {outstandingMatched.length} Outstanding Slip(s)
                             </span>
                           </div>
-                          <div className="text-2xl font-black text-slate-900 font-mono-num mt-0.5">
+                          <div className="text-2xl font-black text-ink-900 font-mono-num mt-0.5">
                             {currency}{totalOutstandingMatchedAmount.toFixed(2)}
                           </div>
                           <p className="text-[11px] text-amber-800">
-                            Customer: <span className="font-semibold text-slate-900">{customerNameForMatched}</span> ({customerPhoneForMatched})
+                            Customer: <span className="font-semibold text-ink-900">{customerNameForMatched}</span> ({customerPhoneForMatched})
                           </p>
                         </div>
                       </div>
@@ -472,7 +472,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                           type="button"
                           onClick={() => handleCollectAllForCustomer(customerPhoneForMatched)}
                           disabled={isProcessing}
-                          className="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-black rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 shrink-0 min-h-[44px]"
+                          className="w-full sm:w-auto px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-black rounded-xl shadow-xs transition-all duration-200 tap-scale flex items-center justify-center gap-1.5 shrink-0 min-h-[44px]"
                         >
                           <CheckCircle2 className="w-4 h-4" />
                           <span>
@@ -483,7 +483,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                     </div>
 
                     <p className="text-[11px] text-amber-800 bg-amber-100/60 p-2 rounded-lg">
-                      💡 Customer has multiple change slips. Settle all slips at once or select individual slips below.
+                      Tip: Customer has multiple change slips. Settle all slips at once or select individual slips below.
                     </p>
                   </div>
                 );
@@ -491,16 +491,16 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
 
               {/* Multi-Collect WhatsApp Send Callout Banner */}
               {collectionSuccess && collectionWaLink && (
-                <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-emerald-300 text-emerald-900 space-y-3 shadow-xs">
+                <div className="p-4 bg-brand-50 rounded-2xl border-2 border-brand-300 text-brand-900 space-y-3 shadow-xs rise-in">
                   <div className="flex items-center gap-2">
-                    <div className="p-2 bg-emerald-600 text-white rounded-xl">
+                    <div className="p-2 bg-brand-600 text-white rounded-xl">
                       <CheckCircle2 className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="font-extrabold text-sm text-emerald-950">
+                      <p className="font-extrabold text-sm text-brand-950">
                         Full Balance Payout Recorded!
                       </p>
-                      <p className="text-xs text-emerald-800">
+                      <p className="text-xs text-brand-800">
                         Send the customer their settlement receipt via WhatsApp.
                       </p>
                     </div>
@@ -511,20 +511,20 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                     href={collectionWaLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 min-h-[44px] text-center"
+                    className="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all duration-200 tap-scale flex items-center justify-center gap-2 min-h-[44px] text-center"
                   >
                     <MessageSquare className="w-4 h-4 fill-white" />
                     <span>SEND VIA WHATSAPP (COLLECTION CONFIRMATION)</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
 
-                  <div className="flex items-center justify-between text-[11px] text-emerald-800">
+                  <div className="flex items-center justify-between text-[11px] text-brand-800">
                     <span>Chat opens pre-filled with customer number & message. Press Send.</span>
                     {collectionWaMessageText && (
                       <button
                         type="button"
                         onClick={() => handleCopyConfirmationText(collectionWaMessageText)}
-                        className="font-bold text-emerald-700 hover:text-emerald-950 underline flex items-center gap-1 shrink-0"
+                        className="font-bold text-brand-700 hover:text-brand-950 underline flex items-center gap-1 shrink-0 tap-scale transition-all duration-200"
                       >
                         {copiedMessage ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                         <span>{copiedMessage ? 'Copied!' : 'Copy Text'}</span>
@@ -534,7 +534,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                 </div>
               )}
 
-              <p className="text-xs font-bold uppercase text-slate-500 tracking-wider">
+              <p className="text-xs font-bold uppercase text-ink-500 tracking-wider">
                 Individual Change Slips ({matchedPhoneRecords.length}):
               </p>
               <div className="space-y-2">
@@ -554,32 +554,32 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                         setCollectionWaMessageText(generateCollectedChangeMessage(shop, rec, 0));
                       }
                     }}
-                    className="p-3.5 bg-white border border-slate-200 hover:border-emerald-500 rounded-xl cursor-pointer shadow-xs hover:shadow-md transition-all flex items-center justify-between min-h-[50px]"
+                    className="p-3.5 bg-white border border-ink-200 hover:border-brand-500 rounded-xl cursor-pointer shadow-xs hover:shadow-md transition-all duration-200 rise-in flex items-center justify-between min-h-[50px]"
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-slate-900 text-sm">{rec.id}</span>
+                        <span className="font-mono font-bold text-ink-900 text-sm">{rec.id}</span>
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase tracking-wide ${
                             rec.status === 'OUTSTANDING'
                               ? 'bg-amber-100 text-amber-800'
                               : rec.status === 'COLLECTED'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-rose-100 text-rose-800'
+                              ? 'bg-brand-100 text-brand-800'
+                              : 'bg-ink-100 border border-ink-200 text-ink-600'
                           }`}
                         >
                           {rec.status}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-xs text-ink-500 mt-0.5">
                         Created {formatDateTime(rec.createdAt)} by {rec.cashierName}
                       </p>
                     </div>
                     <div className="text-right">
-                      <span className="text-base font-extrabold text-slate-900">
+                      <span className="text-base font-extrabold text-ink-900 font-mono-num">
                         {currency}{rec.amountOwed.toFixed(2)}
                       </span>
-                      <p className="text-[11px] text-emerald-600 font-semibold flex items-center justify-end gap-1">
+                      <p className="text-[11px] text-brand-600 font-semibold flex items-center justify-end gap-1">
                         Select <ArrowRight className="w-3 h-3" />
                       </p>
                     </div>
@@ -597,7 +597,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setSelectedRecord(null)}
-                  className="text-xs text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1 mb-1"
+                  className="text-xs text-brand-600 hover:text-brand-800 font-bold flex items-center gap-1 mb-1 transition-all duration-200"
                 >
                   ← Back to customer's {matchedPhoneRecords.length} change slips
                 </button>
@@ -605,44 +605,44 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
 
               {/* CASE 1: OUTSTANDING CHANGE (Legitimate Claim) */}
               {selectedRecord.status === 'OUTSTANDING' && (
-                <div className="rounded-2xl border-2 border-emerald-400 bg-white p-5 shadow-lg relative overflow-hidden">
-                  <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-wider flex items-center gap-1">
+                <div className="rounded-2xl border-2 border-brand-400 bg-white p-5 shadow-lg relative overflow-hidden rise-in">
+                  <div className="absolute top-0 right-0 bg-brand-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-wider flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     Verified Outstanding
                   </div>
 
                   <div className="mb-3">
-                    <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-brand-700 uppercase tracking-wider">
                       CHANGE TO BE COLLECTED
                     </span>
                     <div className="mt-1 flex items-baseline justify-between">
-                      <h3 className="text-3xl font-black text-slate-900 font-mono-num">
+                      <h3 className="text-3xl font-black text-ink-900 font-mono-num tracking-tight">
                         {currency}{selectedRecord.amountOwed.toFixed(2)}
                       </h3>
-                      <span className="font-mono font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md text-sm">
+                      <span className="font-mono font-bold text-ink-700 bg-ink-100 px-2.5 py-1 rounded-lg text-sm">
                         {selectedRecord.id}
                       </span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 py-3 my-3 border-y border-slate-100 text-xs">
+                  <div className="grid grid-cols-2 gap-3 py-3 my-3 border-y border-ink-100 text-xs">
                     <div>
-                      <span className="text-slate-400">Customer:</span>
-                      <p className="font-bold text-slate-800">{selectedRecord.customerName || 'Valued Customer'}</p>
-                      <p className="font-mono text-slate-600 text-[11px]">{selectedRecord.customerPhone}</p>
+                      <span className="text-ink-400">Customer:</span>
+                      <p className="font-bold text-ink-800">{selectedRecord.customerName || 'Valued Customer'}</p>
+                      <p className="font-mono text-ink-600 text-[11px]">{selectedRecord.customerPhone}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Created:</span>
-                      <p className="font-semibold text-slate-700">{formatDateTime(selectedRecord.createdAt)}</p>
-                      <p className="text-slate-500 text-[11px]">Till Cashier: {selectedRecord.cashierName}</p>
+                      <span className="text-ink-400">Created:</span>
+                      <p className="font-semibold text-ink-700">{formatDateTime(selectedRecord.createdAt)}</p>
+                      <p className="text-ink-500 text-[11px]">Till Cashier: {selectedRecord.cashierName}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Transaction ID:</span>
-                      <p className="font-mono font-semibold text-slate-700">{selectedRecord.transactionId}</p>
+                      <span className="text-ink-400">Transaction ID:</span>
+                      <p className="font-mono font-semibold text-ink-700">{selectedRecord.transactionId}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Shop Branch:</span>
-                      <p className="font-semibold text-slate-700">{shop.name}</p>
+                      <span className="text-ink-400">Shop Branch:</span>
+                      <p className="font-semibold text-ink-700">{shop.name}</p>
                     </div>
                   </div>
 
@@ -656,7 +656,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                   <button
                     onClick={handleConfirmCollection}
                     disabled={isProcessing}
-                    className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 min-h-[48px]"
+                    className="w-full py-3.5 px-4 bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-sm rounded-xl shadow-md transition-all duration-200 tap-scale flex items-center justify-center gap-2 min-h-[48px]"
                   >
                     <CheckCircle2 className="w-5 h-5" />
                     <span>{isProcessing ? 'Processing Handover...' : 'CONFIRM CASH COLLECTION'}</span>
@@ -666,23 +666,23 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
 
               {/* CASE 2: ALREADY COLLECTED (CRITICAL ANTI-FRAUD BANNER + SEND RECEIPT VIA WHATSAPP) */}
               {selectedRecord.status === 'COLLECTED' && (
-                <div className="rounded-2xl border-2 border-emerald-300 bg-white p-5 shadow-md space-y-4">
+                <div className="rounded-2xl border-2 border-brand-300 bg-white p-5 shadow-md space-y-4 rise-in">
                   {/* Top Status Banner */}
-                  <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-300 text-emerald-900 space-y-3">
+                  <div className="p-4 bg-brand-50 rounded-xl border border-brand-300 text-brand-900 space-y-3">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-emerald-100 rounded-full text-emerald-700 shrink-0">
+                      <div className="p-2 bg-brand-100 rounded-full text-brand-700 shrink-0">
                         <CheckCircle2 className="w-6 h-6" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-black text-base text-emerald-950">
+                          <h4 className="font-black text-base text-brand-950 tracking-tight">
                             Change Collected ({currency}{selectedRecord.amountOwed.toFixed(2)})
                           </h4>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 uppercase">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-brand-200 text-brand-900 uppercase tracking-wide">
                             Dispensed
                           </span>
                         </div>
-                        <p className="text-xs text-emerald-800 mt-1">
+                        <p className="text-xs text-brand-800 mt-1">
                           Cash was verified & dispensed. Open WhatsApp to send the customer their official ChangeTrack collection confirmation receipt.
                         </p>
                       </div>
@@ -702,24 +702,24 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                       );
 
                       return (
-                        <div className="pt-2 border-t border-emerald-200/80 space-y-2">
+                        <div className="pt-2 border-t border-brand-200/80 space-y-2">
                           <a
                             href={waLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-center min-h-[44px]"
+                            className="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all duration-200 tap-scale flex items-center justify-center gap-2 text-center min-h-[44px]"
                           >
                             <MessageSquare className="w-4 h-4 fill-white" />
                             <span>SEND VIA WHATSAPP (COLLECTION CONFIRMATION)</span>
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
 
-                          <div className="flex items-center justify-between text-[11px] text-emerald-800 pt-0.5">
+                          <div className="flex items-center justify-between text-[11px] text-brand-800 pt-0.5">
                             <span>Pre-filled with customer number & message. Cashier only presses Send.</span>
                             <button
                               type="button"
                               onClick={() => handleCopyConfirmationText(confirmationText)}
-                              className="font-bold text-emerald-700 hover:text-emerald-950 underline flex items-center gap-1 shrink-0"
+                              className="font-bold text-brand-700 hover:text-brand-950 underline flex items-center gap-1 shrink-0 tap-scale transition-all duration-200"
                             >
                               {copiedMessage ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                               <span>{copiedMessage ? 'Copied!' : 'Copy Text'}</span>
@@ -730,14 +730,14 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                           <button
                             type="button"
                             onClick={() => setShowMessagePreview(!showMessagePreview)}
-                            className="text-[11px] font-semibold text-emerald-900 flex items-center gap-1 hover:underline pt-1"
+                            className="text-[11px] font-semibold text-brand-900 flex items-center gap-1 hover:underline pt-1 transition-all duration-200"
                           >
                             {showMessagePreview ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                             <span>{showMessagePreview ? 'Hide message preview' : 'View collection confirmation text'}</span>
                           </button>
 
                           {showMessagePreview && (
-                            <div className="p-3 bg-white rounded-xl border border-emerald-200 text-slate-800 text-[11px] whitespace-pre-line font-sans leading-relaxed shadow-xs">
+                            <div className="p-3 bg-white rounded-xl border border-brand-200 text-ink-800 text-[11px] whitespace-pre-line font-sans leading-relaxed shadow-xs">
                               {confirmationText}
                             </div>
                           )}
@@ -747,51 +747,51 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                   </div>
 
                   {/* Audit Evidence Card */}
-                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-2 text-xs">
-                    <div className="flex justify-between items-center pb-2 border-b border-slate-200">
-                      <span className="text-slate-500 font-medium">Amount Dispensed:</span>
-                      <span className="text-lg font-black text-slate-900 font-mono-num">
+                  <div className="bg-ink-50 rounded-xl p-4 border border-ink-200 space-y-2 text-xs">
+                    <div className="flex justify-between items-center pb-2 border-b border-ink-200">
+                      <span className="text-ink-500 font-medium">Amount Dispensed:</span>
+                      <span className="text-lg font-black text-ink-900 font-mono-num">
                         {currency}{selectedRecord.amountOwed.toFixed(2)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500">Change ID:</span>
-                      <span className="font-mono font-bold text-slate-800">{selectedRecord.id}</span>
+                      <span className="text-ink-500">Change ID:</span>
+                      <span className="font-mono font-bold text-ink-800">{selectedRecord.id}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500">Customer Phone:</span>
-                      <span className="font-semibold text-slate-800">{selectedRecord.customerPhone}</span>
+                      <span className="text-ink-500">Customer Phone:</span>
+                      <span className="font-semibold text-ink-800">{selectedRecord.customerPhone}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500">Original Date Created:</span>
-                      <span className="font-medium text-slate-700">{formatDateTime(selectedRecord.createdAt)}</span>
+                      <span className="text-ink-500">Original Date Created:</span>
+                      <span className="font-medium text-ink-700">{formatDateTime(selectedRecord.createdAt)}</span>
                     </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-slate-200">
-                      <span className="font-bold text-slate-800">Collection Date & Time:</span>
-                      <span className="font-bold text-slate-800">
+                    <div className="flex justify-between items-center pt-2 border-t border-ink-200">
+                      <span className="font-bold text-ink-800">Collection Date & Time:</span>
+                      <span className="font-bold text-ink-800">
                         {selectedRecord.collectedAt ? formatDateTime(selectedRecord.collectedAt) : 'Recorded'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-slate-800">Dispensing Till Cashier:</span>
-                      <span className="font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-300">
+                      <span className="font-bold text-ink-800">Dispensing Till Cashier:</span>
+                      <span className="font-bold text-ink-900 bg-white px-2 py-0.5 rounded border border-ink-300">
                         {selectedRecord.collectedByEmployeeName || 'Authorized Cashier'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500">Verification Method:</span>
-                      <span className="font-medium text-slate-700">{selectedRecord.collectionMethod || 'TILL_VERIFIED'}</span>
+                      <span className="text-ink-500">Verification Method:</span>
+                      <span className="font-medium text-ink-700">{selectedRecord.collectionMethod || 'TILL_VERIFIED'}</span>
                     </div>
                   </div>
 
                   {/* Admin Correction Override */}
                   {currentEmployee.role === 'ADMIN' && (
-                    <div className="pt-2 border-t border-slate-200">
+                    <div className="pt-2 border-t border-ink-200">
                       {!showAdminReversal ? (
                         <button
                           type="button"
                           onClick={() => setShowAdminReversal(true)}
-                          className="text-xs text-slate-600 hover:text-slate-900 underline flex items-center gap-1"
+                          className="text-xs text-ink-600 hover:text-ink-900 underline flex items-center gap-1 transition-all duration-200"
                         >
                           <RotateCcw className="w-3 h-3" />
                           <span>Shop Administrator: Correct or Reverse Collection</span>
@@ -805,20 +805,20 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                             value={reversalReason}
                             onChange={e => setReversalReason(e.target.value)}
                             placeholder="Mandatory reason for reversing collection (e.g. Cashier error, customer disputed identity)..."
-                            className="w-full p-2 text-xs bg-white border border-amber-300 rounded-lg focus:outline-none"
+                            className="w-full p-2 text-xs bg-white border border-amber-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all"
                             rows={2}
                           />
                           <div className="flex justify-end gap-2">
                             <button
                               onClick={() => setShowAdminReversal(false)}
-                              className="px-2.5 py-1 text-xs text-slate-600 hover:bg-amber-100 rounded"
+                              className="px-2.5 py-1 text-xs text-ink-600 hover:bg-amber-100 rounded-lg transition-all duration-200 tap-scale"
                             >
                               Cancel
                             </button>
                             <button
                               onClick={handleAdminReversal}
                               disabled={!reversalReason.trim()}
-                              className="px-3 py-1 bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold rounded"
+                              className="px-3 py-1 bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold rounded-lg transition-all duration-200 tap-scale"
                             >
                               Confirm Reversal
                             </button>
@@ -832,18 +832,18 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
 
               {/* CASE 3: CANCELLED / VOIDED RECORD */}
               {selectedRecord.status === 'CANCELLED' && (
-                <div className="rounded-2xl border-2 border-slate-300 bg-slate-100 p-5 space-y-3">
-                  <div className="flex items-center gap-2 text-rose-800 font-bold">
+                <div className="rounded-2xl border-2 border-ink-300 bg-ink-100 p-5 space-y-3 rise-in">
+                  <div className="flex items-center gap-2 text-ink-800 font-bold">
                     <ShieldAlert className="w-5 h-5" />
                     <span>CHANGE RECORD VOIDED / CANCELLED</span>
                   </div>
-                  <p className="text-xs text-slate-600">
+                  <p className="text-xs text-ink-600">
                     This change record was cancelled on{' '}
                     <span className="font-semibold">{selectedRecord.cancelledAt ? formatDateTime(selectedRecord.cancelledAt) : 'prior date'}</span>{' '}
                     by Admin <span className="font-semibold">{selectedRecord.cancelledByEmployeeName}</span>.
                   </p>
-                  <p className="text-xs bg-white p-3 rounded-lg border border-slate-200">
-                    <span className="font-bold text-slate-700">Reason:</span> {selectedRecord.cancellationReason || 'Coin handed over before departure.'}
+                  <p className="text-xs bg-white p-3 rounded-lg border border-ink-200">
+                    <span className="font-bold text-ink-700">Reason:</span> {selectedRecord.cancellationReason || 'Coin handed over before departure.'}
                   </p>
                 </div>
               )}
@@ -851,10 +851,10 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
           )}
 
           {!selectedRecord && matchedPhoneRecords.length === 0 && !errorMessage && (
-            <div className="flex flex-col items-center justify-center text-center py-10 text-slate-400 space-y-2">
-              <ShieldCheck className="w-10 h-10 text-slate-300" />
-              <p className="text-sm font-semibold text-slate-600">Ready to Verify Customer Change</p>
-              <p className="text-xs text-slate-400 max-w-xs">
+            <div className="flex flex-col items-center justify-center text-center py-10 text-ink-400 space-y-2">
+              <ShieldCheck className="w-10 h-10 text-ink-300" />
+              <p className="text-sm font-extrabold tracking-tight text-ink-600">Ready to Verify Customer Change</p>
+              <p className="text-xs text-ink-400 max-w-xs">
                 Scan the customer's QR code, search their Change ID, or enter their phone number to check their balance.
               </p>
             </div>
@@ -862,14 +862,14 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-5 sm:px-6 py-3.5 bg-slate-100 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
+        <div className="px-5 sm:px-6 py-3.5 bg-ink-100 border-t border-ink-200 flex justify-between items-center text-xs text-ink-500">
           <div className="flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
-            <span>Till Cashier: <strong className="text-slate-700">{currentEmployee.name}</strong></span>
+            <span className="inline-block w-2 h-2 rounded-full bg-brand-500 pulse-ring" />
+            <span>Till Cashier: <strong className="text-ink-700">{currentEmployee.name}</strong></span>
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-lg border border-slate-300 transition-colors min-h-[38px]"
+            className="px-4 py-2 bg-white hover:bg-ink-100 text-ink-800 font-bold rounded-xl border border-ink-200 transition-all duration-200 tap-scale min-h-[38px]"
           >
             Done
           </button>

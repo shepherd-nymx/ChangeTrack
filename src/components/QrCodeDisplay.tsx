@@ -37,7 +37,7 @@ export const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({ value, size = 180,
     return (
       <div 
         style={{ width: size, height: size }} 
-        className={`flex items-center justify-center bg-slate-100 rounded-lg text-slate-400 text-xs ${className}`}
+        className={`flex items-center justify-center bg-ink-100 rounded-lg text-ink-400 text-xs ${className}`}
       >
         Generating QR...
       </div>
@@ -50,7 +50,7 @@ export const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({ value, size = 180,
       alt="Change Verification QR Code" 
       width={size} 
       height={size} 
-      className={`rounded-lg shadow-xs border border-slate-200 bg-white p-1.5 ${className}`}
+      className={`rounded-lg shadow-xs border border-ink-200 bg-white p-1.5 ${className}`}
     />
   );
 };

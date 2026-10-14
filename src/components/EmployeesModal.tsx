@@ -175,8 +175,8 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
     }
 
     const colors = [
-      'bg-indigo-600', 
-      'bg-emerald-600', 
+      'bg-brand-600', 
+      'bg-ink-600', 
       'bg-amber-600', 
       'bg-rose-600', 
       'bg-purple-600', 
@@ -215,30 +215,30 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-xs overflow-y-auto">
-      <div className="relative w-full max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden my-6 border border-slate-200">
+    <div className="fixed inset-0 bg-ink-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="relative surface-card w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden my-6 border border-ink-200 rise-in">
         
         {/* Modal Header */}
-        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div className="px-6 py-4 bg-ink-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-500/20 text-indigo-400 rounded-xl border border-indigo-500/30">
+            <div className="p-2 bg-brand-500/20 text-brand-400 rounded-xl border border-brand-500/30">
               <Users className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-black tracking-tight">Manage Cashiers & Till Operators</h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+                <h3 className="text-base font-extrabold tracking-tight">Manage Cashiers & Till Operators</h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-brand-500/20 text-brand-300 border border-brand-400/30 uppercase tracking-wide">
                   Owner Console
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-ink-400 mt-0.5">
                 Add, edit permissions, change PINs, or revoke cashier till access
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-xl text-ink-400 hover:text-white hover:bg-ink-800 transition-all duration-200"
           >
             <X className="w-5 h-5" />
           </button>
@@ -261,14 +261,14 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
         )}
 
         {successMessage && (
-          <div className="px-6 py-3 bg-emerald-50 border-b border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between gap-2">
+          <div className="px-6 py-3 bg-brand-50 border-b border-brand-200 text-brand-800 text-xs font-semibold flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+              <Check className="w-4 h-4 text-brand-600 shrink-0" />
               <span>{successMessage}</span>
             </div>
             <button 
               onClick={() => setSuccessMessage(null)} 
-              className="text-emerald-600 hover:text-emerald-900 font-bold px-1"
+              className="text-brand-600 hover:text-brand-900 font-bold px-1"
             >
               &times;
             </button>
@@ -281,13 +281,13 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
           {/* Controls Bar */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div className="relative flex-1">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 placeholder="Search cashiers by name, email, or role..."
-                className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-ink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all"
               />
             </div>
             
@@ -298,7 +298,7 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
                 setDeletingEmployee(null);
                 setShowAddForm(!showAddForm);
               }}
-              className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs shrink-0"
+              className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition-all duration-200 tap-scale shadow-xs shrink-0"
             >
               <UserPlus className="w-4 h-4" />
               <span>{showAddForm ? 'Close Add Form' : 'Add New Cashier'}</span>
@@ -307,16 +307,16 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
 
           {/* ADD EMPLOYEE FORM */}
           {showAddForm && (
-            <form onSubmit={handleAddEmployee} className="p-4 bg-indigo-50/50 border border-indigo-200 rounded-2xl space-y-3 text-xs">
+            <form onSubmit={handleAddEmployee} className="p-4 bg-brand-50/50 border border-brand-200 rounded-2xl space-y-3 text-xs">
               <div className="flex items-center justify-between">
-                <h4 className="font-black text-slate-900 flex items-center gap-2">
-                  <UserPlus className="w-4 h-4 text-indigo-600" />
+                <h4 className="font-extrabold tracking-tight text-ink-900 flex items-center gap-2">
+                  <UserPlus className="w-4 h-4 text-brand-600" />
                   <span>Create New Cashier / Till Operator</span>
                 </h4>
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="text-slate-400 hover:text-slate-600"
+                  className="p-1.5 rounded-xl text-ink-400 hover:text-ink-600 hover:bg-ink-100 transition-all duration-200"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -324,48 +324,48 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Full Name</label>
+                  <label className="block font-bold text-ink-700 mb-1">Full Name</label>
                   <input
                     type="text"
                     required
                     value={addName}
                     onChange={e => setAddName(e.target.value)}
                     placeholder="e.g. Kelvin Sibanda"
-                    className="w-full p-2 bg-white border border-slate-300 rounded-xl text-xs font-medium focus:ring-1 focus:ring-indigo-500"
+                    className="w-full p-2 bg-white border border-ink-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all min-h-[44px]"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Email / Till Username</label>
+                  <label className="block font-bold text-ink-700 mb-1">Email / Till Username</label>
                   <input
                     type="email"
                     required
                     value={addEmail}
                     onChange={e => setAddEmail(e.target.value)}
                     placeholder="kelvin@abctuckshop.co.zw"
-                    className="w-full p-2 bg-white border border-slate-300 rounded-xl text-xs font-medium focus:ring-1 focus:ring-indigo-500"
+                    className="w-full p-2 bg-white border border-ink-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all min-h-[44px]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Role & Permissions</label>
+                  <label className="block font-bold text-ink-700 mb-1">Role & Permissions</label>
                   <select
                     value={addRole}
                     onChange={e => setAddRole(e.target.value as any)}
-                    className="w-full p-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800"
+                    className="w-full p-2 bg-white border border-ink-200 rounded-xl text-xs font-bold text-ink-800 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all min-h-[44px]"
                   >
                     <option value="CASHIER">CASHIER (Till Access, Record & Verify Change)</option>
                     <option value="ADMIN">ADMIN (Full Console Control, Reversals, Settings)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                  <label className="block font-bold text-ink-700 mb-1 flex items-center justify-between">
                     <span>4-Digit Till Access PIN</span>
                     <button
                       type="button"
                       onClick={() => setShowAddPin(!showAddPin)}
-                      className="text-[10px] text-indigo-600 hover:underline flex items-center gap-1 font-semibold"
+                      className="text-[10px] text-brand-600 hover:underline flex items-center gap-1 font-semibold transition-all duration-200"
                     >
                       {showAddPin ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                       <span>{showAddPin ? 'Hide' : 'Show'}</span>
@@ -378,22 +378,22 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
                     value={addPin}
                     onChange={e => setAddPin(e.target.value.replace(/\D/g, ''))}
                     placeholder="1234"
-                    className="w-full p-2 bg-white border border-slate-300 rounded-xl font-mono text-center tracking-widest font-bold text-sm"
+                    className="w-full p-2 bg-white border border-ink-200 rounded-xl font-mono text-center tracking-widest font-bold text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-indigo-100">
+              <div className="flex justify-end gap-2 pt-2 border-t border-brand-100">
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="px-3.5 py-1.5 text-slate-600 hover:bg-slate-200 rounded-xl font-semibold transition-colors"
+                  className="px-3.5 py-1.5 text-ink-600 hover:bg-ink-100 rounded-xl font-semibold transition-all duration-200 tap-scale"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-xs"
+                  className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all duration-200 tap-scale shadow-xs"
                 >
                   Save Till Operator
                 </button>
@@ -430,14 +430,14 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setDeletingEmployee(null)}
-                  className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 rounded-xl font-bold transition-colors"
+                  className="px-3 py-1.5 bg-white border border-ink-200 text-ink-700 hover:bg-ink-100 rounded-xl font-bold transition-all duration-200 tap-scale"
                 >
                   Keep Operator
                 </button>
                 <button
                   type="button"
                   onClick={handleConfirmDelete}
-                  className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold transition-colors shadow-xs flex items-center gap-1.5"
+                  className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold transition-all duration-200 tap-scale shadow-xs flex items-center gap-1.5"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Delete Operator</span>
@@ -448,16 +448,16 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
 
           {/* EDIT EMPLOYEE FORM */}
           {editingEmployeeId && (
-            <form onSubmit={handleSaveEdit} className="p-4 bg-slate-50 border-2 border-indigo-300 rounded-2xl space-y-3 text-xs shadow-xs animate-in fade-in duration-150">
+            <form onSubmit={handleSaveEdit} className="p-4 bg-ink-50 border-2 border-brand-300 rounded-2xl space-y-3 text-xs shadow-xs animate-in fade-in duration-150">
               <div className="flex items-center justify-between">
-                <h4 className="font-black text-slate-900 flex items-center gap-2">
-                  <Edit3 className="w-4 h-4 text-indigo-600" />
+                <h4 className="font-extrabold tracking-tight text-ink-900 flex items-center gap-2">
+                  <Edit3 className="w-4 h-4 text-brand-600" />
                   <span>Edit Cashier / Till Operator Details</span>
                 </h4>
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="text-slate-400 hover:text-slate-600"
+                  className="p-1.5 rounded-xl text-ink-400 hover:text-ink-600 hover:bg-ink-100 transition-all duration-200"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -465,7 +465,7 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-ink-700 mb-1">
                     {editRole === 'ADMIN' ? 'Administrator / Store Owner Name' : 'Full Name'}
                   </label>
                   <input
@@ -474,40 +474,40 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
                     placeholder={editRole === 'ADMIN' ? 'e.g. Tariro Moyo' : 'e.g. Tendai Chikore'}
-                    className="w-full p-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-indigo-500"
+                    className="w-full p-2 bg-white border border-ink-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all min-h-[44px]"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Email / Till Username</label>
+                  <label className="block font-bold text-ink-700 mb-1">Email / Till Username</label>
                   <input
                     type="email"
                     required
                     value={editEmail}
                     onChange={e => setEditEmail(e.target.value)}
-                    className="w-full p-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-indigo-500"
+                    className="w-full p-2 bg-white border border-ink-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all min-h-[44px]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Role</label>
+                  <label className="block font-bold text-ink-700 mb-1">Role</label>
                   <select
                     value={editRole}
                     onChange={e => setEditRole(e.target.value as any)}
-                    className="w-full p-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800"
+                    className="w-full p-2 bg-white border border-ink-200 rounded-xl text-xs font-bold text-ink-800 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all min-h-[44px]"
                   >
                     <option value="CASHIER">CASHIER (Till Operator)</option>
                     <option value="ADMIN">ADMIN (Full Console Access)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                  <label className="block font-bold text-ink-700 mb-1 flex items-center justify-between">
                     <span>Till PIN</span>
                     <button
                       type="button"
                       onClick={() => setShowEditPin(!showEditPin)}
-                      className="text-[10px] text-indigo-600 hover:underline flex items-center gap-1 font-semibold"
+                      className="text-[10px] text-brand-600 hover:underline flex items-center gap-1 font-semibold transition-all duration-200"
                     >
                       {showEditPin ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                       <span>{showEditPin ? 'Hide' : 'Show'}</span>
@@ -519,37 +519,37 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
                     required
                     value={editPin}
                     onChange={e => setEditPin(e.target.value.replace(/\D/g, ''))}
-                    className="w-full p-2 bg-white border border-slate-300 rounded-xl font-mono text-center tracking-widest font-bold text-sm"
+                    className="w-full p-2 bg-white border border-ink-200 rounded-xl font-mono text-center tracking-widest font-bold text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Account Status</label>
+                  <label className="block font-bold text-ink-700 mb-1">Account Status</label>
                   <select
                     value={editActive ? 'ACTIVE' : 'SUSPENDED'}
                     onChange={e => setEditActive(e.target.value === 'ACTIVE')}
-                    className={`w-full p-2 border rounded-xl text-xs font-bold ${
+                    className={`w-full p-2 border rounded-xl text-xs font-bold transition-all min-h-[44px] ${
                       editActive 
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300' 
+                        ? 'bg-brand-50 text-brand-800 border-brand-300' 
                         : 'bg-rose-50 text-rose-800 border-rose-300'
                     }`}
                   >
-                    <option value="ACTIVE">🟢 Active Access</option>
-                    <option value="SUSPENDED">🔴 Suspended Access</option>
+                    <option value="ACTIVE">Active Access</option>
+                    <option value="SUSPENDED">Suspended Access</option>
                   </select>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <div className="flex justify-end gap-2 pt-2 border-t border-ink-200">
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="px-3.5 py-1.5 text-slate-600 hover:bg-slate-200 rounded-xl font-semibold transition-colors"
+                  className="px-3.5 py-1.5 text-ink-600 hover:bg-ink-100 rounded-xl font-semibold transition-all duration-200 tap-scale"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-xs"
+                  className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all duration-200 tap-scale shadow-xs"
                 >
                   Save Changes
                 </button>
@@ -559,13 +559,13 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
 
           {/* STAFF & CASHIER LIST */}
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between text-xs text-slate-500 font-bold uppercase tracking-wider px-1">
+            <div className="flex items-center justify-between text-xs text-ink-500 font-bold uppercase tracking-wide px-1">
               <span>Till Personnel ({filteredEmployees.length})</span>
               <span className="text-[11px] lowercase font-normal">Audit-tracked actions</span>
             </div>
 
             {filteredEmployees.length === 0 ? (
-              <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-slate-500 text-xs">
+              <div className="p-8 text-center bg-ink-50 rounded-2xl border border-dashed border-ink-200 text-ink-500 text-xs">
                 No cashiers or operators match your search filter.
               </div>
             ) : (
@@ -577,41 +577,41 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
                 return (
                   <div
                     key={emp.id}
-                    className={`p-3.5 bg-white border rounded-2xl transition-all shadow-2xs ${
+                    className={`p-3.5 bg-white border rounded-2xl transition-all duration-200 shadow-2xs rise-in ${
                       isEditing
-                        ? 'border-indigo-500 ring-2 ring-indigo-100 bg-indigo-50/20'
+                        ? 'border-brand-500 ring-2 ring-brand-100 bg-brand-50/20'
                         : emp.active
-                        ? 'border-slate-200 hover:border-slate-300'
+                        ? 'border-ink-200 hover:border-ink-300'
                         : 'border-rose-200 bg-rose-50/30'
                     }`}
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       {/* Left: Avatar + Details */}
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-10 h-10 rounded-2xl ${emp.avatarColor || 'bg-slate-700'} text-white flex items-center justify-center font-black text-sm shrink-0 shadow-2xs`}>
+                        <div className={`w-10 h-10 rounded-2xl ${emp.avatarColor || 'bg-ink-700'} text-white flex items-center justify-center font-black text-sm shrink-0 shadow-2xs`}>
                           {emp.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-bold text-slate-900 text-sm truncate">{emp.name}</span>
+                            <span className="font-bold text-ink-900 text-sm truncate">{emp.name}</span>
                             <span
-                              className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider border ${
+                              className={`text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wide border ${
                                 emp.role === 'ADMIN'
-                                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  ? 'bg-ink-100 text-ink-700 border-ink-200'
+                                  : 'bg-brand-50 text-brand-700 border-brand-200'
                               }`}
                             >
                               {emp.role}
                             </span>
                             {isCurrent && (
-                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-slate-900 text-white">
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-lg bg-ink-900 text-white uppercase tracking-wide">
                                 You
                               </span>
                             )}
                             <span
-                              className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                              className={`text-[9px] font-bold px-2 py-0.5 rounded-lg uppercase tracking-wide ${
                                 emp.active
-                                  ? 'bg-emerald-100 text-emerald-800'
+                                  ? 'bg-brand-100 text-brand-800'
                                   : 'bg-rose-100 text-rose-800'
                               }`}
                             >
@@ -619,17 +619,17 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
                             </span>
                           </div>
                           
-                          <div className="flex items-center gap-3 text-slate-500 text-xs mt-1 flex-wrap">
+                          <div className="flex items-center gap-3 text-ink-500 text-xs mt-1 flex-wrap">
                             <span className="truncate">{emp.email}</span>
-                            <span className="text-slate-300">•</span>
-                            <span className="flex items-center gap-1 font-mono text-[11px] text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
-                              <Key className="w-3 h-3 text-slate-400" />
+                            <span className="text-ink-300">•</span>
+                            <span className="flex items-center gap-1 font-mono text-[11px] text-ink-700 bg-ink-100 px-2 py-0.5 rounded-lg">
+                              <Key className="w-3 h-3 text-ink-400" />
                               <span>PIN: {isRevealed ? emp.pin : '••••'}</span>
                               <button
                                 type="button"
                                 onClick={() => togglePinReveal(emp.id)}
                                 title={isRevealed ? 'Hide PIN' : 'Reveal PIN'}
-                                className="text-slate-400 hover:text-slate-700 ml-1"
+                                className="text-ink-400 hover:text-ink-700 ml-1 transition-all duration-200"
                               >
                                 {isRevealed ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                               </button>
@@ -644,7 +644,7 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
                         <button
                           onClick={() => handleStartEdit(emp)}
                           title="Edit operator name, role, PIN or permissions"
-                          className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 hover:border-indigo-200 rounded-xl text-xs font-bold transition-colors"
+                          className="flex items-center gap-1 px-2.5 py-1.5 bg-ink-100 hover:bg-brand-50 text-ink-700 hover:text-brand-700 border border-ink-200 hover:border-brand-200 rounded-xl text-xs font-bold transition-all duration-200 tap-scale"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                           <span>Edit</span>
@@ -654,10 +654,10 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
                         <button
                           onClick={() => handleToggleActive(emp)}
                           title={emp.active ? 'Suspend till access' : 'Activate till access'}
-                          className={`px-2.5 py-1.5 rounded-xl font-bold text-xs border transition-colors ${
+                          className={`px-2.5 py-1.5 rounded-xl font-bold text-xs border transition-all duration-200 tap-scale ${
                             emp.active
-                              ? 'bg-slate-50 hover:bg-amber-50 text-slate-600 hover:text-amber-800 border-slate-200 hover:border-amber-200'
-                              : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                              ? 'bg-white hover:bg-amber-50 text-ink-600 hover:text-amber-800 border-ink-200 hover:border-amber-200'
+                              : 'bg-brand-50 hover:bg-brand-100 text-brand-800 border-brand-200'
                           }`}
                         >
                           {emp.active ? 'Suspend' : 'Activate'}
@@ -672,7 +672,7 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
                             setDeletingEmployee(emp);
                           }}
                           title="Delete operator from shop"
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 rounded-xl transition-colors"
+                          className="p-1.5 text-ink-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 rounded-xl transition-all duration-200"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -686,14 +686,14 @@ export const EmployeesModal: React.FC<EmployeesModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
-          <div className="text-slate-500 flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+        <div className="p-4 bg-ink-50 border-t border-ink-200 flex items-center justify-between text-xs">
+          <div className="text-ink-500 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-brand-600" />
             <span>Changes are recorded in the owner audit log</span>
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+            className="px-4 py-2 bg-ink-900 hover:bg-ink-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all duration-200 tap-scale"
           >
             Close
           </button>

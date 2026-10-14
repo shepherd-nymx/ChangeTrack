@@ -1,5 +1,8 @@
 import React from 'react';
-import { ShieldCheck, Coins, Store, MessageSquare, Scale, LayoutDashboard, Smartphone, ChevronDown, Lock, Clock as Unlock, LogOut } from 'lucide-react';
+import {
+  Coins, MessageSquare, Scale, LayoutDashboard, Smartphone,
+  ChevronDown, Lock, Unlock, LogOut, Store
+} from 'lucide-react';
 import { Employee, Shop } from '../types';
 import { storage } from '../services/storage';
 import { PWAInstallButton } from './PWAInstallButton';
@@ -19,6 +22,8 @@ interface NavbarProps {
   onLockOwnerDashboard: () => void;
   onSignOut: () => void;
 }
+
+type RoleView = NavbarProps['currentRoleView'];
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentRoleView,
@@ -48,112 +53,110 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
+  const tabs: { view: RoleView; label: string; shortLabel: string; icon: React.ReactNode; activeClass: string }[] = [
+    {
+      view: 'CASHIER',
+      label: 'Cashier Till',
+      shortLabel: 'Till',
+      icon: <Coins className="w-4 h-4" />,
+      activeClass: 'bg-brand-600 text-white shadow-sm shadow-brand-600/30'
+    },
+    {
+      view: 'ADMIN',
+      label: 'Owner Console',
+      shortLabel: 'Owner',
+      icon: <LayoutDashboard className="w-4 h-4" />,
+      activeClass: 'bg-ink-900 text-white shadow-sm shadow-ink-900/30'
+    },
+    {
+      view: 'DISPUTES',
+      label: 'Anti-Disputes',
+      shortLabel: 'Disputes',
+      icon: <Scale className="w-4 h-4" />,
+      activeClass: 'bg-amber-500 text-ink-900 shadow-sm shadow-amber-500/30'
+    },
+    {
+      view: 'CUSTOMER',
+      label: 'Customer QR',
+      shortLabel: 'QR',
+      icon: <Smartphone className="w-4 h-4" />,
+      activeClass: 'bg-ink-800 text-white shadow-sm shadow-ink-800/30'
+    }
+  ];
+
+  const renderTab = (tab: (typeof tabs)[number]) => {
+    const active = currentRoleView === tab.view;
+    return (
+      <button
+        key={tab.view}
+        onClick={tab.view === 'ADMIN' ? handleOwnerTabClick : () => setCurrentRoleView(tab.view)}
+        className={`relative flex items-center gap-1.5 rounded-xl font-bold transition-all duration-200 min-h-[38px] py-2 px-3.5 xl:px-4 text-xs tap-scale ${
+          active ? tab.activeClass : 'text-ink-500 hover:text-ink-900 hover:bg-ink-100'
+        }`}
+      >
+        <span className={active ? '' : 'text-ink-400'}>{tab.icon}</span>
+        <span className="hidden sm:inline">{tab.label}</span>
+        <span className="sm:hidden">{tab.shortLabel}</span>
+        {tab.view === 'ADMIN' && shop.isPasscodeRequired && (
+          isOwnerUnlocked
+            ? <Unlock className="w-3 h-3 text-brand-300" />
+            : <Lock className="w-3 h-3 opacity-60" />
+        )}
+      </button>
+    );
+  };
+
   return (
-    <header className="sticky top-0 z-40 bg-slate-900 border-b border-slate-800 text-white shadow-md print:hidden w-full max-w-full overflow-hidden">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 w-full">
-        {/* Top Header Row */}
+    <header className="surface-glass sticky top-0 z-40 w-full">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex items-center justify-between h-16 gap-2 sm:gap-3 w-full min-w-0">
-          {/* Logo & Shop Info */}
-          <div 
+          {/* Brand / Shop identity */}
+          <button
             onClick={onOpenShopSettings}
             title="Click to edit shop name, logo and settings"
-            className="flex items-center gap-2 sm:gap-2.5 shrink min-w-0 cursor-pointer group"
+            className="flex items-center gap-2.5 min-w-0 group text-left"
           >
             {shop.logoUrl ? (
               <img
                 src={shop.logoUrl}
                 alt={shop.name}
-                className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl object-contain bg-white border border-slate-700 p-0.5 shadow-md shrink-0 group-hover:ring-2 group-hover:ring-indigo-400 transition-all"
+                className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl object-contain bg-white border border-ink-200 p-0.5 shadow-sm shrink-0"
               />
             ) : (
-              <div className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white shadow-md shrink-0 group-hover:scale-105 transition-transform">
-                <Coins className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+              <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white shadow-sm shadow-brand-600/25 shrink-0 group-hover:scale-105 transition-transform duration-200">
+                <Coins className="w-5 h-5" />
               </div>
             )}
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-xs sm:text-sm lg:text-base tracking-tight text-white group-hover:text-indigo-300 transition-colors truncate max-w-[110px] sm:max-w-[160px] lg:max-w-[190px]">
+                <span className="font-extrabold text-sm lg:text-base tracking-tight text-ink-900 truncate max-w-[130px] sm:max-w-[180px]">
                   {shop.name}
                 </span>
-                <span className="text-[8px] sm:text-[9px] lg:text-[10px] font-black px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
-                  {shop.branchName ? shop.branchName.toUpperCase() : 'RETAIL'}
+                <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-brand-50 text-brand-700 border border-brand-200 uppercase tracking-wide shrink-0">
+                  {shop.branchName ? shop.branchName.toUpperCase() : 'Retail'}
                 </span>
               </div>
-              <p className="text-[10px] lg:text-[11px] text-slate-400 hidden xl:block truncate max-w-[200px]">
+              <p className="text-[10px] lg:text-[11px] text-ink-400 font-semibold hidden xl:block truncate max-w-[220px]">
                 {shop.address || 'ChangeTrack Retail Till'}
               </p>
             </div>
-          </div>
+          </button>
 
-          {/* Desktop Navigation Tabs (Shown only on lg+ screens, 1024px+) */}
-          <nav className="hidden lg:flex items-center p-1 bg-slate-800/90 rounded-xl border border-slate-700/80 text-xs font-bold shrink-0">
-            <button
-              onClick={() => setCurrentRoleView('CASHIER')}
-              className={`flex items-center gap-1.5 py-1.5 px-2.5 xl:px-3 rounded-lg transition-all min-h-[36px] ${
-                currentRoleView === 'CASHIER'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              <Coins className="w-3.5 h-3.5 shrink-0" />
-              <span><span className="hidden xl:inline">Cashier </span>Till</span>
-            </button>
-
-            <button
-              onClick={handleOwnerTabClick}
-              className={`flex items-center gap-1.5 py-1.5 px-2.5 xl:px-3 rounded-lg transition-all min-h-[36px] ${
-                currentRoleView === 'ADMIN'
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              <LayoutDashboard className="w-3.5 h-3.5 shrink-0" />
-              <span>Owner<span className="hidden xl:inline"> Console</span></span>
-              {shop.isPasscodeRequired && (
-                isOwnerUnlocked ? (
-                  <Unlock className="w-3 h-3 text-emerald-400 shrink-0" title="Unlocked" />
-                ) : (
-                  <Lock className="w-3 h-3 text-slate-400 shrink-0" title="Passcode Protected" />
-                )
-              )}
-            </button>
-
-            <button
-              onClick={() => setCurrentRoleView('DISPUTES')}
-              className={`flex items-center gap-1.5 py-1.5 px-2.5 xl:px-3 rounded-lg transition-all min-h-[36px] ${
-                currentRoleView === 'DISPUTES'
-                  ? 'bg-amber-600 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              <Scale className="w-3.5 h-3.5 shrink-0" />
-              <span><span className="hidden xl:inline">Anti-</span>Disputes</span>
-            </button>
-
-            <button
-              onClick={() => setCurrentRoleView('CUSTOMER')}
-              className={`flex items-center gap-1.5 py-1.5 px-2.5 xl:px-3 rounded-lg transition-all min-h-[36px] ${
-                currentRoleView === 'CUSTOMER'
-                  ? 'bg-slate-700 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              <Smartphone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span>Customer<span className="hidden xl:inline"> QR</span></span>
-            </button>
+          {/* Desktop tabs */}
+          <nav className="hidden lg:flex items-center gap-0.5 p-1 bg-ink-100/80 rounded-2xl border border-ink-200/70 shrink-0">
+            {tabs.map(t => renderTab(t))}
           </nav>
 
-          {/* Right Operator Controls & Settings */}
+          {/* Right controls */}
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-            {/* Quick Outstanding Pill (Shown only on xl+ screens) */}
-            <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs shrink-0">
-              <span className="text-amber-400 font-bold">Owed:</span>
-              <span className="font-mono-num font-extrabold text-white">
+            <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-xl text-xs tap-scale">
+              <span className="text-amber-600 font-bold">Owed</span>
+              <span className="font-mono-num font-extrabold text-ink-900">
                 {currency}{stats.totalOutstandingChange.toFixed(2)}
               </span>
             </div>
 
-            {/* Operator Switcher Dropdown */}
+            {/* Operator switcher */}
             <div className="relative flex items-center shrink-0">
               <select
                 value={currentEmployee.id}
@@ -161,7 +164,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   const emp = employees.find(x => x.id === e.target.value);
                   if (emp) setCurrentEmployee(emp);
                 }}
-                className="py-1.5 pl-2 pr-5 sm:pr-6 bg-slate-800 border border-slate-700 rounded-xl text-[11px] sm:text-xs font-semibold text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 appearance-none cursor-pointer max-w-[100px] sm:max-w-[130px] lg:max-w-[150px] truncate"
+                className="py-2 pl-2.5 pr-6 bg-white border border-ink-200 rounded-xl text-[11px] sm:text-xs font-bold text-ink-700 shadow-sm hover:border-ink-300 focus:outline-none focus:ring-2 focus:ring-brand-500/40 appearance-none cursor-pointer max-w-[100px] sm:max-w-[140px] truncate transition-colors"
               >
                 {employees.map(emp => (
                   <option key={emp.id} value={emp.id}>
@@ -169,124 +172,65 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-1.5 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-ink-400 absolute right-1.5 pointer-events-none" />
             </div>
 
-            {/* Phone Portal & Supabase Sync Button */}
+            {/* Phone portal / sync */}
             <button
               onClick={onOpenPhonePortal}
-              title={`Phone Portal: ${portalId} - Click to configure cloud sync`}
-              className="flex items-center gap-1.5 px-2 py-1.5 bg-slate-800 hover:bg-slate-700 hover:border-emerald-500/50 text-slate-200 border border-slate-700 rounded-xl transition-all text-xs font-semibold shrink-0 cursor-pointer"
+              title={`Phone Portal: ${portalId} — click to configure cloud sync`}
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-2 bg-white border border-ink-200 hover:border-brand-400 rounded-xl transition-all text-xs font-bold text-ink-600 hover:text-ink-900 shadow-sm tap-scale min-h-[36px]"
             >
-              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <Smartphone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span className="hidden sm:inline font-mono text-[11px] text-slate-300">
+              <span className="flex h-1.5 w-1.5 rounded-full bg-brand-500 pulse-ring" />
+              <Smartphone className="w-3.5 h-3.5 text-brand-600" />
+              <span className="hidden lg:inline font-mono text-[11px] text-ink-500">
                 {portalId.replace('portal_', '#')}
               </span>
             </button>
 
-            {/* PWA Install Button */}
             <PWAInstallButton variant="nav" />
 
-            {/* Shop Settings Shortcut */}
             <button
               onClick={onOpenShopSettings}
               title="Shop Information, Logo & Owner Passcode"
-              className="p-1.5 sm:p-2 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded-xl transition-colors min-h-[34px] min-w-[34px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center shrink-0"
+              className="p-2 text-ink-400 hover:text-ink-900 hover:bg-ink-100 rounded-xl transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center shrink-0"
             >
               <Store className="w-4 h-4" />
             </button>
 
-            {/* WhatsApp Direct Integration Settings Shortcut */}
             <button
               onClick={onOpenWhatsAppSettings}
               title="ChangeTrack WhatsApp Direct Settings"
-              className="p-1.5 sm:p-2 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-xl transition-colors min-h-[34px] min-w-[34px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center shrink-0"
+              className="p-2 text-ink-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center shrink-0"
             >
               <MessageSquare className="w-4 h-4" />
             </button>
 
-            {/* Quick Lock Button if unlocked and passcode active */}
             {isOwnerUnlocked && shop.isPasscodeRequired && (
               <button
                 onClick={onLockOwnerDashboard}
                 title="Lock Owner Console Now"
-                className="p-1.5 sm:px-2 sm:py-1.5 bg-slate-800 hover:bg-rose-950/60 text-slate-400 hover:text-rose-400 border border-slate-700 hover:border-rose-800 rounded-xl transition-colors text-xs font-bold flex items-center gap-1 min-h-[34px] sm:min-h-[36px] shrink-0"
+                className="hidden sm:flex p-2 hover:bg-rose-50 text-ink-400 hover:text-rose-600 rounded-xl transition-colors min-h-[36px] min-w-[36px] items-center justify-center shrink-0"
               >
-                <Lock className="w-3.5 h-3.5 text-rose-400" />
-                <span className="hidden xl:inline text-[11px]">Lock</span>
+                <Lock className="w-4 h-4" />
               </button>
             )}
 
-            {/* Sign out of this shop account */}
             <button
               onClick={onSignOut}
               title="Sign out of this shop account"
-              className="p-1.5 sm:px-2 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 rounded-xl transition-colors text-xs font-bold flex items-center gap-1 min-h-[34px] sm:min-h-[36px] shrink-0"
+              className="flex items-center gap-1.5 px-2.5 py-2 bg-white border border-ink-200 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 text-ink-500 rounded-xl transition-all text-xs font-bold shadow-sm tap-scale min-h-[36px] shrink-0"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden xl:inline text-[11px]">Sign out</span>
+              <span className="hidden xl:inline">Sign out</span>
             </button>
           </div>
         </div>
 
-        {/* Sub-bar Navigation Tabs for Mobile & Tablets (Shown on < lg screens) */}
+        {/* Mobile tabs */}
         <div className="lg:hidden pb-2.5 pt-0.5 overflow-x-auto no-scrollbar w-full">
-          <nav className="flex items-center gap-1 p-1 bg-slate-800/90 rounded-xl border border-slate-700/80 text-xs font-bold min-w-max mx-auto sm:justify-center">
-            <button
-              onClick={() => setCurrentRoleView('CASHIER')}
-              className={`flex items-center gap-1.5 py-2 px-3 rounded-lg transition-all min-h-[44px] ${
-                currentRoleView === 'CASHIER'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              <Coins className="w-4 h-4" />
-              <span>Cashier Till</span>
-            </button>
-
-            <button
-              onClick={handleOwnerTabClick}
-              className={`flex items-center gap-1.5 py-2 px-3 rounded-lg transition-all min-h-[44px] ${
-                currentRoleView === 'ADMIN'
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Owner Console</span>
-              {shop.isPasscodeRequired && (
-                isOwnerUnlocked ? (
-                  <Unlock className="w-3 h-3 text-emerald-400 shrink-0" />
-                ) : (
-                  <Lock className="w-3 h-3 text-slate-400 shrink-0" />
-                )
-              )}
-            </button>
-
-            <button
-              onClick={() => setCurrentRoleView('DISPUTES')}
-              className={`flex items-center gap-1.5 py-2 px-3 rounded-lg transition-all min-h-[44px] ${
-                currentRoleView === 'DISPUTES'
-                  ? 'bg-amber-600 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              <Scale className="w-4 h-4" />
-              <span>Disputes</span>
-            </button>
-
-            <button
-              onClick={() => setCurrentRoleView('CUSTOMER')}
-              className={`flex items-center gap-1.5 py-2 px-3 rounded-lg transition-all min-h-[44px] ${
-                currentRoleView === 'CUSTOMER'
-                  ? 'bg-slate-700 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              <Smartphone className="w-4 h-4 text-emerald-400" />
-              <span>Customer QR</span>
-            </button>
+          <nav className="flex items-center gap-0.5 p-1 bg-ink-100/80 rounded-2xl border border-ink-200/70 text-xs font-bold min-w-max">
+            {tabs.map(t => renderTab(t))}
           </nav>
         </div>
       </div>

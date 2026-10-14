@@ -67,13 +67,13 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
   };
 
   const inputBase =
-    'w-full pl-10 pr-3 py-2.5 rounded-xl bg-white border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition min-h-[44px]';
+    'w-full pl-10 pr-3 py-2.5 rounded-xl bg-ink-50 border border-ink-200 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 focus:bg-white transition min-h-[46px]';
 
   return (
-    <div className="min-h-screen w-full bg-slate-900 flex items-center justify-center p-4 font-sans antialiased">
+    <div className="min-h-screen w-full bg-gradient-to-br from-ink-900 via-ink-950 to-brand-900 flex items-center justify-center p-4 font-sans antialiased">
       <div className="w-full max-w-4xl grid lg:grid-cols-2 gap-0 rounded-3xl overflow-hidden shadow-2xl border border-slate-800">
         {/* Brand panel */}
-        <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-emerald-600 via-emerald-700 to-slate-900 p-10 text-white">
+        <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-brand-600 via-brand-700 to-ink-950 p-10 text-white">
           <div>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center backdrop-blur">
@@ -105,9 +105,9 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
         </div>
 
         {/* Form panel */}
-        <div className="bg-white p-6 sm:p-10 flex flex-col justify-center">
+        <div className="bg-white p-6 sm:p-10 flex flex-col justify-center rise-in">
           <div className="lg:hidden flex items-center gap-2.5 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white shadow-md shadow-brand-600/25">
               <Coins className="w-5 h-5" />
             </div>
             <h1 className="text-xl font-extrabold text-slate-900">ChangeTrack</h1>
@@ -123,13 +123,13 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
           </p>
 
           {error && (
-            <div className="mt-5 flex items-start gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-sm text-rose-700">
+            <div className="mt-5 flex items-start gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-sm text-rose-700 rise-in">
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>
           )}
           {notice && (
-            <div className="mt-5 flex items-start gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-700">
+            <div className="mt-5 flex items-start gap-2 rounded-xl bg-brand-50 border border-brand-200 p-3 text-sm text-brand-800 rise-in">
               <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0" />
               <span>{notice}</span>
             </div>
@@ -191,7 +191,7 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
             <button
               type="submit"
               disabled={busy}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-bold shadow-md hover:shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed min-h-[48px]"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white text-sm font-bold shadow-md shadow-brand-600/25 hover:shadow-lg hover:shadow-brand-600/30 transition-all disabled:opacity-60 disabled:cursor-not-allowed min-h-[48px] tap-scale"
             >
               {busy ? (
                 <>
@@ -213,7 +213,7 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
                 New to ChangeTrack?{' '}
                 <button
                   onClick={() => { setMode('register'); setError(null); setNotice(null); }}
-                  className="font-bold text-emerald-700 hover:text-emerald-800 underline underline-offset-2"
+                  className="font-bold text-brand-700 hover:text-brand-800 underline underline-offset-2"
                 >
                   Register your shop
                 </button>
@@ -223,7 +223,7 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
                 Already have a shop account?{' '}
                 <button
                   onClick={() => { setMode('login'); setError(null); setNotice(null); }}
-                  className="font-bold text-emerald-700 hover:text-emerald-800 underline underline-offset-2"
+                  className="font-bold text-brand-700 hover:text-brand-800 underline underline-offset-2"
                 >
                   Sign in
                 </button>

@@ -109,7 +109,7 @@ export function App() {
 
   if (authState === null) {
     return (
-      <div className="min-h-screen w-full bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-ink-900 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3 text-slate-300">
           <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
           <p className="text-sm font-semibold">Loading ChangeTrack…</p>
@@ -123,7 +123,7 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-slate-100 text-slate-900 font-sans antialiased flex flex-col selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-ink-50 text-ink-900 font-sans antialiased flex flex-col selection:bg-brand-500 selection:text-white">
       {/* PWA Install Banner */}
       <PWAInstallBanner />
 

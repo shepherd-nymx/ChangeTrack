@@ -175,25 +175,25 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-6">
+    <div className="fixed inset-0 bg-ink-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="relative surface-card w-full max-w-2xl rounded-2xl shadow-2xl border border-ink-200 overflow-hidden my-6 rise-in">
         
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 bg-slate-900 text-white">
+        <div className="flex items-center justify-between px-6 py-4 bg-ink-900 text-white">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg border border-emerald-500/30">
+            <div className="p-2 bg-brand-500/20 text-brand-400 rounded-xl border border-brand-500/30">
               <Smartphone className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold">Phone Portal & Cloud Sync</h2>
-              <p className="text-xs text-slate-400">
+              <h2 className="text-lg font-extrabold tracking-tight">Phone Portal & Cloud Sync</h2>
+              <p className="text-xs text-ink-400">
                 Each phone gets its own portal ID so data is strictly isolated in Supabase
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="p-1.5 text-ink-400 hover:text-white rounded-xl hover:bg-ink-800 transition-all duration-200"
             title="Close"
           >
             <X className="w-5 h-5" />
@@ -206,79 +206,79 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
           {statusMessage && (
             <div className={`p-3 rounded-xl border text-sm flex items-start space-x-2.5 ${
               statusMessage.type === 'success' 
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+                ? 'bg-brand-50 border-brand-200 text-brand-800' 
                 : statusMessage.type === 'error'
                   ? 'bg-rose-50 border-rose-200 text-rose-800'
-                  : 'bg-indigo-50 border-indigo-200 text-indigo-800'
+                  : 'bg-ink-100 border-ink-200 text-ink-700'
             }`}>
               {statusMessage.type === 'success' ? (
-                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <ShieldCheck className="w-5 h-5 text-brand-600 shrink-0 mt-0.5" />
               ) : statusMessage.type === 'error' ? (
                 <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
               ) : (
-                <RefreshCw className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5 animate-spin" />
+                <RefreshCw className="w-5 h-5 text-ink-600 shrink-0 mt-0.5 animate-spin" />
               )}
               <div className="flex-1 font-medium">{statusMessage.text}</div>
             </div>
           )}
 
           {/* 1. Phone Portal Identity Card */}
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+          <div className="p-4 rounded-xl bg-ink-50 border border-ink-200 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-600">This Phone's Dedicated Portal</span>
+                <span className="flex h-2.5 w-2.5 rounded-full bg-brand-500 animate-pulse" />
+                <span className="text-xs font-bold uppercase tracking-wide text-ink-600">This Phone's Dedicated Portal</span>
               </div>
-              <span className="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
+              <span className="text-xs bg-brand-100 text-brand-800 font-semibold px-2 py-0.5 rounded-lg uppercase tracking-wide">
                 Isolated Partition
               </span>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-lg border border-slate-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-ink-200">
               <div>
-                <div className="text-xs text-slate-500 font-medium">Portal ID (Your Supabase Partition Key)</div>
-                <div className="text-lg font-bold font-mono text-slate-900 tracking-wide select-all">
+                <div className="text-xs text-ink-500 font-medium">Portal ID (Your Supabase Partition Key)</div>
+                <div className="text-lg font-bold font-mono text-ink-900 tracking-wide select-all">
                   {profile.portalId}
                 </div>
               </div>
               <button
                 type="button"
                 onClick={handleCopyPortalId}
-                className="flex items-center justify-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 transition-colors"
+                className="flex items-center justify-center space-x-1.5 px-3 py-1.5 bg-ink-100 hover:bg-ink-200 text-ink-700 text-xs font-semibold rounded-xl border border-ink-200 transition-all duration-200 tap-scale"
               >
                 {copied ? (
                   <>
-                    <Check className="w-4 h-4 text-emerald-600" />
-                    <span className="text-emerald-700">Copied!</span>
+                    <Check className="w-4 h-4 text-brand-600" />
+                    <span className="text-brand-700">Copied!</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-4 h-4 text-slate-500" />
+                    <Copy className="w-4 h-4 text-ink-500" />
                     <span>Copy Portal ID</span>
                   </>
                 )}
               </button>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Every phone with ChangeTrack installed receives a unique Portal ID. All change records, customer balances, and sales data enter Supabase strictly tagged with <code className="font-mono font-semibold text-slate-800 bg-slate-200 px-1 py-0.5 rounded">{profile.portalId}</code>. No other phone can see or overwrite your data.
+            <p className="text-xs text-ink-600 leading-relaxed">
+              Every phone with ChangeTrack installed receives a unique Portal ID. All change records, customer balances, and sales data enter Supabase strictly tagged with <code className="font-mono font-semibold text-ink-800 bg-ink-200 px-1 py-0.5 rounded">{profile.portalId}</code>. No other phone can see or overwrite your data.
             </p>
           </div>
 
           {/* 2. Supabase Cloud Database Status (Zero Secrets in UI) */}
-          <div className="border border-slate-200 rounded-xl p-4 space-y-4">
+          <div className="border border-ink-200 rounded-xl p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Database className="w-4 h-4 text-indigo-600" />
-                <h3 className="text-sm font-bold text-slate-900">Cloud Database Sync (Supabase)</h3>
+                <Database className="w-4 h-4 text-brand-600" />
+                <h3 className="text-sm font-bold text-ink-900">Cloud Database Sync (Supabase)</h3>
               </div>
               {isConfigured ? (
-                <span className="flex items-center space-x-1 text-xs text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                <span className="flex items-center space-x-1 text-xs text-brand-700 font-semibold bg-brand-50 px-2.5 py-0.5 rounded-lg border border-brand-200">
                   <CloudCheck className="w-3.5 h-3.5" />
                   <span>Cloud Active</span>
                 </span>
               ) : (
-                <span className="flex items-center space-x-1 text-xs text-slate-700 font-semibold bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+                <span className="flex items-center space-x-1 text-xs text-ink-600 font-semibold bg-ink-100 px-2.5 py-0.5 rounded-lg border border-ink-200">
                   <CloudOff className="w-3.5 h-3.5" />
                   <span>Local-First (Offline)</span>
                 </span>
@@ -286,18 +286,18 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
             </div>
 
             {/* Security notice card - no secrets shown */}
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+            <div className="p-3.5 bg-ink-50 rounded-xl border border-ink-200 space-y-2">
               <div className="flex items-center gap-2">
-                <Lock className="w-4 h-4 text-slate-600 shrink-0" />
-                <span className="text-xs font-bold text-slate-800">
+                <Lock className="w-4 h-4 text-ink-600 shrink-0" />
+                <span className="text-xs font-bold text-ink-800">
                   {isConfigured ? 'Secured via Environment Configuration' : 'Local Storage Mode'}
                 </span>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs text-ink-600 leading-relaxed">
                 {isConfigured ? (
                   <>Database credentials are loaded securely from environment variables. Secrets and API keys are never displayed or stored in client UI fields.</>
                 ) : (
-                  <>The app is currently using offline-first local persistence. To connect to Supabase, provide <code className="font-mono font-semibold text-slate-800 bg-slate-200 px-1 py-0.5 rounded">VITE_SUPABASE_URL</code> and <code className="font-mono font-semibold text-slate-800 bg-slate-200 px-1 py-0.5 rounded">VITE_SUPABASE_ANON_KEY</code> in your environment settings.</>
+                  <>The app is currently using offline-first local persistence. To connect to Supabase, provide <code className="font-mono font-semibold text-ink-800 bg-ink-200 px-1 py-0.5 rounded">VITE_SUPABASE_URL</code> and <code className="font-mono font-semibold text-ink-800 bg-ink-200 px-1 py-0.5 rounded">VITE_SUPABASE_ANON_KEY</code> in your environment settings.</>
                 )}
               </p>
             </div>
@@ -305,8 +305,8 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
             {/* Auto Sync Toggle */}
             <div className="flex items-center justify-between pt-1">
               <div>
-                <span className="text-xs font-semibold text-slate-800">Auto-push in real-time</span>
-                <p className="text-[11px] text-slate-500">Every change slip created or collected syncs to Supabase instantly</p>
+                <span className="text-xs font-semibold text-ink-800">Auto-push in real-time</span>
+                <p className="text-[11px] text-ink-500">Every change slip created or collected syncs to Supabase instantly</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -315,7 +315,7 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
                   onChange={(e) => handleToggleAutoSync(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-9 h-5 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                <div className="w-9 h-5 bg-ink-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-ink-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
               </label>
             </div>
 
@@ -325,7 +325,7 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
                 type="button"
                 onClick={handleTestConnection}
                 disabled={isTesting}
-                className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg border border-indigo-200 transition-colors disabled:opacity-50"
+                className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-semibold rounded-xl border border-brand-200 transition-all duration-200 tap-scale disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin' : ''}`} />
                 <span>{isTesting ? 'Testing Cloud Connection...' : 'Test Cloud Connection'}</span>
@@ -334,9 +334,9 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
 
             {/* Test Result Message */}
             {testResult && (
-              <div className={`p-3 rounded-lg text-xs font-medium border ${
+              <div className={`p-3 rounded-xl text-xs font-medium border ${
                 testResult.success 
-                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+                  ? 'bg-brand-50 border-brand-200 text-brand-800' 
                   : 'bg-rose-50 border-rose-200 text-rose-800'
               }`}>
                 {testResult.message}
@@ -344,12 +344,12 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
             )}
 
             {/* Cloud Sync Actions */}
-            <div className="border-t border-slate-200 pt-3 flex flex-wrap gap-2">
+            <div className="border-t border-ink-200 pt-3 flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={handlePushAll}
                 disabled={isPushing || !isConfigured}
-                className="flex items-center space-x-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50"
+                className="flex items-center space-x-1.5 px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all duration-200 tap-scale disabled:opacity-50"
               >
                 <UploadCloud className={`w-4 h-4 ${isPushing ? 'animate-bounce' : ''}`} />
                 <span>{isPushing ? 'Pushing Data...' : 'Push All to Cloud'}</span>
@@ -359,7 +359,7 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
                 type="button"
                 onClick={handlePullAll}
                 disabled={isPulling || !isConfigured}
-                className="flex items-center space-x-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg border border-slate-300 transition-colors disabled:opacity-50"
+                className="flex items-center space-x-1.5 px-3.5 py-2 bg-white hover:bg-ink-100 text-ink-800 text-xs font-semibold rounded-xl border border-ink-200 transition-all duration-200 tap-scale disabled:opacity-50"
               >
                 <DownloadCloud className={`w-4 h-4 ${isPulling ? 'animate-bounce' : ''}`} />
                 <span>{isPulling ? 'Pulling Data...' : 'Pull from Cloud'}</span>
@@ -368,12 +368,12 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
           </div>
 
           {/* 3. Multi-Phone Till Pairing (Connect 2 phones to the same store) */}
-          <div className="border border-slate-200 rounded-xl p-4 space-y-3 bg-slate-50/50">
+          <div className="border border-ink-200 rounded-xl p-4 space-y-3 bg-ink-50/50">
             <div className="flex items-center space-x-2">
-              <Link2 className="w-4 h-4 text-indigo-600" />
-              <h3 className="text-sm font-bold text-slate-900">Multi-Phone Till Pairing (Optional)</h3>
+              <Link2 className="w-4 h-4 text-brand-600" />
+              <h3 className="text-sm font-bold text-ink-900">Multi-Phone Till Pairing (Optional)</h3>
             </div>
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-ink-600">
               Want two phones in the same shop to share the same change records? Enter the Portal ID from Phone #1 below to link this phone to that till.
             </p>
 
@@ -383,20 +383,20 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
                 value={targetPortalId}
                 onChange={(e) => setTargetPortalId(e.target.value)}
                 placeholder="e.g. portal_9k2a4x"
-                className="flex-1 px-3 py-1.5 text-xs font-mono bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-hidden"
+                className="flex-1 px-3 py-1.5 text-xs font-mono bg-white border border-ink-200 rounded-xl focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 outline-hidden transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowSwitchConfirm(true)}
                 disabled={!targetPortalId.trim()}
-                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+                className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl transition-all duration-200 tap-scale disabled:opacity-50"
               >
                 Connect Till
               </button>
             </div>
 
             {showSwitchConfirm && (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs space-y-2">
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs space-y-2">
                 <p className="font-semibold text-amber-900">
                   Switch active portal to <span className="font-mono">{targetPortalId}</span>?
                 </p>
@@ -407,14 +407,14 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
                   <button
                     type="button"
                     onClick={handleSwitchPortal}
-                    className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-md"
+                    className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg transition-all duration-200 tap-scale"
                   >
                     Confirm Switch
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowSwitchConfirm(false)}
-                    className="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-md font-medium"
+                    className="px-3 py-1 bg-ink-100 hover:bg-ink-200 text-ink-700 rounded-lg font-medium transition-all duration-200 tap-scale"
                   >
                     Cancel
                   </button>
@@ -424,20 +424,20 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
           </div>
 
           {/* 4. Reset or Demo Tools */}
-          <div className="pt-2 flex flex-wrap items-center justify-between gap-3 text-xs border-t border-slate-200">
+          <div className="pt-2 flex flex-wrap items-center justify-between gap-3 text-xs border-t border-ink-200">
             <button
               type="button"
               onClick={handleCreateNewPortal}
-              className="flex items-center space-x-1.5 text-slate-600 hover:text-slate-900 py-1 font-medium"
+              className="flex items-center space-x-1.5 text-ink-600 hover:text-ink-900 py-1 font-medium transition-all duration-200"
             >
-              <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+              <RotateCcw className="w-3.5 h-3.5 text-ink-500" />
               <span>Generate Fresh Private Portal</span>
             </button>
 
             <button
               type="button"
               onClick={handleLoadDemoData}
-              className="flex items-center space-x-1.5 text-indigo-600 hover:text-indigo-800 py-1 font-semibold"
+              className="flex items-center space-x-1.5 text-brand-600 hover:text-brand-800 py-1 font-semibold transition-all duration-200"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>Load Sample Test Records</span>
@@ -447,11 +447,11 @@ export const PhonePortalModal: React.FC<PhonePortalModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+        <div className="px-6 py-3 bg-ink-50 border-t border-ink-200 flex justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg shadow-xs transition-colors"
+            className="px-4 py-2 bg-ink-900 hover:bg-ink-800 text-white text-xs font-bold rounded-xl shadow-xs transition-all duration-200 tap-scale"
           >
             Done
           </button>
