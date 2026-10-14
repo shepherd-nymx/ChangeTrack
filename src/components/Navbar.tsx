@@ -1,16 +1,5 @@
 import React from 'react';
-import { 
-  ShieldCheck, 
-  Coins, 
-  Store, 
-  MessageSquare, 
-  Scale, 
-  LayoutDashboard, 
-  Smartphone,
-  ChevronDown,
-  Lock,
-  Unlock
-} from 'lucide-react';
+import { ShieldCheck, Coins, Store, MessageSquare, Scale, LayoutDashboard, Smartphone, ChevronDown, Lock, Clock as Unlock, LogOut } from 'lucide-react';
 import { Employee, Shop } from '../types';
 import { storage } from '../services/storage';
 import { PWAInstallButton } from './PWAInstallButton';
@@ -28,6 +17,7 @@ interface NavbarProps {
   isOwnerUnlocked: boolean;
   onRequireOwnerPasscode: () => void;
   onLockOwnerDashboard: () => void;
+  onSignOut: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -42,7 +32,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenPhonePortal,
   isOwnerUnlocked,
   onRequireOwnerPasscode,
-  onLockOwnerDashboard
+  onLockOwnerDashboard,
+  onSignOut
 }) => {
   const employees = storage.getEmployees();
   const stats = storage.getDashboardStats();
@@ -226,6 +217,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="hidden xl:inline text-[11px]">Lock</span>
               </button>
             )}
+
+            {/* Sign out of this shop account */}
+            <button
+              onClick={onSignOut}
+              title="Sign out of this shop account"
+              className="p-1.5 sm:px-2 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 rounded-xl transition-colors text-xs font-bold flex items-center gap-1 min-h-[34px] sm:min-h-[36px] shrink-0"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden xl:inline text-[11px]">Sign out</span>
+            </button>
           </div>
         </div>
 

@@ -294,6 +294,50 @@ class StorageService {
     return profile;
   }
 
+  initCleanLocalStore(shopId: string): Shop {
+    const profile = this.initPhonePortal();
+    profile.portalId = shopId;
+    profile.isFirstLaunch = false;
+    this.save(KEYS.PORTAL_PROFILE, profile);
+
+    const cleanShop: Shop = {
+      id: shopId,
+      name: 'My Shop',
+      branchName: 'Main Till',
+      ownerName: 'Store Manager',
+      logoUrl: '',
+      phone: '',
+      address: '',
+      currency: 'USD',
+      currencySymbol: '$',
+      whatsappNotice: 'Please present your Change ID or WhatsApp confirmation message to collect change within 30 days.',
+      ownerPasscode: '1234',
+      isPasscodeRequired: false
+    };
+    this.save(KEYS.SHOP, cleanShop);
+
+    const admin: Employee = {
+      id: `emp_${shopId}_admin`,
+      shopId,
+      name: 'Store Manager',
+      email: '',
+      role: 'ADMIN',
+      pin: '1234',
+      active: true,
+      avatarColor: 'bg-emerald-600'
+    };
+
+    this.save(KEYS.EMPLOYEES, [admin]);
+    this.save(KEYS.CUSTOMERS, []);
+    this.save(KEYS.CUSTOMER_LEDGER, []);
+    this.save(KEYS.TRANSACTIONS, []);
+    this.save(KEYS.CHANGE_RECORDS, []);
+    this.save(KEYS.AUDIT_LOGS, []);
+    this.save(KEYS.DISPUTES, []);
+    this.save(KEYS.WHATSAPP_MSGS, []);
+    return cleanShop;
+  }
+
   /**
    * Load tutorial / demo records stamped with this Phone's Portal ID
    */
@@ -334,7 +378,6 @@ class StorageService {
       ledger: sampleLedger
     });
   }
-
   // --- Shop ---
   getShop(): Shop {
     const portalId = this.getPortalId();
@@ -1674,7 +1717,7 @@ class StorageService {
     const totalOutstandingChange = outstandingRecords.reduce((sum, r) => sum + r.amountOwed, 0);
 
     // Collected today
-    const collectedTodayRecords = records.filter(r => 
+    const collectedTodayRecords = records.filter(r =>
       r.status === 'COLLECTED' && r.collectedAt && r.collectedAt.startsWith(todayStr)
     );
     const todayChangeCollected = collectedTodayRecords.reduce((sum, r) => sum + r.amountOwed, 0);
@@ -1746,9 +1789,9 @@ class StorageService {
       this.save(KEYS.CUSTOMER_LEDGER, result.ledger);
     }
 
-    return { 
-      success: true, 
-      count: (result.changeRecords?.length || 0) + (result.transactions?.length || 0) 
+    return {
+      success: true,
+      count: (result.changeRecords?.length || 0) + (result.transactions?.length || 0)
     };
   }
 

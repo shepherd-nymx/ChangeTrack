@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Loader as Loader2 } from 'lucide-react';
+import { Loader as Loader2 } from 'lucide-react';
 import { Employee, Shop } from './types';
 import { storage } from './services/storage';
 import { Navbar } from './components/Navbar';
@@ -12,9 +14,67 @@ import { ShopSettingsModal } from './components/ShopSettingsModal';
 import { OwnerPasscodeModal } from './components/OwnerPasscodeModal';
 import { PhonePortalModal } from './components/PhonePortalModal';
 import { PWAInstallBanner } from './components/PWAInstallBanner';
+import { ShopAuthPage } from './components/ShopAuthPage';
+import { shopAuth } from './services/shopAuth';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { ShopAuthPage } from './components/ShopAuthPage';
+  // Auth gate: null = checking session, false = signed out, true = signed in
+  const [authState, setAuthState] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    shopAuth.getSessionUser().then(user => {
+      if (mounted) setAuthState(Boolean(user));
+    });
+    const unsub = shopAuth.onAuthChange((signedIn) => {
+      if (mounted) setAuthState(signedIn);
+    });
+    return () => {
+      mounted = false;
+      unsub();
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    await shopAuth.signOut();
+    setAuthState(false);
+  };
+
+  if (authState === false) {
+    return <ShopAuthPage onAuthed={() => setAuthState(true)} />;
+  }
+
+  // All hooks must run unconditionally before any early returns
+import { shopAuth } from './services/shopAuth';
 
 export function App() {
+  // Auth gate: null = checking session, false = signed out, true = signed in
+  const [authState, setAuthState] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    shopAuth.getSessionUser().then(user => {
+      if (mounted) setAuthState(Boolean(user));
+    });
+    const unsub = shopAuth.onAuthChange((signedIn) => {
+      if (mounted) setAuthState(signedIn);
+    });
+    return () => {
+      mounted = false;
+      unsub();
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    await shopAuth.signOut();
+    setAuthState(false);
+  };
+
+  if (authState === false) {
+    return <ShopAuthPage onAuthed={() => setAuthState(true)} />;
+  }
+
+  // All hooks must run unconditionally before any early returns
   const [shop, setShop] = useState<Shop>(() => storage.getShop());
   const [employees, setEmployees] = useState<Employee[]>(() => storage.getEmployees());
   const [currentEmployee, setCurrentEmployee] = useState<Employee>(() => {
@@ -52,6 +112,21 @@ export function App() {
     setEmployees(updatedEmps);
     // Keep currentEmployee in sync with latest data, or fallback if deleted
     setCurrentEmployee(prev => {
+  if (authState === null) {
+    return (
+      <div className="min-h-screen w-full bg-slate-900 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-slate-300">
+          <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
+          <p className="text-sm font-semibold">Loading ChangeTrack…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (authState === false) {
+    return <ShopAuthPage onAuthed={() => setAuthState(true)} />;
+  }
+
       const fresh = updatedEmps.find(e => e.id === prev.id);
       return fresh || updatedEmps[0] || prev;
     });
@@ -71,6 +146,7 @@ export function App() {
 
   const handleOwnerUnlockSuccess = () => {
     setIsOwnerUnlocked(true);
+        onSignOut={handleSignOut}
     setShowOwnerPasscodeModal(false);
     setCurrentRoleView('ADMIN');
   };
@@ -81,6 +157,21 @@ export function App() {
       setCurrentRoleView('CASHIER');
     }
   };
+
+  if (authState === null) {
+    return (
+      <div className="min-h-screen w-full bg-slate-900 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-slate-300">
+          <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
+          <p className="text-sm font-semibold">Loading ChangeTrack…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (authState === false) {
+    return <ShopAuthPage onAuthed={() => setAuthState(true)} />;
+  }
 
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-slate-100 text-slate-900 font-sans antialiased flex flex-col selection:bg-indigo-500 selection:text-white">
@@ -101,6 +192,7 @@ export function App() {
         isOwnerUnlocked={isOwnerUnlocked}
         onRequireOwnerPasscode={handleRequireOwnerPasscode}
         onLockOwnerDashboard={handleLockOwnerDashboard}
+        onSignOut={handleSignOut}
       />
 
       {/* Main App Content Viewport */}

@@ -89,7 +89,7 @@ class SupabaseService {
       try {
         this.client = createClient(envUrl.trim(), envKey.trim(), {
           auth: {
-            persistSession: false
+            persistSession: true
           }
         });
         this.currentUrl = envUrl;
