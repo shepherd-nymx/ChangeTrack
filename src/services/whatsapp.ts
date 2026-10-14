@@ -1,4 +1,4 @@
-import { WhatsAppConfig, WhatsAppMessage, ChangeRecord, Shop } from '../types';
+import { WhatsAppConfig, WhatsAppMessage, ChangeRecord, Shop, Transaction } from '../types';
 
 export function formatDateTime(isoString: string): string {
   const d = new Date(isoString);
@@ -66,8 +66,8 @@ export function openWhatsAppDirect(phone: string, text: string, defaultCountryCo
  * - (Optional running balance if customer has prior balance)
  */
 export function generateRecordChangeMessage(
-  shop: Shop, 
-  record: ChangeRecord, 
+  shop: Shop,
+  record: ChangeRecord,
   cumulativeTotalBalanceOwed?: number,
   previousBalance?: number,
   customInstructions?: string
@@ -87,7 +87,7 @@ export function generateRecordChangeMessage(
   }
 
   let changeDetailsSection = `💵 *Change Amount Due:* *${currency}${record.amountOwed.toFixed(2)}*`;
-  
+
   if (record.isPartialChange && record.partialCashGivenNow !== undefined && record.totalChangeCalculated !== undefined) {
     changeDetailsSection = `💵 *Total Change Due:* *${currency}${record.totalChangeCalculated.toFixed(2)}*
 💵 *Cash Handed to You Now:* *${currency}${record.partialCashGivenNow.toFixed(2)}*
@@ -96,7 +96,7 @@ export function generateRecordChangeMessage(
     changeDetailsSection = `💵 *Direct Change Registered:* *${currency}${record.amountOwed.toFixed(2)}*`;
   }
 
-  const instructions = customInstructions?.trim() || 
+  const instructions = customInstructions?.trim() ||
 `• Present this Change ID (*${record.id}*) or show this WhatsApp message at any till checkout.
 • Our cashier will verify your Change ID and hand over your cash change on your next visit.
 • Keep this WhatsApp confirmation for your records.`;
@@ -123,17 +123,9 @@ Thank you for shopping with ${shop.name}!`;
 
 /**
  * Generates the WhatsApp pre-filled collection confirmation message.
- * Contains:
- * - Shop name
- * - Change amount collected
- * - Unique Change ID
- * - Date/time
- * - Cashier name
- * - Status: COLLECTED
- * - Collection confirmation / instructions
  */
 export function generateCollectedChangeMessage(
-  shop: Shop, 
+  shop: Shop,
   record: ChangeRecord,
   remainingBalanceOwed?: number,
   customNote?: string
@@ -211,6 +203,41 @@ Thank you for shopping with ${shop.name}!`;
 }
 
 /**
+ * Generates the WhatsApp pre-filled message for an instant full-cash handover.
+ * Used when the cashier dispenses the full change at the till ("Give Change Now").
+ */
+export function generateInstantCashMessage(
+  shop: Shop,
+  transaction: Transaction,
+  cashierName: string
+): string {
+  const formattedDate = formatDateTime(transaction.createdAt);
+  const currency = shop.currencySymbol || '$';
+  const customerName = transaction.customerName && transaction.customerName !== 'Valued Customer'
+    ? transaction.customerName
+    : 'Valued Customer';
+
+  return `*${shop.name.toUpperCase()}*
+*CHANGE PAID IN FULL — CONFIRMATION*
+
+Hello ${customerName},
+Your change was handed to you in cash, in full, at the till.
+
+💵 *Change Paid in Cash:* *${currency}${transaction.changeCalculated.toFixed(2)}*
+🧾 *Transaction ID:* *${transaction.id}*
+🛒 *Purchase Total:* ${currency}${transaction.purchaseTotal.toFixed(2)}
+💵 *Cash Tendered:* ${currency}${transaction.amountReceived.toFixed(2)}
+📅 *Date & Time:* ${formattedDate}
+🏬 *Store:* ${shop.name}${shop.branchName ? ` (${shop.branchName})` : ''}
+👤 *Cashier:* ${cashierName}
+✅ *Status:* FULLY PAID — Nothing further owed
+
+This transaction is now closed in our ChangeTrack system. No change is owed to you.
+
+Thank you for shopping with ${shop.name}!`;
+}
+
+/**
  * Creates a local audit log record of the WhatsApp redirect prepared for the customer.
  * NO external API or third-party call is made.
  */
@@ -249,7 +276,7 @@ export async function sendWhatsAppNotification(
   cumulativeTotalBalanceOwed?: number,
   previousBalance?: number
 ): Promise<WhatsAppMessage> {
-  const text = type === 'CHANGE_RECORDED' 
+  const text = type === 'CHANGE_RECORDED'
     ? generateRecordChangeMessage(shop, record, cumulativeTotalBalanceOwed, previousBalance, config.customCollectionInstructions)
     : generateCollectedChangeMessage(shop, record, cumulativeTotalBalanceOwed);
 

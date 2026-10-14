@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { Employee, Shop, ChangeRecord, Transaction, WhatsAppMessage } from '../types';
 import { storage } from '../services/storage';
+import { buildWhatsAppDirectLink, generateInstantCashMessage } from '../services/whatsapp';
 import { VerificationModal } from './VerificationModal';
 import { ReceiptModal } from './ReceiptModal';
 
@@ -166,20 +167,40 @@ export const CashierTill: React.FC<CashierTillProps> = ({
       return;
     }
 
+    const fullPhoneGiven = customerPhoneRaw
+      ? `${phoneCountryCode}${customerPhoneRaw.replace(/[^0-9]/g, '').replace(/^0+/, '')}`
+      : undefined;
+
     const res = storage.processCashSaleGivenNow({
       purchaseTotal: purchaseAmount,
       amountReceived: amountReceived,
       employee: currentEmployee,
-      customerPhone: customerPhoneRaw ? `${phoneCountryCode}${customerPhoneRaw.replace(/^0+/, '')}` : undefined,
+      customerPhone: fullPhoneGiven,
       customerName: customerName.trim() || undefined,
       notes: notes.trim() || undefined
     });
 
     setCompletedTx(res.transaction);
     setCompletedRecord(null);
-    setLastWaDirectLink(null);
-    setLastWaMessageText(null);
-    showToast(`Transaction ${res.transaction.id} completed. Cash change of ${currency}${changeDue.toFixed(2)} dispensed.`);
+
+    // Instant cash sale: send WhatsApp confirmation when customer number is captured
+    if (fullPhoneGiven && fullPhoneGiven.length >= 6) {
+      const waConfig = storage.getWhatsAppConfig();
+      const waText = generateInstantCashMessage(shop, res.transaction, currentEmployee.name);
+      const waLink = buildWhatsAppDirectLink(fullPhoneGiven, waText, waConfig.defaultCountryCode || '+263');
+      setLastWaDirectLink(waLink);
+      setLastWaMessageText(waText);
+      try {
+        window.open(waLink, '_blank', 'noopener,noreferrer');
+      } catch (err) {
+        console.warn('Could not auto-open WhatsApp link:', err);
+      }
+      showToast(`Transaction ${res.transaction.id} completed. ${currency}${changeDue.toFixed(2)} cash dispensed. WhatsApp confirmation opened for ${fullPhoneGiven}.`);
+    } else {
+      setLastWaDirectLink(null);
+      setLastWaMessageText(null);
+      showToast(`Transaction ${res.transaction.id} completed. Cash change of ${currency}${changeDue.toFixed(2)} dispensed. Add a customer WhatsApp number next time to send a receipt.`);
+    }
     handleClear();
     notifyChange();
   };
@@ -409,8 +430,8 @@ export const CashierTill: React.FC<CashierTillProps> = ({
         </button>
       </div>
 
-      {/* WhatsApp Redirect Status Callout (When recent change record exists) */}
-      {completedRecord && lastWaDirectLink && (
+      {/* WhatsApp Redirect Status Callout (When recent change record or instant-cash sale exists) */}
+      {(completedRecord || (completedTx && lastWaDirectLink)) && lastWaDirectLink && (
         <div className="p-4 bg-brand-50 border-2 border-brand-300 rounded-2xl shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rise-in">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-brand-600 text-white rounded-xl shadow-xs shrink-0">
@@ -421,23 +442,37 @@ export const CashierTill: React.FC<CashierTillProps> = ({
                 <h4 className="text-xs sm:text-sm font-extrabold text-brand-900 uppercase tracking-wide">
                   WhatsApp Change Receipt Ready
                 </h4>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-200 text-brand-900">
-                  {completedRecord.id}
-                </span>
-                {completedRecord.isPartialChange && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
-                    Partial Cash Paid: {currency}{(completedRecord.partialCashGivenNow || 0).toFixed(2)}
-                  </span>
-                )}
-                {completedRecord.isDirectRegistration && (
+                {completedRecord ? (
+                  <>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-200 text-brand-900">
+                      {completedRecord.id}
+                    </span>
+                    {completedRecord.isPartialChange && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                        Partial Cash Paid: {currency}{(completedRecord.partialCashGivenNow || 0).toFixed(2)}
+                      </span>
+                    )}
+                    {completedRecord.isDirectRegistration && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-200 text-brand-900">
+                        Direct Registration
+                      </span>
+                    )}
+                  </>
+                ) : completedTx ? (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-200 text-brand-900">
-                    Direct Registration
+                    {completedTx.id} • Paid in Full
                   </span>
-                )}
+                ) : null}
               </div>
-              <p className="text-xs text-brand-800 mt-0.5">
-                Customer: <span className="font-semibold">{completedRecord.customerPhone}</span> • Remaining Owed: <span className="font-mono font-bold">{currency}{completedRecord.amountOwed.toFixed(2)}</span>
-              </p>
+              {completedRecord ? (
+                <p className="text-xs text-brand-800 mt-0.5">
+                  Customer: <span className="font-semibold">{completedRecord.customerPhone}</span> • Remaining Owed: <span className="font-mono font-bold">{currency}{completedRecord.amountOwed.toFixed(2)}</span>
+                </p>
+              ) : completedTx ? (
+                <p className="text-xs text-brand-800 mt-0.5">
+                  Customer: <span className="font-semibold">{completedTx.customerPhone}</span> • Change Paid in Full: <span className="font-mono font-bold">{currency}{completedTx.changeCalculated.toFixed(2)}</span>
+                </p>
+              ) : null}
               <p className="text-[11px] text-brand-700">
                 Customer number and message are pre-filled in WhatsApp. Cashier only needs to press <strong>Send</strong>.
               </p>
