@@ -114,7 +114,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onOpenShopSettings}
             title="Click to edit shop name, logo and settings"
-            className="flex items-center gap-2.5 min-w-0 group text-left"
+            className="flex items-center gap-2.5 min-w-0 flex-1 lg:flex-none group text-left"
           >
             {shop.logoUrl ? (
               <img
@@ -132,7 +132,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="font-extrabold text-sm lg:text-base tracking-tight text-ink-900 truncate max-w-[130px] sm:max-w-[180px]">
                   {shop.name}
                 </span>
-                <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-brand-50 text-brand-700 border border-brand-200 uppercase tracking-wide shrink-0">
+                <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-brand-50 text-brand-700 border border-brand-200 uppercase tracking-wide shrink-0 hidden xl:inline-block">
                   {shop.branchName ? shop.branchName.toUpperCase() : 'Retail'}
                 </span>
               </div>
@@ -149,7 +149,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Right controls */}
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-            <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-xl text-xs tap-scale">
+            <div className="hidden 2xl:flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-xl text-xs tap-scale">
               <span className="text-amber-600 font-bold">Owed</span>
               <span className="font-mono-num font-extrabold text-ink-900">
                 {currency}{stats.totalOutstandingChange.toFixed(2)}
@@ -190,7 +190,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={onOpenShopSettings}
               title="Shop Information, Logo & Owner Passcode"
-              className="p-2 text-ink-400 hover:text-ink-900 hover:bg-ink-100 rounded-xl transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center shrink-0"
+              className="hidden lg:flex p-2 text-ink-400 hover:text-ink-900 hover:bg-ink-100 rounded-xl transition-colors min-h-[36px] min-w-[36px] items-center justify-center shrink-0"
             >
               <Store className="w-4 h-4" />
             </button>
