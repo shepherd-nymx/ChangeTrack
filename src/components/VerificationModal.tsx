@@ -66,6 +66,8 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
   // Admin reversal state
   const [showAdminReversal, setShowAdminReversal] = useState(false);
   const [reversalReason, setReversalReason] = useState('');
+  const [awaitingConfirm, setAwaitingConfirm] = useState(false);
+  const [awaitingConfirmAll, setAwaitingConfirmAll] = useState(false);
 
   const waConfig = storage.getWhatsAppConfig();
   const defaultCountryCode = waConfig.defaultCountryCode || '+263';
@@ -84,6 +86,8 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
     setMatchedPhoneRecords([]);
     setCollectionWaLink(null);
     setCollectionWaMessageText(null);
+    setAwaitingConfirm(false);
+    setAwaitingConfirmAll(false);
 
     const clean = query.trim();
     if (!clean) return;
@@ -143,9 +147,14 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
     }
   };
 
-  // 1. Collect individual change record
+  // 1. Collect individual change record (two-step: first tap arms, second tap confirms)
   const handleConfirmCollection = async () => {
     if (!selectedRecord) return;
+    if (!awaitingConfirm) {
+      setAwaitingConfirm(true);
+      return;
+    }
+    setAwaitingConfirm(false);
     setIsProcessing(true);
     setErrorMessage(null);
 
@@ -204,9 +213,14 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
     }
   };
 
-  // 2. Settle all accumulated customer change slips
+  // 2. Settle all accumulated customer change slips (two-step confirmation)
   const handleCollectAllForCustomer = async (phone: string) => {
     if (!phone) return;
+    if (!awaitingConfirmAll) {
+      setAwaitingConfirmAll(true);
+      return;
+    }
+    setAwaitingConfirmAll(false);
     setIsProcessing(true);
     setErrorMessage(null);
 
@@ -467,7 +481,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                         </div>
                       </div>
 
-                      {outstandingMatched.length > 0 && (
+                      {outstandingMatched.length > 0 && (!awaitingConfirmAll ? (
                         <button
                           type="button"
                           onClick={() => handleCollectAllForCustomer(customerPhoneForMatched)}
@@ -479,7 +493,26 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                             {isProcessing ? 'Processing...' : `Payout Full Balance (${currency}${totalOutstandingMatchedAmount.toFixed(2)})`}
                           </span>
                         </button>
-                      )}
+                      ) : (
+                        <div className="w-full sm:w-auto flex flex-col gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleCollectAllForCustomer(customerPhoneForMatched)}
+                            disabled={isProcessing}
+                            className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-black rounded-xl shadow-xs transition-all duration-200 tap-scale flex items-center justify-center gap-1.5 min-h-[44px] animate-pulse"
+                          >
+                            <AlertTriangle className="w-4 h-4" />
+                            <span>Sure? Tap again to payout {currency}{totalOutstandingMatchedAmount.toFixed(2)}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setAwaitingConfirmAll(false)}
+                            className="px-4 py-1.5 bg-white hover:bg-ink-100 text-ink-700 text-[11px] font-bold rounded-xl border border-ink-200 transition-all duration-200 tap-scale"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ))}
                     </div>
 
                     <p className="text-[11px] text-amber-800 bg-amber-100/60 p-2 rounded-lg">
@@ -543,6 +576,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                     key={rec.id}
                     onClick={() => {
                       setSelectedRecord(rec);
+                      setAwaitingConfirm(false);
                       setCollectionSuccess(rec.status === 'COLLECTED');
                       if (rec.status === 'COLLECTED') {
                         const link = buildWhatsAppDirectLink(
@@ -652,15 +686,34 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                     </p>
                   )}
 
-                  {/* Primary Handover Action Button */}
-                  <button
-                    onClick={handleConfirmCollection}
-                    disabled={isProcessing}
-                    className="w-full py-3.5 px-4 bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-sm rounded-xl shadow-md transition-all duration-200 tap-scale flex items-center justify-center gap-2 min-h-[48px]"
-                  >
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span>{isProcessing ? 'Processing Handover...' : 'CONFIRM CASH COLLECTION'}</span>
-                  </button>
+                  {/* Primary Handover Action Button (two-step confirm) */}
+                  {!awaitingConfirm ? (
+                    <button
+                      onClick={handleConfirmCollection}
+                      disabled={isProcessing}
+                      className="w-full py-3.5 px-4 bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-sm rounded-xl shadow-md transition-all duration-200 tap-scale flex items-center justify-center gap-2 min-h-[48px]"
+                    >
+                      <CheckCircle2 className="w-5 h-5" />
+                      <span>{isProcessing ? 'Processing Handover...' : 'CONFIRM CASH COLLECTION'}</span>
+                    </button>
+                  ) : (
+                    <div className="w-full space-y-2">
+                      <button
+                        onClick={handleConfirmCollection}
+                        disabled={isProcessing}
+                        className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-sm rounded-xl shadow-md transition-all duration-200 tap-scale flex items-center justify-center gap-2 min-h-[48px] animate-pulse"
+                      >
+                        <AlertTriangle className="w-5 h-5" />
+                        <span>ARE YOU SURE? TAP AGAIN TO HAND OVER {currency}{selectedRecord.amountOwed.toFixed(2)} CASH</span>
+                      </button>
+                      <button
+                        onClick={() => setAwaitingConfirm(false)}
+                        className="w-full py-2 px-4 bg-white hover:bg-ink-100 text-ink-700 text-xs font-bold rounded-xl border border-ink-200 transition-all duration-200 tap-scale min-h-[38px]"
+                      >
+                        No, go back
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
