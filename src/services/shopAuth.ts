@@ -145,9 +145,11 @@ class ShopAuthService {
     if (!client) return () => {};
     const { data } = client.auth.onAuthStateChange((event, session) => {
       (async () => {
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
-          cb(Boolean(session));
-        }
+        // Only flip on explicit events: transient INITIAL_SESSION / TOKEN_REFRESHED
+        // emissions must never blank the app by toggling the auth gate.
+        if (event === 'SIGNED_IN') cb(true);
+        else if (event === 'SIGNED_OUT') cb(false);
+        else if (event === 'INITIAL_SESSION' && session) cb(true);
       })();
     });
     return () => data.subscription.unsubscribe();

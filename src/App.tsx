@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import React, { useState, useEffect, ErrorInfo, ReactNode } from 'react';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { Employee, Shop } from './types';
 import { storage } from './services/storage';
 import { Navbar } from './components/Navbar';
@@ -16,6 +16,54 @@ import { PWAInstallBanner } from './components/PWAInstallBanner';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { ShopAuthPage } from './components/ShopAuthPage';
 import { shopAuth } from './services/shopAuth';
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  error: Error | null;
+}
+
+class AppErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  private children: ReactNode;
+  state: ErrorBoundaryState = { error: null };
+
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.children = props.children;
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('[ChangeTrack] render crash:', error, info);
+  }
+
+  render() {
+    if (this.state.error) {      return (
+        <div className="min-h-screen w-full bg-ink-50 flex items-center justify-center p-6">
+          <div className="surface-card max-w-md w-full p-8 text-center rise-in">
+            <div className="w-12 h-12 mx-auto rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mb-4">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <h1 className="text-lg font-extrabold text-ink-900 tracking-tight mb-1">Something went wrong</h1>
+            <p className="text-sm text-ink-500 mb-5">The screen hit an unexpected error. Your data is safe on this device.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-sm tap-scale min-h-[44px]"
+            >
+              Reload App
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.children;
+  }
+}
 
 export function App() {
   // Auth gate: null = checking session, false = signed out, true = signed in
@@ -259,3 +307,7 @@ export function App() {
 }
 
 export default App;
+
+export function AppWithBoundary() {
+  return <AppErrorBoundary>{<App />}</AppErrorBoundary>;
+}
