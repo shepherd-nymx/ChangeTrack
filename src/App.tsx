@@ -18,6 +18,7 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { ShopAuthPage } from './components/ShopAuthPage';
 import { TermsReacceptanceGate } from './components/TermsReacceptanceGate';
 import { LegalViewerModal } from './legal/LegalViewerModal';
+import { AdminPortalPage } from './components/AdminPortalPage';
 import { shopAuth } from './services/shopAuth';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 
@@ -70,6 +71,12 @@ class AppErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundary
 }
 
 export function App() {
+  // Administration portal: reached by adding #admin-portal to the web address.
+  const isAdminPortal = typeof window !== 'undefined' && window.location.hash === '#admin-portal';
+  if (isAdminPortal) {
+    return <AdminPortalPage />;
+  }
+
   // Check if opened as customer-only digital voucher pass link
   const [customerVoucherId, setCustomerVoucherId] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null;
