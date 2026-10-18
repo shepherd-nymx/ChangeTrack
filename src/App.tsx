@@ -16,6 +16,9 @@ import { PhonePortalModal } from './components/PhonePortalModal';
 import { PWAInstallBanner } from './components/PWAInstallBanner';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { ShopAuthPage } from './components/ShopAuthPage';
+import { SubscriptionLockScreen } from './components/SubscriptionLockScreen';
+import { SubscriptionExpiryBanner } from './components/SubscriptionExpiryBanner';
+import { subscriptionService, ShopSubscription, SubscriptionState } from './services/subscription';
 import { TermsReacceptanceGate } from './components/TermsReacceptanceGate';
 import { LegalViewerModal } from './legal/LegalViewerModal';
 import { AdminPortalPage } from './components/AdminPortalPage';
@@ -216,6 +219,32 @@ export function App() {
     }
   };
 
+  // Subscription gate: checks the shop's monthly key after sign-in.
+  const [subscription, setSubscription] = useState<ShopSubscription | null | undefined>(undefined);
+  const [subState, setSubState] = useState<SubscriptionState>('ACTIVE');
+
+  useEffect(() => {
+    let mounted = true;
+    if (authState !== true) {
+      if (mounted) setSubscription(undefined);
+      return;
+    }
+    const checkSub = async () => {
+      const shopId = storage.getShop().id;
+      if (!shopId) return;
+      const sub = await subscriptionService.getSubscription(shopId);
+      if (!mounted) return;
+      setSubscription(sub);
+      setSubState(subscriptionService.stateFor(sub));
+    };
+    checkSub();
+    const interval = setInterval(checkSub, 5 * 60 * 1000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [authState, refreshKey]);
+
   // If customer accessed their voucher link, give them access ONLY to their QR code pass
   if (customerVoucherId) {
     return (
@@ -257,10 +286,30 @@ export function App() {
     );
   }
 
+  // Monthly key gate: when the period has ended, all app activity stops.
+  if (subState === 'EXPIRED') {
+    return (
+      <SubscriptionLockScreen
+        subscription={subscription ?? null}
+        onReactivate={(newPeriodEnd) => {
+          setSubscription(prev => prev ? { ...prev, periodEnd: newPeriodEnd } : prev);
+          setSubState('ACTIVE');
+          setRefreshKey(prev => prev + 1);
+        }}
+        onSignOut={handleSignOut}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-ink-50 text-ink-900 font-sans antialiased flex flex-col selection:bg-brand-500 selection:text-white">
       {/* PWA Install Banner */}
       <PWAInstallBanner />
+
+      {/* Monthly subscription expiry warning */}
+      {subState === 'EXPIRING' && subscription && (
+        <SubscriptionExpiryBanner subscription={subscription} />
+      )}
 
       {/* Navigation Bar */}
       <Navbar
