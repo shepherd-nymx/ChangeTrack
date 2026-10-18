@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Coins, Mail, Lock, Store, Loader as Loader2, CircleAlert as AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { shopAuth } from '../services/shopAuth';
 import { CURRENT_TERMS_VERSION, CURRENT_PRIVACY_VERSION } from '../legal/legalDocs';
+import { LegalViewerModal } from '../legal/LegalViewerModal';
 
 interface ShopAuthPageProps {
   onAuthed: () => void;
@@ -19,6 +19,7 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
   const [busy, setBusy] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
+  const [legalViewerDoc, setLegalViewerDoc] = useState<string | null>(null);
 
   const validate = (): string | null => {
     if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email.trim())) return 'Please enter a valid email address.';
@@ -205,9 +206,9 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
                   />
                   <span className="text-xs text-slate-600 leading-relaxed">
                     I have read and agree to the{' '}
-                    <Link to="/legal/terms" target="_blank" className="font-bold text-brand-700 hover:text-brand-800 underline underline-offset-2">Terms of Service</Link>
+                    <button type="button" onClick={() => setLegalViewerDoc('terms')} className="font-bold text-brand-700 hover:text-brand-800 underline underline-offset-2">Terms of Service</button>
                     {' '}and acknowledge the{' '}
-                    <Link to="/legal/privacy" target="_blank" className="font-bold text-brand-700 hover:text-brand-800 underline underline-offset-2">Privacy Policy</Link>
+                    <button type="button" onClick={() => setLegalViewerDoc('privacy')} className="font-bold text-brand-700 hover:text-brand-800 underline underline-offset-2">Privacy Policy</button>
                     .
                   </span>
                 </label>
@@ -268,14 +269,21 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
             )}
             <p className="mt-3 text-xs text-slate-400">
               By using ChangeTrack you agree to our{' '}
-              <Link to="/legal/terms" target="_blank" className="underline underline-offset-2 hover:text-slate-600">Terms of Service</Link>
+              <button onClick={() => setLegalViewerDoc('terms')} className="underline underline-offset-2 hover:text-slate-600">Terms of Service</button>
               {' '}and{' '}
-              <Link to="/legal/privacy" target="_blank" className="underline underline-offset-2 hover:text-slate-600">Privacy Policy</Link>.
+              <button onClick={() => setLegalViewerDoc('privacy')} className="underline underline-offset-2 hover:text-slate-600">Privacy Policy</button>.
             </p>
             <p className="mt-1 text-[11px] text-slate-400">ChangeTrack — Powered by Future Pulse Investments</p>
           </div>
         </div>
       </div>
+
+      {legalViewerDoc && (
+        <LegalViewerModal
+          initialDocId={legalViewerDoc}
+          onClose={() => setLegalViewerDoc(null)}
+        />
+      )}
     </div>
   );
 };

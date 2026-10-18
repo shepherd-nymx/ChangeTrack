@@ -6,6 +6,7 @@ import {
 import { Employee, Shop } from '../types';
 import { storage } from '../services/storage';
 import { PWAInstallButton } from './PWAInstallButton';
+import { LegalMenuButton } from './LegalMenuButton';
 
 interface NavbarProps {
   currentRoleView: 'CASHIER' | 'ADMIN' | 'DISPUTES' | 'CUSTOMER';
@@ -187,15 +188,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <PWAInstallButton variant="nav" />
 
-            <a
-              href="/legal"
-              title="Legal & Policies"
-              target="_blank"
-              rel="noreferrer"
-              className="p-2 text-ink-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center shrink-0"
-            >
-              <ShieldCheck className="w-4 h-4" />
-            </a>
+            <LegalMenuButton />
 
             <button
               onClick={onOpenShopSettings}

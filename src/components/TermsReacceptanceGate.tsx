@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ShieldCheck, FileText, Loader as Loader2 } from 'lucide-react';
 import { shopAuth } from '../services/shopAuth';
 import { CURRENT_TERMS_VERSION, CURRENT_PRIVACY_VERSION } from '../legal/legalDocs';
+import { LegalViewerModal } from '../legal/LegalViewerModal';
 
 interface TermsReacceptanceGateProps {
   onAccepted: () => void;
@@ -18,6 +19,7 @@ export const TermsReacceptanceGate: React.FC<TermsReacceptanceGateProps> = ({ on
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [legalViewerDoc, setLegalViewerDoc] = useState<string | null>(null);
 
   const handleAccept = async () => {
     setBusy(true);
@@ -51,22 +53,18 @@ export const TermsReacceptanceGate: React.FC<TermsReacceptanceGateProps> = ({ on
         </p>
 
         <div className="mt-5 grid grid-cols-2 gap-2.5">
-          <a
-            href="/legal/terms"
-            target="_blank"
-            rel="noreferrer"
+          <button
+            onClick={() => setLegalViewerDoc('terms')}
             className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold text-ink-700 hover:bg-slate-100 transition tap-scale"
           >
             <FileText className="w-4 h-4" /> Terms and Conditions
-          </a>
-          <a
-            href="/legal/privacy"
-            target="_blank"
-            rel="noreferrer"
+          </button>
+          <button
+            onClick={() => setLegalViewerDoc('privacy')}
             className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold text-ink-700 hover:bg-slate-100 transition tap-scale"
           >
             <FileText className="w-4 h-4" /> Privacy Policy
-          </a>
+          </button>
         </div>
 
         {error && (
@@ -112,6 +110,13 @@ export const TermsReacceptanceGate: React.FC<TermsReacceptanceGateProps> = ({ on
           Sign out instead
         </button>
       </div>
+
+      {legalViewerDoc && (
+        <LegalViewerModal
+          initialDocId={legalViewerDoc}
+          onClose={() => setLegalViewerDoc(null)}
+        />
+      )}
     </div>
   );
 };

@@ -17,6 +17,7 @@ import { PWAInstallBanner } from './components/PWAInstallBanner';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { ShopAuthPage } from './components/ShopAuthPage';
 import { TermsReacceptanceGate } from './components/TermsReacceptanceGate';
+import { LegalViewerModal } from './legal/LegalViewerModal';
 import { shopAuth } from './services/shopAuth';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 
@@ -167,6 +168,7 @@ export function App() {
   const [showEmployeesModal, setShowEmployeesModal] = useState(false);
   const [showShopSettings, setShowShopSettings] = useState(false);
   const [showPhonePortalModal, setShowPhonePortalModal] = useState(false);
+  const [showLegalViewer, setShowLegalViewer] = useState(false);
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
@@ -363,6 +365,10 @@ export function App() {
         />
       )}
 
+      {showLegalViewer && (
+        <LegalViewerModal onClose={() => setShowLegalViewer(false)} />
+      )}
+
       {/* App Footer */}
       <footer className="mt-auto border-t border-slate-200 bg-white/70 py-4 px-6 text-center text-xs text-slate-500 print:hidden">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
@@ -372,6 +378,9 @@ export function App() {
             <span>Tamper-Resistant Change & Anti-Dispute Verification</span>
           </div>
           <div className="flex items-center gap-4 text-slate-400">
+            <button onClick={() => setShowLegalViewer(true)} className="font-bold hover:text-brand-700 underline underline-offset-2 transition-colors">
+              Legal & Policies
+            </button>
             <span>ChangeTrack — Powered by Future Pulse Investments</span>
           </div>
         </div>

@@ -1,9 +1,7 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppWithBoundary } from './App.tsx';
-import { LegalHub, LegalDocViewer } from './legal/LegalHub.tsx';
 import './index.css';
 
 // Register the PWA service worker only in production builds — in the dev
@@ -25,12 +23,6 @@ if (import.meta.env.PROD) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/legal" element={<LegalHub />} />
-        <Route path="/legal/:docId" element={<LegalDocViewer />} />
-        <Route path="/*" element={<AppWithBoundary />} />
-      </Routes>
-    </BrowserRouter>
+    <AppWithBoundary />
   </StrictMode>,
 );
