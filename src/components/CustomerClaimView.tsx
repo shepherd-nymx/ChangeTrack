@@ -3,7 +3,13 @@ import { QrCode, Phone, CheckCircle, Clock, Store, ShieldCheck, Sparkles, AlertC
 import { ChangeRecord, Shop } from '../types';
 import { storage } from '../services/storage';
 import { QrCodeDisplay } from './QrCodeDisplay';
-import { formatDateTime, buildWhatsAppDirectLink, generateRecordChangeMessage, generateCollectedChangeMessage } from '../services/whatsapp';
+import { 
+  formatDateTime, 
+  buildWhatsAppDirectLink, 
+  generateRecordChangeMessage, 
+  generateCollectedChangeMessage,
+  buildCustomerVoucherUrl
+} from '../services/whatsapp';
 
 interface CustomerClaimViewProps {
   shop: Shop;
@@ -20,12 +26,16 @@ export const CustomerClaimView: React.FC<CustomerClaimViewProps> = ({ shop }) =>
 
   const waMessage = currentRecord
     ? currentRecord.status === 'COLLECTED'
-      ? generateCollectedChangeMessage(shop, currentRecord, 0)
-      : generateRecordChangeMessage(shop, currentRecord)
+      ? generateCollectedChangeMessage(shop, currentRecord, 0, undefined, waConfig.customCustomerAppUrl)
+      : generateRecordChangeMessage(shop, currentRecord, undefined, undefined, waConfig.customCollectionInstructions, waConfig.customCustomerAppUrl)
     : '';
 
   const waLink = currentRecord
     ? buildWhatsAppDirectLink(currentRecord.customerPhone, waMessage, defaultCountryCode)
+    : '#';
+
+  const customerVoucherUrl = currentRecord
+    ? buildCustomerVoucherUrl(currentRecord, shop, waConfig.customCustomerAppUrl)
     : '#';
 
   return (
@@ -113,9 +123,20 @@ export const CustomerClaimView: React.FC<CustomerClaimViewProps> = ({ shop }) =>
             </p>
           </div>
 
-          {/* Direct WhatsApp View Button */}
+          {/* Direct WhatsApp View & Customer Voucher Link Buttons */}
           {currentRecord && (
-            <div className="pt-2">
+            <div className="pt-2 space-y-2">
+              <a
+                href={customerVoucherUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 min-h-[44px]"
+              >
+                <QrCode className="w-4 h-4 text-emerald-400" />
+                <span>Test Customer-Only QR Pass Link</span>
+                <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+              </a>
+
               <a
                 href={waLink}
                 target="_blank"

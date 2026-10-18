@@ -190,6 +190,7 @@ export interface WhatsAppConfig {
   autoOpenRedirectOnRecord: boolean;
   autoOpenRedirectOnCollect: boolean;
   customCollectionInstructions?: string;
+  customCustomerAppUrl?: string; // Optional custom public domain/URL for customer QR voucher links
   // Legacy optional fields for data backward compatibility
   phoneNumberId?: string;
   wabaId?: string;

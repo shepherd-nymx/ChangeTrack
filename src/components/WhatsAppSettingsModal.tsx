@@ -67,13 +67,26 @@ export const WhatsAppSettingsModal: React.FC<WhatsAppSettingsModalProps> = ({
     qrCodePayload: JSON.stringify({ id: 'CT-48291', amount: 2.50, phone: testPhone || '+263771234567' })
   };
 
-  const sampleRecordMessage = generateRecordChangeMessage(shop, sampleRecord);
-  const sampleCollectedMessage = generateCollectedChangeMessage(shop, {
-    ...sampleRecord,
-    status: 'COLLECTED' as const,
-    collectedAt: new Date().toISOString(),
-    collectedByEmployeeName: 'Blessing Ndlovu'
-  }, 0);
+  const sampleRecordMessage = generateRecordChangeMessage(
+    shop, 
+    sampleRecord, 
+    undefined, 
+    undefined, 
+    config.customCollectionInstructions, 
+    config.customCustomerAppUrl
+  );
+  const sampleCollectedMessage = generateCollectedChangeMessage(
+    shop, 
+    {
+      ...sampleRecord,
+      status: 'COLLECTED' as const,
+      collectedAt: new Date().toISOString(),
+      collectedByEmployeeName: 'Blessing Ndlovu'
+    }, 
+    0, 
+    undefined, 
+    config.customCustomerAppUrl
+  );
 
   const sampleTestUrl = buildWhatsAppDirectLink(
     testPhone,
@@ -175,6 +188,22 @@ export const WhatsAppSettingsModal: React.FC<WhatsAppSettingsModalProps> = ({
                 />
                 <span className="text-[10px] text-ink-400">
                   Examples: +263 (Zimbabwe), +27 (South Africa), +254 (Kenya), +1 (US), +44 (UK)
+                </span>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Customer QR Pass App Base URL (Optional Override)
+                </label>
+                <input
+                  type="url"
+                  value={config.customCustomerAppUrl || ''}
+                  onChange={e => setConfig({ ...config, customCustomerAppUrl: e.target.value })}
+                  placeholder="Leave blank to use current store web address automatically"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+                <span className="text-[10px] text-slate-400">
+                  By default, change receipts include direct links to this app's URL. Customers opening the link get access ONLY to their scannable QR code pass.
                 </span>
               </div>
 

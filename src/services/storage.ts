@@ -1378,7 +1378,8 @@ class StorageService {
       changeRecord,
       newBalance,
       previousBalance,
-      waConfig.customCollectionInstructions
+      waConfig.customCollectionInstructions,
+      waConfig.customCustomerAppUrl
     );
     const waDirectLink = buildWhatsAppDirectLink(params.customerPhone, waMessageText, defaultCountryCode);
 
@@ -1531,7 +1532,9 @@ class StorageService {
     const waMessageText = generateCollectedChangeMessage(
       shop, 
       updatedRecord, 
-      remainingBalance
+      remainingBalance,
+      undefined,
+      waConfig.customCustomerAppUrl
     );
     const waDirectLink = buildWhatsAppDirectLink(record.customerPhone, waMessageText, defaultCountryCode);
 

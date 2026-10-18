@@ -79,6 +79,28 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
     }
   }, [initialSearchQuery]);
 
+  const parseChangeIdentifier = (input: string): string => {
+    const clean = input.trim();
+    if (!clean) return '';
+    if (clean.includes('voucher=') || clean.includes('qr=') || clean.includes('claim=')) {
+      try {
+        const url = new URL(clean, window.location.href);
+        const val = url.searchParams.get('voucher') || url.searchParams.get('qr') || url.searchParams.get('claim');
+        if (val) return val.trim().toUpperCase();
+      } catch {
+        const match = clean.match(/(?:voucher|qr|claim)=([a-zA-Z0-9\-_]+)/i);
+        if (match && match[1]) return match[1].trim().toUpperCase();
+      }
+    }
+    if (clean.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(clean);
+        if (parsed.id) return String(parsed.id).trim().toUpperCase();
+      } catch {}
+    }
+    return clean;
+  };
+
   const handleSearch = (query: string) => {
     setErrorMessage(null);
     setCollectionSuccess(false);
@@ -89,7 +111,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
     setAwaitingConfirm(false);
     setAwaitingConfirmAll(false);
 
-    const clean = query.trim();
+    const clean = parseChangeIdentifier(query.trim());
     if (!clean) return;
 
     if (activeMethod === 'ID' || clean.toUpperCase().startsWith('CT-') || clean.length <= 8) {
@@ -115,16 +137,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
 
   const handleQrScanned = (scannedData: string) => {
     setIsQrScannerOpen(false);
-    let changeId = scannedData.trim();
-
-    try {
-      if (scannedData.startsWith('{')) {
-        const parsed = JSON.parse(scannedData);
-        if (parsed.id) changeId = parsed.id;
-      }
-    } catch {
-      // Use raw string
-    }
+    const changeId = parseChangeIdentifier(scannedData);
 
     setSearchQuery(changeId);
     setActiveMethod('ID');
