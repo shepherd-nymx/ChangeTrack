@@ -56,11 +56,38 @@ export function openWhatsAppDirect(phone: string, text: string, defaultCountryCo
 }
 
 /**
+ * Builds the direct customer link to access ONLY their digital QR code voucher.
+ * This link allows the customer to open their QR code on any smartphone screen
+ * so the till cashier can scan it and mark change collected.
+ */
+export function buildCustomerVoucherUrl(
+  record: ChangeRecord,
+  shop: Shop,
+  customBaseUrl?: string
+): string {
+  let baseUrl = '';
+  if (customBaseUrl && customBaseUrl.trim()) {
+    baseUrl = customBaseUrl.trim().replace(/\/+$/, '');
+  } else if (typeof window !== 'undefined' && window.location?.origin) {
+    baseUrl = window.location.origin;
+  }
+
+  const params = new URLSearchParams();
+  params.set('pass', record.id);
+  params.set('amt', record.amountOwed.toFixed(2));
+  params.set('cur', shop.currencySymbol || '$');
+  params.set('shop', shop.name);
+
+  return baseUrl ? `${baseUrl}/?${params.toString()}` : `/?${params.toString()}`;
+}
+
+/**
  * Generates the WhatsApp pre-filled message when change is recorded.
  * Contains:
  * - Shop name
  * - Change amount
  * - Unique Change ID
+ * - Link to customer-only QR code pass for till scanning
  * - Date/time
  * - Collection instructions
  * - (Optional running balance if customer has prior balance)
@@ -70,13 +97,16 @@ export function generateRecordChangeMessage(
   record: ChangeRecord,
   cumulativeTotalBalanceOwed?: number,
   previousBalance?: number,
-  customInstructions?: string
+  customInstructions?: string,
+  customCustomerAppUrl?: string
 ): string {
   const formattedDate = formatDateTime(record.createdAt);
   const currency = shop.currencySymbol || '$';
   const customerName = record.customerName && record.customerName !== 'Valued Customer'
     ? record.customerName
     : 'Valued Customer';
+
+  const customerPassUrl = buildCustomerVoucherUrl(record, shop, customCustomerAppUrl);
 
   let balanceSection = '';
   if (cumulativeTotalBalanceOwed !== undefined && cumulativeTotalBalanceOwed > 0) {
@@ -97,8 +127,9 @@ export function generateRecordChangeMessage(
   }
 
   const instructions = customInstructions?.trim() ||
-`• Present this Change ID (*${record.id}*) or show this WhatsApp message at any till checkout.
-• Our cashier will verify your Change ID and hand over your cash change on your next visit.
+`• Tap your QR Pass link above on your phone to display your QR code for the till operator.
+• Or present this Change ID (*${record.id}*) at any till checkout.
+• Our cashier will scan your QR code and immediately hand over your cash change.
 • Keep this WhatsApp confirmation for your records.`;
 
   const noteLine = record.notes ? `\n📝 *Notes:* ${record.notes}` : '';
@@ -115,6 +146,10 @@ ${changeDetailsSection}
 🏬 *Store:* ${shop.name}${shop.branchName ? ` (${shop.branchName})` : ''}
 📌 *Status:* Outstanding${balanceSection}${noteLine}
 
+📱 *YOUR DIGITAL CHANGE QR CODE PASS:*
+${customerPassUrl}
+_(Tap the link above on your phone to show your QR code to the cashier at the till)_
+
 *Collection Instructions:*
 ${instructions}
 
@@ -128,13 +163,16 @@ export function generateCollectedChangeMessage(
   shop: Shop,
   record: ChangeRecord,
   remainingBalanceOwed?: number,
-  customNote?: string
+  customNote?: string,
+  customCustomerAppUrl?: string
 ): string {
   const formattedDate = formatDateTime(record.collectedAt || new Date().toISOString());
   const currency = shop.currencySymbol || '$';
   const customerName = record.customerName && record.customerName !== 'Valued Customer'
     ? record.customerName
     : 'Valued Customer';
+
+  const customerPassUrl = buildCustomerVoucherUrl(record, shop, customCustomerAppUrl);
 
   let balanceSection = '';
   if (remainingBalanceOwed !== undefined) {
@@ -159,6 +197,9 @@ Your change has been successfully collected and paid out in cash.
 📅 *Collection Date & Time:* ${formattedDate}
 👤 *Cashier:* ${record.collectedByEmployeeName || 'Till Cashier'}
 ✅ *Status:* COLLECTED / PAID OUT${balanceSection}${note}
+
+📱 *Digital Pass Receipt:*
+${customerPassUrl}
 
 *Collection Summary:*
 • This Change ID (*${record.id}*) is now closed and marked collected in our ChangeTrack system.
@@ -277,8 +318,8 @@ export async function sendWhatsAppNotification(
   previousBalance?: number
 ): Promise<WhatsAppMessage> {
   const text = type === 'CHANGE_RECORDED'
-    ? generateRecordChangeMessage(shop, record, cumulativeTotalBalanceOwed, previousBalance, config.customCollectionInstructions)
-    : generateCollectedChangeMessage(shop, record, cumulativeTotalBalanceOwed);
+    ? generateRecordChangeMessage(shop, record, cumulativeTotalBalanceOwed, previousBalance, config.customCollectionInstructions, config.customCustomerAppUrl)
+    : generateCollectedChangeMessage(shop, record, cumulativeTotalBalanceOwed, undefined, config.customCustomerAppUrl);
 
   return createWhatsAppRedirectLog(record, shop, type, text);
 }

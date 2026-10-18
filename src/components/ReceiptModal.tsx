@@ -56,7 +56,8 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
         changeRecord, 
         undefined, 
         undefined, 
-        waConfig.customCollectionInstructions
+        waConfig.customCollectionInstructions,
+        waConfig.customCustomerAppUrl
       )
     : `*${shop.name}*\nTransaction Ref: ${transaction?.id}\nAmount: ${currency}${amount.toFixed(2)}`);
 

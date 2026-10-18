@@ -82,13 +82,13 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
   const parseChangeIdentifier = (input: string): string => {
     const clean = input.trim();
     if (!clean) return '';
-    if (clean.includes('voucher=') || clean.includes('qr=') || clean.includes('claim=')) {
+    if (clean.includes('pass=') || clean.includes('voucher=') || clean.includes('qr=') || clean.includes('claim=')) {
       try {
         const url = new URL(clean, window.location.href);
-        const val = url.searchParams.get('voucher') || url.searchParams.get('qr') || url.searchParams.get('claim');
+        const val = url.searchParams.get('pass') || url.searchParams.get('voucher') || url.searchParams.get('qr') || url.searchParams.get('claim');
         if (val) return val.trim().toUpperCase();
       } catch {
-        const match = clean.match(/(?:voucher|qr|claim)=([a-zA-Z0-9\-_]+)/i);
+        const match = clean.match(/(?:pass|voucher|qr|claim)=([a-zA-Z0-9\-_]+)/i);
         if (match && match[1]) return match[1].trim().toUpperCase();
       }
     }

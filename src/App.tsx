@@ -7,6 +7,7 @@ import { CashierTill } from './components/CashierTill';
 import { AdminDashboard } from './components/AdminDashboard';
 import { DisputeManager } from './components/DisputeManager';
 import { CustomerClaimView } from './components/CustomerClaimView';
+import { CustomerVoucherOnlyView } from './components/CustomerVoucherOnlyView';
 import { WhatsAppSettingsModal } from './components/WhatsAppSettingsModal';
 import { EmployeesModal } from './components/EmployeesModal';
 import { ShopSettingsModal } from './components/ShopSettingsModal';
@@ -67,6 +68,13 @@ class AppErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundary
 }
 
 export function App() {
+  // Check if opened as customer-only digital voucher pass link
+  const [customerVoucherId, setCustomerVoucherId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const params = new URLSearchParams(window.location.search);
+    return params.get('pass') || params.get('voucher') || params.get('qr') || params.get('claim') || null;
+  });
+
   // Auth gate: null = checking session, false = signed out, true = signed in
   const [authState, setAuthState] = useState<boolean | null>(null);
 
@@ -169,6 +177,23 @@ export function App() {
       setCurrentRoleView('CASHIER');
     }
   };
+
+  // If customer accessed their voucher link, give them access ONLY to their QR code pass
+  if (customerVoucherId) {
+    return (
+      <CustomerVoucherOnlyView
+        voucherId={customerVoucherId}
+        shop={shop}
+        onExitToTill={() => {
+          setCustomerVoucherId(null);
+          if (typeof window !== 'undefined') {
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, '', cleanUrl);
+          }
+        }}
+      />
+    );
+  }
 
   if (authState === null) {
     return (
