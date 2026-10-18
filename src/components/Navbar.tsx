@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Coins, MessageSquare, Scale, LayoutDashboard, Smartphone,
-  ChevronDown, Lock, Unlock, LogOut, Store
+  ChevronDown, Lock, Unlock, LogOut, Store, ShieldCheck
 } from 'lucide-react';
 import { Employee, Shop } from '../types';
 import { storage } from '../services/storage';
@@ -186,6 +186,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             <PWAInstallButton variant="nav" />
+
+            <a
+              href="/legal"
+              title="Legal & Policies"
+              target="_blank"
+              rel="noreferrer"
+              className="p-2 text-ink-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center shrink-0"
+            >
+              <ShieldCheck className="w-4 h-4" />
+            </a>
 
             <button
               onClick={onOpenShopSettings}

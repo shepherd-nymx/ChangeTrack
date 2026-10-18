@@ -16,6 +16,7 @@ import { PhonePortalModal } from './components/PhonePortalModal';
 import { PWAInstallBanner } from './components/PWAInstallBanner';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { ShopAuthPage } from './components/ShopAuthPage';
+import { TermsReacceptanceGate } from './components/TermsReacceptanceGate';
 import { shopAuth } from './services/shopAuth';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 
@@ -77,20 +78,47 @@ export function App() {
 
   // Auth gate: null = checking session, false = signed out, true = signed in
   const [authState, setAuthState] = useState<boolean | null>(null);
+  // null = not checked, true = re-acceptance required, false = up to date
+  const [termsAccepted, setTermsAccepted] = useState<boolean | null>(null);
 
   useEffect(() => {
     let mounted = true;
     shopAuth.getSessionUser().then(user => {
-      if (mounted) setAuthState(Boolean(user));
+      if (!mounted) return;
+      setAuthState(Boolean(user));
+      if (user) {
+        checkAcceptance();
+      }
     });
     const unsub = shopAuth.onAuthChange((signedIn) => {
-      if (mounted) setAuthState(signedIn);
+      if (mounted) {
+        setAuthState(signedIn);
+        if (signedIn) checkAcceptance();
+      }
     });
     return () => {
       mounted = false;
       unsub();
     };
   }, []);
+
+  const checkAcceptance = async () => {
+    try {
+      const latest = await shopAuth.getLatestAcceptance();
+      if (latest === undefined) {
+        // Check failed (offline / db error): fail open rather than locking users out.
+        setTermsAccepted(false);
+        return;
+      }
+      const { CURRENT_TERMS_VERSION, CURRENT_PRIVACY_VERSION } = await import('./legal/legalDocs');
+      const current = latest !== null
+        && latest.terms_version === CURRENT_TERMS_VERSION
+        && latest.privacy_version === CURRENT_PRIVACY_VERSION;
+      setTermsAccepted(current);
+    } catch {
+      setTermsAccepted(false);
+    }
+  };
 
   const handleSignOut = async () => {
     await shopAuth.signOut();
@@ -208,6 +236,15 @@ export function App() {
 
   if (authState === false) {
     return <ShopAuthPage onAuthed={() => setAuthState(true)} />;
+  }
+
+  if (termsAccepted === true) {
+    return (
+      <TermsReacceptanceGate
+        onAccepted={() => setTermsAccepted(false)}
+        onSignOut={handleSignOut}
+      />
+    );
   }
 
   return (

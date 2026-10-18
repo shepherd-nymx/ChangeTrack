@@ -32,89 +32,126 @@ const JURISDICTION = 'Zimbabwe';
 export const LEGAL_DOCS: LegalDoc[] = [
   {
     id: 'terms',
-    title: 'Terms of Service and Software Usage Agreement',
+    title: 'Terms and Conditions',
     version: '1.0',
     updated: '2026-10-18',
     audience: 'customer',
     intro:
-      `These Terms govern your use of ChangeTrack, a retail outstanding-change recordkeeping platform owned and operated by ${COMPANY}, ${JURISDICTION}. By registering a shop account or using ChangeTrack, you agree to these Terms.`,
+      `These Terms and Conditions govern access to and use of ChangeTrack, a retail outstanding-change recordkeeping platform owned and operated by ${COMPANY}, ${JURISDICTION}. Please read them carefully before registering or using the service.`,
     sections: [
       {
-        heading: '1. Permitted Use',
+        heading: '1. Introduction and Acceptance',
         paragraphs: [
-          'ChangeTrack is licensed to you as a recordkeeping tool for tracking outstanding customer change, generating Change IDs, recording collection status, and preparing WhatsApp confirmation messages.',
-          'You may use ChangeTrack only for lawful retail recordkeeping within the business entity registered on your account.'
+          'By registering an account or using ChangeTrack, you agree to these Terms. If you do not agree, do not register or use the service.',
+          'You must be legally able to enter into this agreement. If you use ChangeTrack on behalf of a business, you confirm that you have authority to act for that business and to bind it to these Terms.'
         ]
       },
       {
-        heading: '2. Account Responsibilities',
+        heading: '2. Description of the Service',
+        paragraphs: [
+          'ChangeTrack helps you record and track outstanding change: shop details, amounts, dates, unique Change IDs, collection instructions, collection status, and related communications such as pre-filled WhatsApp confirmation messages.',
+          'ChangeTrack is a recordkeeping tool. It does not hold funds, move money, or guarantee that money will be repaid or that outstanding change will be collected. See our Service Limitations and Data Disclaimer.'
+        ]
+      },
+      {
+        heading: '3. Accounts and Registration',
         bullets: [
-          'You are responsible for all activity carried out under your account credentials.',
-          'You must keep your password confidential and use a strong, unique password.',
-          'You must provide accurate information when registering your shop.',
-          'You must promptly report any unauthorised access to your account.'
+          'You must provide accurate and complete information when registering your shop.',
+          'You must protect your login credentials and use a strong, unique password.',
+          'You must notify support promptly if you suspect unauthorised access to your account.',
+          'You are responsible for activity carried out under your account, to the extent permitted by law.'
         ]
       },
       {
-        heading: '3. Ownership and Intellectual Property',
+        heading: '4. Acceptable Use',
         paragraphs: [
-          `ChangeTrack, including its source code, design, underlying platform, reusable components, trademarks, and all related intellectual property, is and remains the property of ${COMPANY}.`,
-          'Your registration grants you a non-exclusive, non-transferable right to use the platform in accordance with these Terms and your purchase or service agreement. It does not transfer ownership of any part of the software.',
-          'A separate signed Software Licence and Ownership Agreement governs the exact licence you purchase. See the "Software Licence and Ownership Agreement" document for details.'
+          'You must not use ChangeTrack for fraud, unlawful debt collection, harassment, unauthorised disclosure of personal information, security attacks, impersonation, or any unlawful activity. Full details are in our Acceptable Use Policy, which forms part of these Terms.'
         ]
       },
       {
-        heading: '4. Prohibited Activities',
+        heading: '5. Records and User Responsibilities',
         bullets: [
-          'Copying, modifying, reverse engineering, or creating derivative works of the software.',
-          'Reselling, sublicensing, or providing ChangeTrack to third parties as a service without written permission.',
-          'Attempting to access other customers\' data, systems, or accounts.',
-          'Using the platform for fraud, money laundering, or any unlawful activity.',
-          'Interfering with the security or availability of the service.'
+          'You are responsible for the accuracy and lawful collection of the information you enter.',
+          'You must verify amounts, shop details, collection instructions, and collection status before relying on them.',
+          'ChangeTrack records must not be represented as independent verification that a debt or outstanding amount exists.'
         ]
       },
       {
-        heading: '5. User-Generated Data',
+        heading: '6. Privacy and Personal Information',
         paragraphs: [
-          'You remain the owner of the records you enter (customer names, phone numbers, amounts, notes, and collection instructions). You are responsible for the accuracy of those records and for complying with applicable law when entering personal information about your customers.',
-          'We may process your records only as needed to operate and support the service. See our Privacy Policy.'
+          'Personal information entered into or collected by ChangeTrack is processed as described in our Privacy Policy, available in the Legal & Policies section of this application. Please read it before entering personal information about yourself or your customers.'
         ]
       },
       {
-        heading: '6. Account Suspension and Termination',
+        heading: '7. Intellectual Property and Software Licence',
         paragraphs: [
-          'We may suspend or terminate your account if you breach these Terms, fail to pay amounts due, or use the service in a way that creates legal or security risk.',
-          'Where practical, we will give notice and a reasonable opportunity to remedy the breach before suspension.',
-          'You may stop using ChangeTrack at any time. On termination, see the data export provisions in the Maintenance and Support Agreement and the Privacy Policy.'
+          `Unless a separate written agreement expressly states otherwise, ${COMPANY} retains ownership of ChangeTrack, its source code, software design, underlying platform, branding, and reusable components.`,
+          'You receive permission to use the service within the scope of your applicable licence or subscription. You must not copy, resell, redistribute, reverse engineer, or commercially exploit the software beyond what applicable law or a written agreement permits.'
         ]
       },
       {
-        heading: '7. Limitation of Liability',
+        heading: '8. Third-Party Services',
+        paragraphs: [
+          'The availability of ChangeTrack may depend on third-party hosting, cloud database providers, internet connectivity, messaging applications such as WhatsApp, and other integrations actually used by the application. Those services may have their own terms and privacy policies, and their outages or changes are outside our control.'
+        ]
+      },
+      {
+        heading: '9. Availability, Security, and Maintenance',
+        paragraphs: [
+          `${COMPANY} will take reasonable steps to maintain the service and address reported problems, subject to your applicable service agreement.`,
+          'We do not promise uninterrupted service, absolute security, guaranteed uptime, or immediate resolution of every issue.'
+        ]
+      },
+      {
+        heading: '10. Payments and Refunds',
+        paragraphs: [
+          'Where applicable, payments, licence fees, subscriptions, cancellations, and refunds are governed by your purchase or service agreement and our Refund and Cancellation Policy. Nothing in these Terms excludes any mandatory consumer rights you have under applicable law.'
+        ]
+      },
+      {
+        heading: '11. Suspension and Termination',
+        paragraphs: [
+          'We may suspend or terminate access where there is serious misuse, a security threat, non-payment (where applicable), or as provided in your relevant agreement.',
+          'Where appropriate we will give reasonable notice and an opportunity to remedy the breach, except where urgent security concerns or legal requirements demand immediate action.',
+          'You may stop using ChangeTrack at any time; the data export and deletion rights below continue to apply.'
+        ]
+      },
+      {
+        heading: '12. Data Export and Deletion',
+        paragraphs: [
+          'You may request export or deletion of your information by contacting support, subject to applicable legal obligations, retention requirements, technical limitations, and the terms of your customer agreement. We do not promise that every record can be deleted immediately, particularly where audit, dispute-defence, or legal retention needs apply.'
+        ]
+      },
+      {
+        heading: '13. Limitation of Liability',
         reviewNote:
           'LEGAL REVIEW: liability caps and exclusions must be checked against the Consumer Protection Act [Chapter 14:14] and Zimbabwean contract law.',
         paragraphs: [
-          'ChangeTrack is a recordkeeping tool. It is not a bank, payment processor, or guarantor that outstanding amounts will be collected.',
-          'To the maximum extent permitted by law, ${COMPANY} is not liable for indirect, incidental, or consequential losses, including lost profits, lost change, or business interruption arising from use of the platform.',
-          'Nothing in these Terms excludes liability that cannot lawfully be excluded.'
+          'To the maximum extent permitted by applicable law, neither party is liable to the other for indirect, incidental, or consequential losses, including lost profits, lost change, or business interruption arising from use of the platform.',
+          'Nothing in these Terms excludes or limits liability that cannot lawfully be excluded or limited, including liability under applicable consumer protection laws.'
         ]
       },
       {
-        heading: '8. Dispute Resolution',
+        heading: '14. Disputes and Governing Law',
         paragraphs: [
-          'Parties should first attempt to resolve any dispute informally by contacting support.',
-          'If informal resolution fails, disputes will be addressed under the laws of Zimbabwe, in the courts or arbitration forum agreed in your purchase or service agreement.'
+          'These Terms are intended to be governed by the laws of Zimbabwe, where legally appropriate.',
+          'Before pursuing any other available remedy, please contact support so we can try to resolve the dispute informally. Nothing in these Terms removes rights or remedies available to you under applicable law.'
         ]
       },
       {
-        heading: '9. Governing Law',
+        heading: '15. Changes to These Terms',
         paragraphs: [
-          'These Terms are governed by the laws of Zimbabwe.'
+          'We may update these Terms from time to time. Material changes will be communicated appropriately, and you may be asked to review and re-accept the updated Terms before continuing to use the service. The version number and effective date are shown at the top of this document and recorded with each acceptance.'
         ]
       },
       {
-        heading: '10. Changes to These Terms',
-        paragraphs: [
-          'We may update these Terms. Where changes are material, we will ask you to review and re-accept before continued use. The current version number is shown at the top of this document and recorded with your acceptance.'
+        heading: '16. Contact Information',
+        bullets: [
+          `Operator: ${COMPANY}`,
+          '[INSERT: registered legal name and company registration number, if any.]',
+          '[INSERT: business address.]',
+          '[INSERT: contact email address.]',
+          '[INSERT: support contact and support hours.]'
         ]
       }
     ]
@@ -126,101 +163,140 @@ export const LEGAL_DOCS: LegalDoc[] = [
     updated: '2026-10-18',
     audience: 'customer',
     intro:
-      `This Privacy Policy explains what data ChangeTrack collects, why, how it is stored and protected, and the rights you have. It reflects the actual implementation of the platform and is intended to align with the Zimbabwean Cyber and Data Protection Act [Chapter 12:07].`,
+      `This Privacy Policy explains what information ChangeTrack collects, why, how it is stored and protected, who may access it, and the rights you have. It is written for a Zimbabwean audience and is intended to align with the Cyber and Data Protection Act [Chapter 12:07] and other applicable law.`,
     sections: [
       {
-        heading: '1. Data We Collect',
-        bullets: [
-          'Account data: shop name and the email address used to register your account.',
-          'Operational records you enter: customer names and phone numbers, amounts owed, Change IDs, dates and times, collection instructions, notes, and collection status.',
-          'WhatsApp message text: the pre-filled confirmation messages the platform prepares for you.',
-          'Legal acceptance records: the versions of the Terms of Service and Privacy Policy you accepted, the date and time of acceptance, and your device/browser user-agent string.',
-          'Technical data: basic connection and error logs needed to run and secure the service.'
+        heading: '1. Who Operates ChangeTrack',
+        paragraphs: [
+          `ChangeTrack is owned and operated by ${COMPANY}, ${JURISDICTION}.`,
+          `[INSERT: responsible person/role for privacy matters, contact email, and business address — required before publication.]`,
+          '[INSERT: confirm whether the operator is registered with the Data Protection Authority (POTRAZ) as a data controller, if registration is required — to be confirmed with legal counsel.]'
         ]
       },
       {
-        heading: '2. Purposes of Processing',
+        heading: '2. Information We Collect',
+        paragraphs: ['Based on the actual implementation of the platform, we collect:'],
+        bullets: [
+          'Account information: your shop name and the email address used to register.',
+          'Shop details you enter: branch name, owner name, phone number, address, and currency.',
+          'Outstanding-change records you enter: customer names and phone numbers, purchase totals, cash tendered, amounts owed, collection instructions, and notes.',
+          'Change IDs, dates and times of recording, and collection status (outstanding, partially paid, collected), including who collected.',
+          'Pre-filled WhatsApp message text the platform prepares for you.',
+          'Legal acceptance records: which versions of the Terms and Privacy Policy you accepted, when, your optional marketing choice, and your browser user-agent string.',
+          'Support communications you send us.',
+          'Technical information: basic connection and error logs needed to operate and secure the service.'
+        ]
+      },
+      {
+        heading: '3. Purposes of Processing',
         bullets: [
           'Providing the change-tracking service: recording, balancing, and marking change as collected.',
           'Generating Change IDs, QR collection codes, and pre-filled WhatsApp messages.',
-          'Keeping an audit history to help resolve disputes.',
-          'Enforcing legal acceptance of our Terms and Privacy Policy.',
-          'Sending the one-time welcome email after registration.'
+          'Keeping an audit history to help you and your customers resolve disputes.',
+          'Enforcing and evidencing legal acceptance of our Terms and Privacy Policy.',
+          'Sending the one-time welcome email after registration, and optional product news if you separately opted in.',
+          'Diagnosing faults and securing the platform.'
         ]
       },
       {
-        heading: '3. Storage and Processing',
+        heading: '4. Lawful Grounds for Processing',
+        reviewNote:
+          'LEGAL REVIEW: confirm the lawful bases under the Cyber and Data Protection Act [Chapter 12:07] for each processing purpose described here.',
         paragraphs: [
-          'Records are stored in a managed cloud database (Supabase, which runs on AWS infrastructure). Data is encrypted in transit using HTTPS/TLS. Each shop\'s data is isolated by database access rules so one customer cannot read another customer\'s records.',
-          'Some basic portal data may also be cached locally on your own device to allow offline use.'
+          'We process information on more than one basis depending on the purpose: performance of our contract with you (operating the service you registered for), our legitimate interests in securing and improving the platform, your consent where required (for example optional marketing emails), and compliance with legal obligations. Consent is not the only basis we rely on.'
         ]
       },
       {
-        heading: '4. Sharing of Data',
-        bullets: [
-          'We do not sell your data.',
-          'Your operational records are visible only to your account and, where you choose, employees using your shop portal.',
-          'Cloud infrastructure providers (hosting and database) process data on our behalf solely to deliver the service.',
-          'We may disclose data where required by law or a valid order of a court or regulator.'
-        ]
-      },
-      {
-        heading: '5. Retention and Deletion',
+        heading: '5. How Information Is Stored and Protected',
         paragraphs: [
-          'Records are kept for as long as your account is active, plus a reasonable period to allow dispute resolution.',
-          'You may request deletion of your account and records. Some audit and acceptance records may be retained where required for legal compliance or legitimate dispute defence.',
-          'Local device caches are cleared when you sign out or clear your browser data.'
+          'Records are stored in a managed cloud database (Supabase, running on AWS infrastructure) and communicated over encrypted connections (HTTPS/TLS). Each shop\'s records are isolated by database access rules so one customer cannot read another customer\'s records. Some portal data is cached locally on your own device to allow offline use.',
+          'These measures are designed to protect your information, but no system is perfectly secure and we cannot guarantee absolute security.'
         ]
       },
       {
-        heading: '6. Security Measures',
+        heading: '6. Who May Access Information',
         bullets: [
-          'Transport encryption (HTTPS/TLS) for all communication with the cloud database.',
-          'Row-level database access rules restricting every record to its owning account.',
-          'Append-only audit logs and tamper-detection checks on change records.',
-          'Credentials handled exclusively by the authentication provider; we never see or store your password.'
+          'Authorised staff of the operating company, for support and administration.',
+          'You and, where you allow it, employees using your shop portal — only your own shop\'s records.',
+          'Hosting and database providers, and the email provider used for the welcome email, acting as processors on our behalf.',
+          'No other customer or business can access your records through the platform, and we do not sell personal information.',
+          'We may disclose information where required by law or a valid order of a court or regulator.'
         ]
       },
       {
-        heading: '7. Your Rights',
+        heading: '7. Storage Outside Zimbabwe',
+        reviewNote:
+          'LEGAL REVIEW: confirm cross-border transfer requirements under the Cyber and Data Protection Act [Chapter 12:07] for our chosen hosting region.',
+        paragraphs: [
+          'Our cloud providers operate data centres in multiple countries, and your information may therefore be stored or processed outside Zimbabwe. The specific hosting region: [INSERT: confirm the AWS/Supabase region actually used before publication.]'
+        ]
+      },
+      {
+        heading: '8. Retention, Closure, Deletion, and Backups',
+        paragraphs: [
+          'Records are kept while your account is active, plus a reasonable period for dispute resolution. When you close your account you may request deletion of your information; some audit, acceptance, and accounting records may be retained where required by law or for legitimate dispute defence.',
+          'Backups: [INSERT: backup schedule and retention to be confirmed with the hosting configuration.] Deleted information may persist in backups until those backups expire.'
+        ]
+      },
+      {
+        heading: '9. Your Rights',
         reviewNote:
           'LEGAL REVIEW: confirm the full list of data subject rights under the Cyber and Data Protection Act [Chapter 12:07], including complaint routes to the Data Protection Authority (POTRAZ).',
         bullets: [
-          'Request access to the personal data we hold about you.',
-          'Request correction of inaccurate data.',
-          'Request deletion of your data, subject to legal retention needs.',
+          'Request access to the personal information we hold about you.',
+          'Request correction of inaccurate information.',
+          'Request deletion of your information, subject to legal retention needs.',
           'Withdraw optional marketing consent at any time.',
-          'Lodge a complaint with the Data Protection Authority if you believe your rights were infringed.'
+          'Exercise any other right available under applicable data protection law.'
         ]
       },
       {
-        heading: '8. Third-Party Services',
-        bullets: [
-          'Supabase (database, authentication, and edge function hosting) — infrastructure provider.',
-          'WhatsApp (via wa.me deep links) — messages are prepared by ChangeTrack and opened by you in WhatsApp; nothing is sent through the WhatsApp platform by us unless a separate agreement says otherwise.',
-          'Google Fonts — standard web font delivery.',
-          `[INSERT: list any additional third-party services you add, e.g. email delivery provider used by the welcome-email function.]`
-        ]
-      },
-      {
-        heading: '9. Contact',
+        heading: '10. Complaints and Security Incidents',
         paragraphs: [
-          `[INSERT: privacy contact — responsible person/role, email address, and postal address for ${COMPANY}.]`
+          `[INSERT: privacy complaints contact — email or role — and how security incidents should be reported.]`,
+          'If a security incident affects your information, we will assess the impact and notify affected customers where required by applicable law.'
+        ]
+      },
+      {
+        heading: '11. Children\'s Privacy',
+        paragraphs: [
+          'ChangeTrack is a business tool intended for shop owners and their authorised staff. It is not directed at children, and accounts should not be registered by persons under 18. Customer records entered by shops should relate to the shops\' business customers.'
+        ]
+      },
+      {
+        heading: '12. Third-Party Integrations',
+        bullets: [
+          'Supabase (database, authentication, cloud functions) — infrastructure provider; see supabase.com/privacy.',
+          'WhatsApp (via wa.me links) — messages are prepared by ChangeTrack and opened by you in WhatsApp; we do not send messages through the WhatsApp platform unless a separate agreement provides otherwise. See whatsapp.com privacy notice.',
+          'Google Fonts — standard web font delivery; see Google\'s privacy notice.',
+          '[INSERT: list any additional third-party services you add, such as the email delivery provider used by the welcome-email function.]'
+        ]
+      },
+      {
+        heading: '13. Changes to This Policy',
+        paragraphs: [
+          'We may revise this Privacy Policy from time to time. Material changes will be communicated appropriately, for example through a notice in the application. If a change materially affects how we process your information, we may ask you to review and acknowledge the updated policy.'
+        ]
+      },
+      {
+        heading: '14. Last Updated',
+        paragraphs: [
+          'This policy is version 1.0 and was last updated on 2026-10-18. The version and date shown here change whenever the policy is revised, and the version you accepted is recorded in your acceptance history.'
         ]
       }
     ]
   },
   {
     id: 'refunds',
-    title: 'Refund, Cancellation and Payment Policy',
+    title: 'Refund and Cancellation Policy',
     version: '1.0',
     updated: '2026-10-18',
     audience: 'customer',
     intro:
-      `This policy explains how payments for ChangeTrack are handled, what happens on cancellation, and when a refund may be available. It applies to software licence fees, hosting costs, and maintenance charges billed by ${COMPANY}.`,
+      `This policy explains how payments for ChangeTrack are handled, how subscriptions and purchases can be cancelled, and when a refund may be available. It applies to software licence fees, hosting costs, and maintenance charges billed by ${COMPANY}.`,
     sections: [
       {
-        heading: '1. What You Are Paying For',
+        heading: '1. Software Purchases versus Subscriptions',
         bullets: [
           'Software licence / purchase fee: a one-time payment for the right to use ChangeTrack under your licence agreement. This covers the software itself as delivered.',
           'Hosting costs: recurring fees for cloud hosting of your portal and database, if included in your plan.',
@@ -231,70 +307,74 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: '2. Digital Delivery',
         paragraphs: [
-          'ChangeTrack is delivered as an online service. Access is provisioned after receipt of the applicable fees. Because the product is digital and access is granted immediately, statutory or contractual cooling-off rights may be limited once access begins — this does not remove any mandatory consumer rights you have under Zimbabwean law.'
+          'ChangeTrack is delivered as an online service. Access is provisioned after receipt of the applicable fees. Because the product is digital and access is granted immediately, cooling-off rights may be limited once access begins — this does not remove any mandatory consumer rights you have under Zimbabwean law.'
         ],
         reviewNote:
           'LEGAL REVIEW: confirm how digital-delivery rules interact with the Consumer Protection Act [Chapter 14:14] for your sales channels.'
       },
       {
-        heading: '3. Cancellation',
+        heading: '3. Cancellation Procedure',
         bullets: [
-          'You may cancel recurring hosting or maintenance at the end of any billing period by giving written notice to support.',
+          'You may cancel recurring hosting or maintenance by giving written notice to support: [INSERT: required notice period.]',
           'Cancellation stops future billing; it does not by itself entitle you to a refund of fees already paid for the current period.',
           'Cancelling maintenance ends support, bug fixes, and security updates for your installation. Cancelling hosting may make your portal unavailable.'
         ]
       },
       {
-        heading: '4. Failed Payments',
+        heading: '4. Defective or Undelivered Services',
+        bullets: [
+          'If a paid service was never provisioned through our fault, or a paid enhancement was not delivered as agreed, contact support with proof of payment and we will remedy the failure or process a refund.',
+          'Defects reported within the acceptance-testing window in your purchase agreement are fixed at no charge.'
+        ]
+      },
+      {
+        heading: '5. Failed Payments',
         bullets: [
           'If a payment fails, we will notify you and retry or hold provisioning until the account is settled.',
-          'Continued non-payment may lead to suspension of access as described in the Terms of Service.'
+          'Continued non-payment may lead to suspension of access as described in the Terms and Conditions.'
         ]
       },
       {
-        heading: '5. When a Refund May Be Available',
-        bullets: [
-          'Duplicate or incorrect charges (for example, being billed twice for the same period).',
-          'A service that was never provisioned through our own fault.',
-          'A paid enhancement that we failed to deliver as agreed.',
-          'Any other circumstance where a refund is required by Zimbabwean law.'
-        ],
+        heading: '6. Processing of Approved Refunds',
         paragraphs: [
           'Refund requests should be sent in writing to support with proof of payment. Approved refunds are returned via the original payment method where possible.',
-          'Refund timelines: [INSERT: your processing time, e.g. number of business days after approval.]'
+          'Refund processing time: [INSERT: number of business days after approval.]'
         ]
       },
       {
-        heading: '6. What Is Not Covered',
+        heading: '7. What Is Not Covered',
         paragraphs: [
           'Change of mind after access has been provisioned, unused portions of a billing period, and costs arising from third-party services (for example WhatsApp or internet connectivity) are not refundable unless the law requires otherwise. This policy does not limit mandatory consumer rights.'
         ]
       },
       {
-        heading: '7. Contact',
+        heading: '8. Contact',
         paragraphs: [
-          `[INSERT: payments/billing contact — email address and any postal address.]`
+          '[INSERT: payments/billing contact — email address and any postal address.]'
         ]
       }
     ]
   },
   {
     id: 'licence',
-    title: 'Software Licence and Ownership Agreement',
+    title: 'Software Licence Agreement',
     version: '1.0',
     updated: '2026-10-18',
     audience: 'customer',
     intro:
-      `This document explains what you receive when you purchase ChangeTrack. Unless a separate signed agreement expressly states otherwise, ${COMPANY} retains ownership of the software and grants you a licence to use it.`,
+      `This document explains what you receive when you purchase ChangeTrack. Unless a separate signed agreement expressly states otherwise, ${COMPANY} retains ownership of the software — including the source code — and grants you a licence to use it. Source-code ownership does not transfer unless expressly agreed in a separate signed contract.`,
     sections: [
       {
-        heading: '1. Licence, Not Ownership Transfer',
-        paragraphs: [
-          'Purchasing ChangeTrack does not transfer ownership of the software to you. You receive only the usage rights expressly granted in your signed purchase or service agreement.'
+        heading: '1. The Licence Granted',
+        bullets: [
+          'A non-exclusive, non-transferable licence to use ChangeTrack for the internal recordkeeping of the business named in your agreement.',
+          'Use by the authorised users stated in your agreement (for example, named till operators and administrators).',
+          'Any licence scope, term, and number of installations or users stated in the signed agreement.',
+          'Term and renewal: [INSERT: e.g. perpetual licence with annual maintenance renewals, or annual subscription.]'
         ]
       },
       {
-        heading: '2. What Future Pulse Investments Retains',
+        heading: '2. Ownership Retained by Future Pulse Investments',
         bullets: [
           'All rights, title, and interest in the source code, object code, and underlying platform.',
           'Reusable components, libraries, and development tools used to build the platform.',
@@ -302,25 +382,115 @@ export const LEGAL_DOCS: LegalDoc[] = [
         ]
       },
       {
-        heading: '3. What the Customer Receives',
+        heading: '3. Permitted Use and Restrictions',
         bullets: [
-          'A non-exclusive, non-transferable licence to use ChangeTrack for the internal recordkeeping of the business named in the agreement.',
-          'The right to enter and manage that business\'s own customer change records.',
-          'Any licence scope, term, and number of installations or users stated in the signed agreement.'
+          'No sublicensing, resale, redistribution, or time-sharing of the software.',
+          'No copying, modification, or derivative works except as the law expressly permits.',
+          'No reverse engineering or attempted extraction of source code.',
+          'No removal of branding, copyright notices, or licence identifiers.',
+          'No access to the source code except where a signed agreement expressly grants it.'
         ]
       },
       {
-        heading: '4. Restrictions',
+        heading: '4. Termination Consequences',
         bullets: [
-          'No sublicensing, resale, or time-sharing of the software.',
-          'No removal of branding, copyright notices, or license identifiers.',
-          'No access to the software\'s source code except where a signed agreement expressly grants it.'
+          'On termination or expiry of your licence, your right to use the software ends and access may be withdrawn.',
+          'Your data remains yours: an export is provided per the data export provisions in your agreement, subject to fees being settled.',
+          'Sections on ownership and intellectual property survive termination.'
         ]
       },
       {
         heading: '5. Override by Signed Agreement',
         paragraphs: [
-          'If ${COMPANY} signs a bespoke agreement with a customer that grants different rights (including source-code escrow, transfer of a customised installation, or extended usage rights), that signed agreement overrides this document to the extent of the conflict.'
+          `If ${COMPANY} signs a bespoke agreement with a customer that grants different rights (for example source-code escrow or transfer of a customised installation), that signed agreement overrides this document to the extent of the conflict.`
+        ]
+      }
+    ]
+  },
+  {
+    id: 'purchase-template',
+    title: 'Client Purchase and Service Agreement (Template)',
+    version: '1.0',
+    updated: '2026-10-18',
+    audience: 'internal',
+    intro:
+      'TEMPLATE — complete every bracketed field for each business purchasing ChangeTrack, then sign one copy per client. This template is a starting point and should be reviewed by a qualified Zimbabwean legal professional before first commercial use.',
+    sections: [
+      {
+        heading: 'Parties',
+        bullets: [
+          'Supplier: Future Pulse Investments, company details: [INSERT: registered company name/number if any, registered address, contact email].',
+          'Client (business purchasing ChangeTrack): [INSERT: client legal name, registration number if any, physical address, contact person, email, phone].'
+        ]
+      },
+      {
+        heading: '1. Scope',
+        paragraphs: [
+          'Supplier grants the Client the right to use ChangeTrack for the Client\'s internal retail change recordkeeping, as delivered, for the business named above.',
+          'Included in this agreement: [INSERT: modules/features included, number of tills/users, branches covered].'
+        ]
+      },
+      {
+        heading: '2. Licence Type and Ownership',
+        bullets: [
+          'Licence type: [INSERT: e.g. perpetual licence / annual subscription / site licence].',
+          'Ownership of the software, source code, and intellectual property remains with Future Pulse Investments. The Client receives only the usage rights in this agreement.',
+          'Any deviation (for example source-code escrow) must be written here and signed.'
+        ]
+      },
+      {
+        heading: '3. Price and Payment Schedule',
+        bullets: [
+          'Software licence / purchase fee: [INSERT: amount and currency].',
+          'Recurring hosting cost (if applicable): [INSERT: amount, billing frequency].',
+          'Maintenance fee (if applicable): [INSERT: amount, billing frequency, what it covers].',
+          'Payment terms: [INSERT: e.g. 50% on signing, 50% on acceptance testing; due dates; accepted payment methods].',
+          'Late payment: [INSERT: consequence, e.g. access suspension after written notice].'
+        ]
+      },
+      {
+        heading: '4. Delivery and Acceptance Testing',
+        bullets: [
+          'Delivery: access to the hosted portal is provisioned on or about: [INSERT: date].',
+          'The Client has [INSERT: number, e.g. 7] days from delivery to verify that registration, recording change, collecting change, QR scanning, and WhatsApp message preparation work as agreed.',
+          'Defects found during this window are fixed at no charge. After acceptance, standard maintenance terms apply.'
+        ]
+      },
+      {
+        heading: '5. Hosting Responsibilities',
+        bullets: [
+          'Hosting is provided by: [INSERT: supplier or client].',
+          'If client-hosted: the Client is responsible for the hosting account, uptime, and provider relationship; Supplier provides technical configuration support under the maintenance plan.',
+          'If supplier-hosted: hosting is billed as in section 3 and covered by the Service Limitations and Data Disclaimer.'
+        ]
+      },
+      {
+        heading: '6. Maintenance and Support Arrangements',
+        bullets: [
+          'Included: bug fixes for core features, security updates, support via [INSERT: channel] during [INSERT: hours].',
+          'Excluded: new features, custom reports, integrations, data entry, training beyond [INSERT: e.g. one onboarding session], and third-party outages.',
+          'Enhancements are quoted separately and only start after written approval.'
+        ]
+      },
+      {
+        heading: '7. Commencement, Term, and Termination',
+        bullets: [
+          'Commencement date: [INSERT: date].',
+          'Term: [INSERT: e.g. 12 months from commencement / perpetual for the licence with annual maintenance renewals].',
+          'Either party may terminate per: [INSERT: notice period and grounds].',
+          'On termination, Supplier will provide the Client\'s data export in CSV format, subject to fees being settled.',
+          'Sections on ownership and intellectual property survive termination.'
+        ]
+      },
+      {
+        heading: '8. Governing Law',
+        paragraphs: ['This agreement is governed by the laws of Zimbabwe.']
+      },
+      {
+        heading: 'Signatures',
+        paragraphs: [
+          'For Future Pulse Investments: name, title, signature, date: ______________________',
+          'For the Client: name, title, signature, date: ______________________'
         ]
       }
     ]
@@ -362,33 +532,40 @@ export const LEGAL_DOCS: LegalDoc[] = [
         ]
       },
       {
-        heading: '4. Paid Enhancements and Feature Requests',
+        heading: '4. Paid Enhancements, Feature Requests, and Major Upgrades',
         paragraphs: [
-          'New features, customisations, integrations, and reports are enhancements, not maintenance. They are scoped and quoted separately. Feature requests are logged and prioritised by ${COMPANY}; submitting a request does not commit us to build it.'
+          'New features, customisations, integrations, and reports are enhancements, not maintenance. They are scoped and quoted separately. Feature requests are logged and prioritised by the operator; submitting a request does not commit us to build it. Major platform upgrades are delivered at our discretion and announced in advance where they affect your workflows.'
         ]
       },
       {
-        heading: '5. Third-Party Outages, Hosting, and Backups',
+        heading: '5. Third-Party Fees, Hosting, and Backups',
         bullets: [
           'The platform depends on third-party services (cloud hosting, database, WhatsApp, internet providers). Outages of those services are outside our control; we will assist with diagnosis and provider escalation.',
-          'Hosting: [INSERT: who provides and pays for hosting — you or the customer.]',
+          'Hosting and third-party fees: [INSERT: who provides and pays for hosting and any provider fees.]',
           'Backups: [INSERT: backup schedule and who is responsible for verifying restoration.] Backups are a shared responsibility: customers should also export their own records periodically.'
         ]
       },
       {
-        heading: '6. Data Recovery',
+        heading: '6. Security Updates and Incident Reporting',
+        bullets: [
+          'Security updates are applied to the platform as part of maintenance. Customers should report suspected security issues immediately via: [INSERT: security contact.]',
+          'Customers are responsible for keeping their own devices and credentials secure.'
+        ]
+      },
+      {
+        heading: '7. Data Recovery Limitations',
         paragraphs: [
           'Recovery from backups is performed only from the backups described in section 5. Changes made since the last backup cannot be recovered. We do not guarantee complete recovery of lost data.'
         ]
       },
       {
-        heading: '7. Maintenance Charges',
+        heading: '8. Maintenance Charges',
         paragraphs: [
           'Maintenance is billed as [INSERT: monthly/annual fee, amount to be supplied by the owner] per the signed agreement. Work outside the included scope is quoted and approved before it starts.'
         ]
       },
       {
-        heading: '8. Termination and Handover',
+        heading: '9. Service Termination and Handover',
         bullets: [
           'Either party may end the maintenance agreement per the notice period in the signed agreement: [INSERT: notice period, e.g. 30 days.]',
           'On termination, we will provide available data exports in a common format (such as CSV) for the customer\'s own records, subject to fees being settled.',
@@ -396,7 +573,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         ]
       },
       {
-        heading: '9. Reporting a Bug, Requesting a Feature, or Requesting a Data Export',
+        heading: '10. Reporting a Bug, Requesting a Feature, or Requesting a Data Export',
         bullets: [
           'Bugs: send the details (what you did, what you expected, what happened) to the support channel in section 2.',
           'Features: describe the outcome you need and the workflow it supports; we will confirm whether it is an enhancement and provide a quote if so.',
@@ -412,24 +589,31 @@ export const LEGAL_DOCS: LegalDoc[] = [
     updated: '2026-10-18',
     audience: 'customer',
     intro:
-      'This policy sets out what you must not do when using ChangeTrack. It forms part of the Terms of Service.',
+      'This policy sets out what you must not do when using ChangeTrack, and how violations are enforced. It forms part of the Terms and Conditions.',
     sections: [
       {
         heading: '1. Prohibited Conduct',
         bullets: [
           'Unauthorised access to the platform, other accounts, or other customers\' data, including via automated tools or credential guessing.',
           'Fraud, including entering false records, misrepresenting collection status, or using Change IDs deceptively.',
+          'Unlawful debt collection, harassment, or intimidation of any person.',
           'Misuse of personal data: entering personal information about customers without a lawful basis, or extracting other customers\' data.',
           'Security attacks: scanning, probing, or testing the security of the service without written permission; injecting malicious code; attempting to bypass access controls.',
+          'Impersonation of any person or business, or false representation of affiliation.',
           'Unlawful activity of any kind, including money laundering and sanctions breaches.',
           'Abuse of the service: excessive automated load, attempts to disrupt availability, or reselling access without permission.'
         ]
       },
       {
-        heading: '2. Reporting Violations',
+        heading: '2. Enforcement',
         paragraphs: [
-          `[INSERT: security/abuse contact, e.g. an email address for reporting suspected abuse or vulnerabilities.]`,
-          'We may investigate suspected violations and may suspend accounts as provided in the Terms of Service.'
+          'We may investigate suspected violations. Depending on severity, we may warn, suspend, or terminate accounts as provided in the Terms and Conditions, and where unlawful activity is suspected we may report it to the appropriate authorities.'
+        ]
+      },
+      {
+        heading: '3. Reporting Violations',
+        paragraphs: [
+          '[INSERT: security/abuse contact, e.g. an email address for reporting suspected abuse or vulnerabilities.]'
         ]
       }
     ]
@@ -441,14 +625,14 @@ export const LEGAL_DOCS: LegalDoc[] = [
     updated: '2026-10-18',
     audience: 'customer',
     intro:
-      'This guide explains how to use ChangeTrack day to day: registering, recording outstanding change, using Change IDs and QR codes, and keeping records correct.',
+      'This guide explains how to use ChangeTrack day to day: registering, recording outstanding change, using Change IDs and QR codes, sharing WhatsApp confirmations, and keeping records correct.',
     sections: [
       {
         heading: '1. Registering and Signing In',
         bullets: [
           'Open the app and choose "Register your shop".',
           'Enter your shop name, email address, and a password of at least 6 characters.',
-          'Tick the checkbox confirming you have read the Terms of Service and acknowledged the Privacy Policy. You can open both documents from the links next to the checkbox. Registration will not complete until this box is ticked.',
+          'Tick the checkbox confirming you have read the Terms and Conditions and acknowledged the Privacy Policy. Both are clickable links that open in a new tab, so you can read them without losing your registration form. Registration will not complete until this box is ticked.',
           'Optionally tick the separate marketing-consent box — this is optional and separate from the required acceptance.',
           'If email verification is enabled, check your inbox and confirm before signing in.'
         ]
@@ -489,7 +673,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: '6. Contacting Support',
         paragraphs: [
-          `[INSERT: support contact and hours, matching the Maintenance and Support Agreement.]`
+          '[INSERT: support contact and hours, matching the Maintenance and Support Agreement.]'
         ]
       }
     ]
@@ -546,7 +730,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         ]
       },
       {
-        heading: '6. Monitoring and Security',
+        heading: '6. Monitoring, Errors, and Security',
         bullets: [
           '[INSERT: chosen monitoring approach — provider logs, uptime checks, error alerts.]',
           'Review authentication and database logs periodically for unusual access patterns.',
@@ -555,18 +739,18 @@ export const LEGAL_DOCS: LegalDoc[] = [
         ]
       },
       {
-        heading: '7. Troubleshooting',
+        heading: '7. Troubleshooting and Testing Changes',
         bullets: [
           'Blank screen or failed deploy: reproduce the production build locally and read the first error, not the last.',
           'Customer cannot sign in: check whether email confirmation is pending before resetting credentials.',
           'Sync issues on a till: check connectivity and the offline queue indicator; queued entries flush automatically when the device reconnects.',
-          'Balance mismatches: compare the change records against the balance ledger for that customer and reconcile entries in order.'
+          'Balance mismatches: compare the change records against the balance ledger for that customer and reconcile entries in order.',
+          'Test each release against the core flows: register, sign in, record change, collect change, share WhatsApp message.'
         ]
       },
       {
-        heading: '8. Updates and Incident Response',
+        heading: '8. Incident Response and Terms Updates',
         bullets: [
-          'Test each release against the core flows: register, sign in, record change, collect change, share WhatsApp message.',
           'For a security incident: contain (rotate credentials, restrict access), assess what data was affected, notify affected customers where required, and record a post-incident summary.',
           'Where a material change to terms occurs, bump the legal document version and require re-acceptance as designed.'
         ]
@@ -578,98 +762,6 @@ export const LEGAL_DOCS: LegalDoc[] = [
           'Confirm fees are settled before final export.',
           'Delete the shop\'s records after the agreed retention period, keeping only what law or dispute defence requires.',
           'Revoke any shared credentials and close the shop portal.'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'purchase-template',
-    title: 'Client Software Purchase and Service Agreement (Template)',
-    version: '1.0',
-    updated: '2026-10-18',
-    audience: 'internal',
-    intro:
-      'TEMPLATE — complete every bracketed field for each business purchasing or licensing ChangeTrack, then sign one copy per client. This template is a starting point and should be reviewed by a qualified Zimbabwean legal professional before first commercial use.',
-    sections: [
-      {
-        heading: 'Parties',
-        bullets: [
-          'Supplier: Future Pulse Investments, company details: [INSERT: registered company name/number if any, registered address, contact email].',
-          'Client (business purchasing ChangeTrack): [INSERT: client legal name, registration number if any, physical address, contact person, email, phone].'
-        ]
-      },
-      {
-        heading: '1. Scope',
-        paragraphs: [
-          'Supplier grants the Client the right to use ChangeTrack for the Client\'s internal retail change recordkeeping, as delivered, for the business named above.',
-          'Included in this agreement: [INSERT: modules/features included, number of tills/users, branches covered].'
-        ]
-      },
-      {
-        heading: '2. Licence Type and Ownership',
-        bullets: [
-          'Licence type: [INSERT: e.g. perpetual licence / annual subscription / site licence].',
-          'Ownership of the software, source code, and intellectual property remains with Future Pulse Investments. The Client receives only the usage rights in this agreement.',
-          'Any deviation (for example source-code escrow) must be written here and signed.'
-        ]
-      },
-      {
-        heading: '3. Price and Payment Schedule',
-        bullets: [
-          'Software licence / purchase fee: [INSERT: amount and currency].',
-          'Recurring hosting cost (if applicable): [INSERT: amount, billing frequency].',
-          'Maintenance fee (if applicable): [INSERT: amount, billing frequency, what it covers].',
-          'Payment terms: [INSERT: e.g. 50% on signing, 50% on acceptance testing; due dates; accepted payment methods].',
-          'Late payment: [INSERT: consequence, e.g. access suspension after written notice].'
-        ]
-      },
-      {
-        heading: '4. Hosting Responsibilities',
-        bullets: [
-          'Hosting is provided by: [INSERT: supplier or client].',
-          'If client-hosted: the Client is responsible for the hosting account, uptime, and provider relationship; Supplier provides technical configuration support under the maintenance plan.',
-          'If supplier-hosted: hosting is billed as in section 3 and covered by the service limitations in the Service Limitations and Data Disclaimer.'
-        ]
-      },
-      {
-        heading: '5. Maintenance Plan',
-        bullets: [
-          'Included: bug fixes for core features, security updates, support via [INSERT: channel] during [INSERT: hours].',
-          'Excluded: new features, custom reports, integrations, data entry, training beyond [INSERT: e.g. one onboarding session], and third-party outages.',
-          'Enhancements are quoted separately and only start after written approval.'
-        ]
-      },
-      {
-        heading: '6. Acceptance Testing',
-        bullets: [
-          'The Client has [INSERT: number, e.g. 7] days from delivery to verify that registration, recording change, collecting change, QR scanning, and WhatsApp message preparation work as agreed.',
-          'Defects found during this window are fixed at no charge. After acceptance, standard maintenance terms apply.'
-        ]
-      },
-      {
-        heading: '7. Commencement and Term',
-        bullets: [
-          'Commencement date: [INSERT: date].',
-          'Term: [INSERT: e.g. 12 months from commencement / perpetual for the licence with annual maintenance renewals].'
-        ]
-      },
-      {
-        heading: '8. Termination and Data Export',
-        bullets: [
-          'Either party may terminate per: [INSERT: notice period and grounds].',
-          'On termination, Supplier will provide the Client\'s data export in CSV format, subject to fees being settled.',
-          'Sections on ownership and intellectual property survive termination.'
-        ]
-      },
-      {
-        heading: '9. Governing Law',
-        paragraphs: ['This agreement is governed by the laws of Zimbabwe.']
-      },
-      {
-        heading: 'Signatures',
-        paragraphs: [
-          'For Future Pulse Investments: name, title, signature, date: ______________________',
-          'For the Client: name, title, signature, date: ______________________'
         ]
       }
     ]
@@ -695,7 +787,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
           'It is not a bank, mobile money service, or payment processor. No money moves through ChangeTrack.',
           'It is not a financial institution and holds no funds on behalf of anyone.',
           'It is not a legal adviser. Records it produces are business records, not legal advice or legally certified proof.',
-          'It is not a guarantor that outstanding change will be collected. A recorded amount is a record of what your business says it owes — collecting it remains a matter between you and your customer.'
+          'It is not a guarantor of repayment or collection. A recorded amount is a record of what your business says it owes — collecting it remains a matter between you and your customer.'
         ]
       },
       {
@@ -709,7 +801,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         bullets: [
           'Verify amounts and customer details before recording them.',
           'Review records periodically and reconcile balances against your physical cash.',
-          'Resolve customer disputes using the audit history as supporting evidence, not as a verdict.',
+          'Resolve disagreements and disputes with customers using the audit history as supporting evidence, not as a verdict.',
           'Keep your own exports of important records.'
         ]
       },

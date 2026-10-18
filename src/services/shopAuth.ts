@@ -154,6 +154,50 @@ class ShopAuthService {
     if (client) await client.auth.signOut();
   }
 
+  /**
+   * Latest legal acceptance for the signed-in user, or null if none exists.
+   * Returns undefined when the check itself could not run (offline/db error) so
+   * callers can fail open instead of locking users out.
+   */
+  async getLatestAcceptance(): Promise<{ terms_version: string; privacy_version: string } | null | undefined> {
+    const client = supabaseService.getClient();
+    if (!client) return undefined;
+    const { data, error } = await client
+      .from('legal_acceptances')
+      .select('terms_version, privacy_version, accepted_at')
+      .order('accepted_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) return undefined;
+    return data ? { terms_version: data.terms_version, privacy_version: data.privacy_version } : null;
+  }
+
+  /** Record renewed acceptance of the current document versions. */
+  async recordRenewedAcceptance(marketingOptIn: boolean): Promise<boolean> {
+    const client = supabaseService.getClient();
+    if (!client) return false;
+    const { data: userData } = await client.auth.getUser();
+    const user = userData.user;
+    if (!user) return false;
+
+    const { data: shopRow } = await client.from('shops').select('id').maybeSingle();
+
+    const { error } = await client.from('legal_acceptances').insert({
+      user_id: user.id,
+      user_email: user.email ?? '',
+      shop_id: shopRow?.id ?? null,
+      terms_version: CURRENT_TERMS_VERSION,
+      privacy_version: CURRENT_PRIVACY_VERSION,
+      marketing_consent: marketingOptIn,
+      user_agent: navigator.userAgent
+    });
+    if (error) {
+      console.warn('[LegalAcceptance] renewal failed:', error.message);
+      return false;
+    }
+    return true;
+  }
+
   async getSessionUser(): Promise<{ id: string; email?: string } | null> {
     const client = supabaseService.getClient();
     if (!client) return null;
