@@ -3,6 +3,12 @@ import {
   ShieldCheck, Lock, Loader as Loader2, CircleAlert as AlertCircle,
   LogOut, Database, Activity, RefreshCw
 } from 'lucide-react';
+import { supabaseService } from '../services/supabase';
+
+const ADMIN_FUNCTION_URL = () => {
+  const base = (supabaseService.getConfig().supabaseUrl || '').trim();
+  return base ? `${base.replace(/\/+$/, '')}/functions/v1/admin-portal` : '';
+};
 
 interface AdminPortalResponse {
   ok: boolean;
@@ -48,8 +54,12 @@ export const AdminPortalPage: React.FC = () => {
     setBusy(true);
     setError(null);
     try {
-      const baseUrl = (import.meta.env.VITE_SUPABASE_URL as string || '').trim();
-      const res = await fetch(`${baseUrl}/functions/v1/admin-portal`, {
+      const url = ADMIN_FUNCTION_URL();
+      if (!url) {
+        setError('The server address is not configured. Please reload the app and try again.');
+        return;
+      }
+      const res = await fetch(url, {
         method: 'POST',
         headers: {
           'x-admin-email': email.trim(),
@@ -75,8 +85,12 @@ export const AdminPortalPage: React.FC = () => {
     setBusy(true);
     setError(null);
     try {
-      const baseUrl = (import.meta.env.VITE_SUPABASE_URL as string || '').trim();
-      const res = await fetch(`${baseUrl}/functions/v1/admin-portal`, {
+      const url = ADMIN_FUNCTION_URL();
+      if (!url) {
+        setData(null);
+        return;
+      }
+      const res = await fetch(url, {
         method: 'POST',
         headers: {
           'x-admin-email': data.viewer.email,
