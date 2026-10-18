@@ -176,6 +176,7 @@ export function App() {
   const [showShopSettings, setShowShopSettings] = useState(false);
   const [showPhonePortalModal, setShowPhonePortalModal] = useState(false);
   const [showLegalViewer, setShowLegalViewer] = useState(false);
+  const [showAdminPortal, setShowAdminPortal] = useState(false);
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
@@ -376,6 +377,12 @@ export function App() {
         <LegalViewerModal onClose={() => setShowLegalViewer(false)} />
       )}
 
+      {showAdminPortal && (
+        <div className="fixed inset-0 z-[200] overflow-y-auto bg-ink-950">
+          <AdminPortalPage />
+        </div>
+      )}
+
       {/* App Footer */}
       <footer className="mt-auto border-t border-slate-200 bg-white/70 py-4 px-6 text-center text-xs text-slate-500 print:hidden">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
@@ -387,6 +394,9 @@ export function App() {
           <div className="flex items-center gap-4 text-slate-400">
             <button onClick={() => setShowLegalViewer(true)} className="font-bold hover:text-brand-700 underline underline-offset-2 transition-colors">
               Legal & Policies
+            </button>
+            <button onClick={() => setShowAdminPortal(true)} className="font-semibold hover:text-slate-600 transition-colors">
+              Admin Portal
             </button>
             <span>ChangeTrack — Powered by Future Pulse Investments</span>
           </div>

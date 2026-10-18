@@ -3,6 +3,7 @@ import { Coins, Mail, Lock, Store, Loader as Loader2, CircleAlert as AlertCircle
 import { shopAuth } from '../services/shopAuth';
 import { CURRENT_TERMS_VERSION, CURRENT_PRIVACY_VERSION } from '../legal/legalDocs';
 import { LegalViewerModal } from '../legal/LegalViewerModal';
+import { AdminPortalPage } from './AdminPortalPage';
 
 interface ShopAuthPageProps {
   onAuthed: () => void;
@@ -20,6 +21,7 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [legalViewerDoc, setLegalViewerDoc] = useState<string | null>(null);
+  const [showAdminPortal, setShowAdminPortal] = useState(false);
 
   const validate = (): string | null => {
     if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email.trim())) return 'Please enter a valid email address.';
@@ -274,9 +276,21 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
               <button onClick={() => setLegalViewerDoc('privacy')} className="underline underline-offset-2 hover:text-slate-600">Privacy Policy</button>.
             </p>
             <p className="mt-1 text-[11px] text-slate-400">ChangeTrack — Powered by Future Pulse Investments</p>
+            <button
+              onClick={() => { setShowAdminPortal(true); }}
+              className="mt-3 text-[11px] font-semibold text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              Admin Portal
+            </button>
           </div>
         </div>
       </div>
+
+      {showAdminPortal && (
+        <div className="fixed inset-0 z-[200] overflow-y-auto bg-ink-950">
+          <AdminPortalPage />
+        </div>
+      )}
 
       {legalViewerDoc && (
         <LegalViewerModal
