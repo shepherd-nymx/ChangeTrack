@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Coins, Mail, Lock, Store, Loader as Loader2, CircleAlert as AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { shopAuth } from '../services/shopAuth';
+import { CURRENT_TERMS_VERSION, CURRENT_PRIVACY_VERSION } from '../legal/legalDocs';
 
 interface ShopAuthPageProps {
   onAuthed: () => void;
@@ -15,6 +17,8 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
 
   const validate = (): string | null => {
     if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email.trim())) return 'Please enter a valid email address.';
@@ -22,6 +26,7 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
     if (mode === 'register') {
       if (!shopName.trim()) return 'Please enter your shop name.';
       if (password !== confirmPassword) return 'Passwords do not match.';
+      if (!agreedToTerms) return 'Please read and accept the Terms of Service and Privacy Policy to continue.';
     }
     return null;
   };
@@ -40,7 +45,7 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
     setBusy(true);
     try {
       if (mode === 'register') {
-        const res = await shopAuth.signUpShop(shopName.trim(), email.trim(), password);
+        const res = await shopAuth.signUpShop(shopName.trim(), email.trim(), password, marketingOptIn);
         if (!res.success) {
           setError(res.error || 'Could not create your shop account.');
           return;
@@ -188,6 +193,38 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
               </div>
             )}
 
+            {mode === 'register' && (
+              <div className="space-y-2.5 pt-1">
+                <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={e => setAgreedToTerms(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 accent-emerald-600 shrink-0"
+                    required
+                  />
+                  <span className="text-xs text-slate-600 leading-relaxed">
+                    I have read and agree to the{' '}
+                    <Link to="/legal/terms" target="_blank" className="font-bold text-brand-700 hover:text-brand-800 underline underline-offset-2">Terms of Service</Link>
+                    {' '}and acknowledge the{' '}
+                    <Link to="/legal/privacy" target="_blank" className="font-bold text-brand-700 hover:text-brand-800 underline underline-offset-2">Privacy Policy</Link>
+                    .
+                  </span>
+                </label>
+                <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={marketingOptIn}
+                    onChange={e => setMarketingOptIn(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 accent-emerald-600 shrink-0"
+                  />
+                  <span className="text-xs text-slate-600 leading-relaxed">
+                    (Optional) Send me occasional product news and updates.
+                  </span>
+                </label>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={busy}
@@ -229,6 +266,13 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
                 </button>
               </p>
             )}
+            <p className="mt-3 text-xs text-slate-400">
+              By using ChangeTrack you agree to our{' '}
+              <Link to="/legal/terms" target="_blank" className="underline underline-offset-2 hover:text-slate-600">Terms of Service</Link>
+              {' '}and{' '}
+              <Link to="/legal/privacy" target="_blank" className="underline underline-offset-2 hover:text-slate-600">Privacy Policy</Link>.
+            </p>
+            <p className="mt-1 text-[11px] text-slate-400">ChangeTrack — Powered by Future Pulse Investments</p>
           </div>
         </div>
       </div>

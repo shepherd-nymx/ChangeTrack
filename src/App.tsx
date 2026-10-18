@@ -335,9 +335,7 @@ export function App() {
             <span>Tamper-Resistant Change & Anti-Dispute Verification</span>
           </div>
           <div className="flex items-center gap-4 text-slate-400">
-            <span>Branch: {shop.branchName || 'Main Terminal'}</span>
-            <span>WhatsApp Direct Redirect (No Meta API)</span>
-            <span>Thermal 80mm ESC/POS Ready</span>
+            <span>ChangeTrack — Powered by Future Pulse Investments</span>
           </div>
         </div>
       </footer>
