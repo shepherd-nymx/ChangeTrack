@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Coins, Mail, Lock, Store, Loader as Loader2, CircleAlert as AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
 import { shopAuth } from '../services/shopAuth';
 import { CURRENT_TERMS_VERSION, CURRENT_PRIVACY_VERSION } from '../legal/legalDocs';
@@ -10,7 +10,7 @@ interface ShopAuthPageProps {
 }
 
 export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register' | 'verify' | 'setup'>('login');
   const [shopName, setShopName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,12 +23,47 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
   const [legalViewerDoc, setLegalViewerDoc] = useState<string | null>(null);
   const [showAdminPortal, setShowAdminPortal] = useState(false);
 
+  const [resendAfter, setResendAfter] = useState(0);
+  useEffect(() => {
+    let active = true;
+    const check = async () => {
+      const user = await shopAuth.getVerifiedUser();
+      if (!active || !user) return;
+      const existing = await shopAuth.getSessionUser();
+      if (!active) return;
+      if (existing) { onAuthed(); return; }
+      setEmail(user.email ?? '');
+      setShopName(typeof user.user_metadata.shop_name === 'string' ? user.user_metadata.shop_name : '');
+      setAgreedToTerms(false);
+      setMode('setup');
+    };
+    void check().catch(() => { if (active) setError('Could not check your session. Please try signing in again.'); });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!resendAfter) return;
+    const timer = window.setTimeout(() => setResendAfter(n => n - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendAfter]);
+
+  const handleResend = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await shopAuth.resendVerification(email.trim());
+      if (!result.success) setError(result.error || 'Could not resend confirmation email.');
+      else { setNotice('Confirmation email requested. Check your inbox and spam folder.'); setResendAfter(60); }
+    } catch { setError('Could not resend confirmation email. Please try again.'); }
+    finally { setBusy(false); }
+  };
+
   const validate = (): string | null => {
     if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email.trim())) return 'Please enter a valid email address.';
-    if (password.length < 6) return 'Password must be at least 6 characters long.';
-    if (mode === 'register') {
+    if (mode !== 'setup' && password.length < 6) return 'Password must be at least 6 characters long.';
+    if (mode === 'register' || mode === 'setup') {
       if (!shopName.trim()) return 'Please enter your shop name.';
-      if (password !== confirmPassword) return 'Passwords do not match.';
+      if (mode === 'register' && password !== confirmPassword) return 'Passwords do not match.';
       if (!agreedToTerms) return 'Please read and accept the Terms of Service and Privacy Policy to continue.';
     }
     return null;
@@ -47,24 +82,33 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
 
     setBusy(true);
     try {
-      if (mode === 'register') {
-        const res = await shopAuth.signUpShop(shopName.trim(), email.trim(), password, marketingOptIn);
+      if (mode === 'setup') {
+        const res = await shopAuth.completeRegistration(shopName.trim(), marketingOptIn);
+        if (!res.success) { setError(res.error || 'Could not finish setting up your shop.'); return; }
+        onAuthed();
+      } else if (mode === 'register') {
+        const res = await shopAuth.signUpShop(shopName.trim(), email.trim(), password);
         if (!res.success) {
           setError(res.error || 'Could not create your shop account.');
           return;
         }
         if (res.needsVerification) {
-          setNotice('Account created! Please check your email to confirm, then sign in.');
-          setMode('login');
+          setNotice('Check your email and click the confirmation link before signing in.');
+          setPassword('');
+          setConfirmPassword('');
+          setResendAfter(60);
+          setMode('verify');
           return;
         }
         onAuthed();
       } else {
         const res = await shopAuth.signIn(email.trim(), password);
         if (!res.success) {
+          if (res.needsVerification) setMode('verify');
           setError(res.error || 'Could not sign you in.');
           return;
         }
+        if (res.needsSetup) { setMode('setup'); setAgreedToTerms(false); return; }
         onAuthed();
       }
     } catch (err: any) {
@@ -122,33 +166,41 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
           </div>
 
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            {mode === 'login' ? 'Shop sign in' : 'Register your shop'}
+            {mode === 'verify' ? 'Verify your email' : mode === 'setup' ? 'Finish setting up your shop' : mode === 'login' ? 'Shop sign in' : 'Register your shop'}
           </h2>
           <p className="mt-1.5 text-sm text-slate-500">
-            {mode === 'login'
+            {mode === 'verify' ? `Check ${email} for a confirmation link. After confirming, return here to sign in with your password.` : mode === 'setup' ? 'Your email is verified. Confirm your shop details to continue.' : mode === 'login'
               ? 'Sign in to open your shop portal and manage customer change.'
-              : 'Create a private portal for your shop in under a minute.'}
+              : 'Create your account, verify your email, then open your private shop portal.'}
           </p>
 
           {error && (
-            <div className="mt-5 flex items-start gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-sm text-rose-700 rise-in">
+            <div role="alert" className="mt-5 flex items-start gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-sm text-rose-700 rise-in">
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>
           )}
           {notice && (
-            <div className="mt-5 flex items-start gap-2 rounded-xl bg-brand-50 border border-brand-200 p-3 text-sm text-brand-800 rise-in">
+            <div role="status" className="mt-5 flex items-start gap-2 rounded-xl bg-brand-50 border border-brand-200 p-3 text-sm text-brand-800 rise-in">
               <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0" />
               <span>{notice}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
-            {mode === 'register' && (
+          {mode === 'verify' ? (
+            <div className="mt-6 space-y-3">
+              <button type="button" disabled={busy || resendAfter > 0} onClick={handleResend} className="w-full py-3 rounded-xl bg-brand-600 text-white font-bold disabled:opacity-60">
+                {busy ? 'Sending…' : resendAfter > 0 ? `Resend email in ${resendAfter}s` : 'Resend confirmation email'}
+              </button>
+              <button type="button" onClick={() => { setMode('login'); setError(null); setNotice(null); }} className="w-full py-3 text-brand-700 font-bold">Back to sign in</button>
+            </div>
+          ) : <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
+            {(mode === 'register' || mode === 'setup') && (
               <div className="relative">
                 <Store className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
+                  aria-label="Shop name"
                   value={shopName}
                   onChange={e => setShopName(e.target.value)}
                   placeholder="Shop name (e.g. Harare Central Tuckshop)"
@@ -162,6 +214,8 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
+                aria-label="Email address"
+                readOnly={mode === 'setup'}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@shop.com"
@@ -170,17 +224,18 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
               />
             </div>
 
-            <div className="relative">
+            {mode !== 'setup' && <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
+                aria-label="Password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Password (min. 6 characters)"
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 className={inputBase}
               />
-            </div>
+            </div>}
 
             {mode === 'register' && (
               <div className="relative">
@@ -196,7 +251,7 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
               </div>
             )}
 
-            {mode === 'register' && (
+            {(mode === 'register' || mode === 'setup') && (
               <div className="space-y-2.5 pt-1">
                 <label className="flex items-start gap-2.5 cursor-pointer select-none">
                   <input
@@ -236,19 +291,19 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
               {busy ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  {mode === 'login' ? 'Signing in…' : 'Creating your portal…'}
+                  {mode === 'login' ? 'Signing in…' : mode === 'setup' ? 'Creating your portal…' : 'Sending confirmation…'}
                 </>
               ) : (
                 <>
-                  {mode === 'login' ? 'Sign in to portal' : 'Create shop portal'}
+                  {mode === 'login' ? 'Sign in to portal' : mode === 'setup' ? 'Open shop portal' : 'Create account and verify email'}
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
-          </form>
+          </form>}
 
           <div className="mt-6 pt-5 border-t border-slate-200 text-sm text-center">
-            {mode === 'login' ? (
+            {mode === 'setup' ? <button onClick={async () => { await shopAuth.signOut(); setMode('login'); }} className="text-brand-700 font-bold">Sign out</button> : mode === 'login' ? (
               <p className="text-slate-500">
                 New to ChangeTrack?{' '}
                 <button

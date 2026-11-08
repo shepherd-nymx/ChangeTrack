@@ -207,7 +207,7 @@ export const AdminPortalPage: React.FC = () => {
             {Object.entries(data.counts).map(([table, count]) => (
               <div key={table} className="bg-white rounded-2xl shadow-lg p-4">
                 <p className="text-2xl font-extrabold text-slate-900 font-mono-num">
-                  {count < 0 ? '—' : count.toLocaleString()}
+                  {typeof count === 'number' && count >= 0 ? count.toLocaleString() : '—'}
                 </p>
                 <p className="text-[11px] text-slate-400 font-semibold mt-0.5 leading-snug">
                   {FRIENDLY_TABLE_NAMES[table] ?? table}
