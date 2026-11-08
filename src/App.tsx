@@ -245,7 +245,7 @@ export function App() {
   }
 
   if (authState === false) {
-    return <ShopAuthPage onAuthed={() => setAuthState(true)} />;
+    return <ShopAuthPage onAuthed={() => window.location.reload()} />;
   }
 
   if (termsAccepted === true) {
