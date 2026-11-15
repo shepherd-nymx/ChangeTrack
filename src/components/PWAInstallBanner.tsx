@@ -42,7 +42,7 @@ export const PWAInstallBanner: React.FC = () => {
               </span>
             </div>
             <p className="text-[11px] text-ink-300 hidden md:block truncate max-w-xl">
-              Add to your device for 1-click till opening, fullscreen mode, and full offline slip verification.
+              Add to your device for quick access and a dedicated app window. Cloud sign-in and sync need internet.
             </p>
           </div>
         </div>

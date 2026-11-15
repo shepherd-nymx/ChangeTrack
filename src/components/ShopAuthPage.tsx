@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Coins, Mail, Lock, Store, Loader as Loader2, CircleAlert as AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { supabaseService } from '../services/supabase';
+import { PWAInstallButton } from './PWAInstallButton';
 import { shopAuth } from '../services/shopAuth';
 import { CURRENT_TERMS_VERSION, CURRENT_PRIVACY_VERSION } from '../legal/legalDocs';
 import { LegalViewerModal } from '../legal/LegalViewerModal';
@@ -23,7 +25,37 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
   const [legalViewerDoc, setLegalViewerDoc] = useState<string | null>(null);
   const [showAdminPortal, setShowAdminPortal] = useState(false);
 
+  const [googleSetup, setGoogleSetup] = useState(false);
+  useEffect(() => {
+    const client = supabaseService.getClient();
+    let active = true;
+    client?.auth.getSession().then(({ data }) => {
+      if (active && data.session) { setGoogleSetup(true); setMode('register'); }
+    });
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    if (params.has('error_description')) {
+      setError(params.get('error_description'));
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+    return () => { active = false; };
+  }, []);
+  const handleGoogle = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await shopAuth.signInWithGoogle();
+      if (!result.success) setError(result.error ?? 'Google sign-in failed.');
+    } catch {
+      setError('Could not connect to Google. Please try again.');
+    } finally { setBusy(false); }
+  };
+
   const validate = (): string | null => {
+    if (googleSetup) {
+      if (!shopName.trim()) return 'Please enter your shop name.';
+      if (!agreedToTerms) return 'Please accept the Terms of Service and Privacy Policy.';
+      return null;
+    }
     if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email.trim())) return 'Please enter a valid email address.';
     if (password.length < 6) return 'Password must be at least 6 characters long.';
     if (mode === 'register') {
@@ -47,7 +79,11 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
 
     setBusy(true);
     try {
-      if (mode === 'register') {
+      if (googleSetup) {
+        const res = await shopAuth.completeGoogleShop(shopName.trim(), marketingOptIn);
+        if (!res.success) { setError(res.error ?? 'Could not create your shop.'); return; }
+        window.location.reload();
+      } else if (mode === 'register') {
         const res = await shopAuth.signUpShop(shopName.trim(), email.trim(), password, marketingOptIn);
         if (!res.success) {
           setError(res.error || 'Could not create your shop account.');
@@ -58,14 +94,15 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
           setMode('login');
           return;
         }
-        onAuthed();
+        window.location.reload();
       } else {
         const res = await shopAuth.signIn(email.trim(), password);
         if (!res.success) {
           setError(res.error || 'Could not sign you in.');
           return;
         }
-        onAuthed();
+        if (res.needsSetup) { setGoogleSetup(true); setMode('register'); return; }
+        window.location.reload();
       }
     } catch (err: any) {
       setError(err?.message || 'Something went wrong. Please try again.');
@@ -131,7 +168,7 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
           </p>
 
           {error && (
-            <div className="mt-5 flex items-start gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-sm text-rose-700 rise-in">
+            <div role="alert" className="mt-5 flex items-start gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-sm text-rose-700 rise-in">
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>
@@ -143,6 +180,13 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
             </div>
           )}
 
+          {!googleSetup && <button type="button" onClick={handleGoogle} disabled={busy}
+            className="mt-5 w-full min-h-[48px] rounded-xl border border-slate-300 bg-white text-slate-900 font-semibold disabled:opacity-60">
+            Continue with Google
+          </button>}
+          {googleSetup && <button type="button" onClick={() => { void shopAuth.signOut().then(() => window.location.reload()); }} className="mt-3 text-sm underline">Use another account</button>}
+          {googleSetup && <p className="mt-4 text-sm text-slate-600">You're signed in. Enter your shop name and accept the terms to finish setup.</p>}
+          <div className="mt-3"><PWAInstallButton variant="compact" /></div>
           <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
             {mode === 'register' && (
               <div className="relative">
@@ -158,6 +202,7 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
               </div>
             )}
 
+            {!googleSetup && <>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -195,6 +240,8 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
                 />
               </div>
             )}
+
+            </>}
 
             {mode === 'register' && (
               <div className="space-y-2.5 pt-1">
@@ -248,7 +295,7 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
           </form>
 
           <div className="mt-6 pt-5 border-t border-slate-200 text-sm text-center">
-            {mode === 'login' ? (
+            {!googleSetup && (mode === 'login' ? (
               <p className="text-slate-500">
                 New to ChangeTrack?{' '}
                 <button
@@ -268,7 +315,7 @@ export const ShopAuthPage: React.FC<ShopAuthPageProps> = ({ onAuthed }) => {
                   Sign in
                 </button>
               </p>
-            )}
+            ))}
             <p className="mt-3 text-xs text-slate-400">
               By using ChangeTrack you agree to our{' '}
               <button onClick={() => setLegalViewerDoc('terms')} className="underline underline-offset-2 hover:text-slate-600">Terms of Service</button>

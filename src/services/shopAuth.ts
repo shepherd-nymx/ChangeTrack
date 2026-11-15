@@ -4,6 +4,7 @@ import { CURRENT_TERMS_VERSION, CURRENT_PRIVACY_VERSION } from '../legal/legalDo
 interface AuthResult {
   success: boolean;
   needsVerification?: boolean;
+  needsSetup?: boolean;
   error?: string;
 }
 
@@ -18,6 +19,27 @@ function friendlyAuthError(msg: string): string {
 }
 
 class ShopAuthService {
+  async signInWithGoogle(): Promise<AuthResult> {
+    const client = supabaseService.getClient();
+    if (!client) return { success: false, error: 'Cloud services are not configured.' };
+    const { error } = await client.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + '/', queryParams: { prompt: 'select_account' } }
+    });
+    return error ? { success: false, error: friendlyAuthError(error.message) } : { success: true };
+  }
+
+  async completeGoogleShop(name: string, marketingOptIn: boolean): Promise<AuthResult> {
+    const client = supabaseService.getClient();
+    if (!client) return { success: false, error: 'Cloud services are not configured.' };
+    const { data, error } = await client.auth.getUser();
+    if (error || !data.user) return { success: false, error: 'Please sign in again.' };
+    const { data: existing, error: lookupError } = await client.from('shops').select('id').eq('owner_user_id', data.user.id).maybeSingle();
+    if (lookupError) return { success: false, error: 'Could not check your shop. Please reconnect and try again.' };
+    if (existing) { await this.getSessionUser(); return { success: true }; }
+    return this.createShop(name, data.user.id, data.user.email ?? '', marketingOptIn);
+  }
+
   /**
    * Sign up a new shop account, create the shop row, and start a clean local portal
    * for it. The ownership column (owner_user_id) is filled automatically from the
@@ -34,12 +56,17 @@ class ShopAuthService {
       return { success: true, needsVerification: true };
     }
 
+    return this.createShop(name, data.user.id, email, marketingOptIn);
+  }
+
+  private async createShop(name: string, userId: string, email: string, marketingOptIn: boolean): Promise<AuthResult> {
+    const client = supabaseService.getClient()!;
     const shopId = crypto.randomUUID();
 
     // Record legal acceptance BEFORE creating the shop: a database trigger
     // refuses shop creation until this account has an acceptance row.
     const { error: acceptanceError } = await client.from('legal_acceptances').insert({
-      user_id: data.user.id,
+      user_id: userId,
       user_email: email,
       shop_id: shopId,
       terms_version: CURRENT_TERMS_VERSION,
@@ -56,6 +83,7 @@ class ShopAuthService {
 
     const { error: shopError } = await client.from('shops').insert({
       id: shopId,
+      owner_user_id: userId,
       name,
       branch_name: 'Main Till',
       owner_name: name,
@@ -73,6 +101,7 @@ class ShopAuthService {
 
     const { storage } = await import('./storage');
     storage.initCleanLocalStore(shopId);
+    await storage.pullCurrentPortalFromSupabase();
 
     this.sendWelcomeEmail(name, email);
     return { success: true };
@@ -118,33 +147,8 @@ class ShopAuthService {
     const { error } = await client.auth.signInWithPassword({ email, password });
     if (error) return { success: false, error: friendlyAuthError(error.message) };
 
-    const { data: shopRow } = await client
-      .from('shops')
-      .select('id')
-      .maybeSingle();
-
-    if (!shopRow) {
-      const { data: user } = await client.auth.getUser();
-      const shopId = crypto.randomUUID();
-      const { error: shopError } = await client.from('shops').insert({
-        id: shopId,
-        name: 'My Shop',
-        branch_name: 'Main Till',
-        owner_name: 'Store Manager',
-        phone: '',
-        address: '',
-        currency: 'USD',
-        currency_symbol: '$'
-      });
-      if (shopError) return { success: false, error: friendlyAuthError(shopError.message) };
-
-      const { storage } = await import('./storage');
-      storage.initCleanLocalStore(shopId);
-    } else {
-      const { storage } = await import('./storage');
-      storage.initCleanLocalStore(shopRow.id);
-      await supabaseService.pullRemotePortalData(shopRow.id);
-    }
+    const user = await this.getSessionUser();
+    if (!user) return { success: true, needsSetup: true };
 
     return { success: true };
   }
@@ -203,20 +207,27 @@ class ShopAuthService {
     if (!client) return null;
     const { data, error } = await client.auth.getSession();
     if (error) return null;
-    return data.session?.user ?? null;
+    const user = data.session?.user;
+    if (!user) return null;
+    const { data: shop, error: shopError } = await client.from('shops').select('id').eq('owner_user_id', user.id).maybeSingle();
+    if (shopError || !shop) return null;
+    const { storage } = await import('./storage');
+    if (storage.getShop().id !== shop.id) {
+      storage.initCleanLocalStore(shop.id);
+      await storage.pullCurrentPortalFromSupabase();
+    }
+    return user;
   }
 
   onAuthChange(cb: (signedIn: boolean) => void): () => void {
     const client = supabaseService.getClient();
     if (!client) return () => {};
     const { data } = client.auth.onAuthStateChange((event, session) => {
-      (async () => {
-        // Only flip on explicit events: transient INITIAL_SESSION / TOKEN_REFRESHED
-        // emissions must never blank the app by toggling the auth gate.
-        if (event === 'SIGNED_IN') cb(true);
-        else if (event === 'SIGNED_OUT') cb(false);
-        else if (event === 'INITIAL_SESSION' && session) cb(true);
-      })();
+      // Defer Supabase queries until the auth callback releases its lock.
+      if (event === 'SIGNED_OUT') cb(false);
+      else if (event === 'SIGNED_IN' || (event === 'INITIAL_SESSION' && session)) {
+        setTimeout(() => { this.getSessionUser().then(user => cb(Boolean(user))); }, 0);
+      }
     });
     return () => data.subscription.unsubscribe();
   }

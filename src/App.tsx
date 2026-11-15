@@ -93,6 +93,7 @@ export function App() {
     let mounted = true;
     shopAuth.getSessionUser().then(user => {
       if (!mounted) return;
+      if (user) { setShop(storage.getShop()); setEmployees(storage.getEmployees()); }
       setAuthState(Boolean(user));
       if (user) {
         checkAcceptance();
@@ -100,6 +101,7 @@ export function App() {
     });
     const unsub = shopAuth.onAuthChange((signedIn) => {
       if (mounted) {
+        if (signedIn) { setShop(storage.getShop()); setEmployees(storage.getEmployees()); }
         setAuthState(signedIn);
         if (signedIn) checkAcceptance();
       }

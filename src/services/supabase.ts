@@ -89,7 +89,9 @@ class SupabaseService {
       try {
         this.client = createClient(envUrl.trim(), envKey.trim(), {
           auth: {
-            persistSession: true
+            persistSession: true,
+            flowType: 'pkce',
+            detectSessionInUrl: true
           }
         });
         this.currentUrl = envUrl;
